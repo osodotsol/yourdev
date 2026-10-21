@@ -28,20 +28,43 @@ export default function Home() {
     setTimeout(() => setShowToast(false), 2400);
   };
 
-  const handleBreakdown = (text: string, choices?: Record<string, string>) => {
+  const handleBreakdown = async (text: string, choices?: Record<string, string>) => {
     setIsLoading(true);
 
-    setTimeout(() => {
-      const generated = generateBlueprint(text, choices);
-      setBlueprint(generated);
-      setIsLoading(false);
-      triggerToast("✓ STRATEGY BLUEPRINT GENERATED");
+    try {
+      const res = await fetch("/api/breakdown", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idea: text, choices }),
+      });
 
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (data.blueprint) {
+        setBlueprint(data.blueprint);
+        triggerToast(
+          data.source === "gemini"
+            ? "✦ LIVE GEMINI AI STRATEGY GENERATED"
+            : "✓ STRATEGY BLUEPRINT GENERATED"
+        );
+      } else {
+        throw new Error("No blueprint returned in payload");
+      }
+    } catch (err) {
+      console.warn("Client fallback activated:", err);
+      const fallback = generateBlueprint(text, choices);
+      setBlueprint(fallback);
+      triggerToast("✓ STRATEGY BLUEPRINT GENERATED");
+    } finally {
+      setIsLoading(false);
       const consoleEl = document.getElementById("console");
       if (consoleEl) {
         consoleEl.scrollIntoView({ behavior: "smooth", block: "start" });
       }
-    }, 700);
+    }
   };
 
   const handleClear = () => {

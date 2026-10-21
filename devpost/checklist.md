@@ -29,7 +29,7 @@ Build mode: fast
   Learner check: Try each preset chip and one idea of your own. Does each blueprint feel tailored to what you typed, or generic?
   Commit: `feat: smart fallback blueprint generator`
 
-- [ ] **3. Live Gemini API integration with automatic fallback**
+- [x] **3. Live Gemini API integration with automatic fallback**
   Becomes usable: When a Gemini API key is set in `.env.local`, the app calls the real Gemini API and returns a richer, AI-generated blueprint. If the key is missing or the call fails/times out, it silently falls back to the smart engine from slice 2.
   Why now: The fallback already works, so adding the API is a safe enhancement — if anything breaks, the demo still runs.
   PRD ref: `prd.md > 2. Breakdown Generation & Smart Fallback`
