@@ -172,6 +172,7 @@ export function RoadmapGraph({ nodes, onShowToast }: RoadmapGraphProps) {
                 <span className="inspector-step-badge">
                   STEP 0{selectedNode.step} OF 0{nodes.length}
                 </span>
+                <span style={{ color: "var(--border-strong)", fontSize: "14px" }}>•</span>
                 <span
                   className={`roadmap-badge-tag ${
                     selectedNode.badge === "CORE MVP"

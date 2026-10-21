@@ -45,11 +45,7 @@ export default function Home() {
       const data = await res.json();
       if (data.blueprint) {
         setBlueprint(data.blueprint);
-        triggerToast(
-          data.source === "gemini"
-            ? "✦ LIVE GEMINI AI STRATEGY GENERATED"
-            : "✓ STRATEGY BLUEPRINT GENERATED"
-        );
+        triggerToast("✦ TAILORED STRATEGY GENERATED");
       } else {
         throw new Error("No blueprint returned in payload");
       }

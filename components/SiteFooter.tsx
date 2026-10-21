@@ -64,8 +64,8 @@ export function SiteFooter() {
           <a href="https://nextjs.org" target="_blank" rel="noopener noreferrer">
             Next.js 14 App Router
           </a>
-          <a href="https://ai.google.dev" target="_blank" rel="noopener noreferrer">
-            Google Gemini Free Tier
+          <a href="#console">
+            Autonomous Architect Engine
           </a>
           <a href="https://tailwindcss.com" target="_blank" rel="noopener noreferrer">
             Tailwind CSS
@@ -74,7 +74,7 @@ export function SiteFooter() {
       </div>
 
       <div className="footer-bottom">
-        <div>yourdev · Dual-Mode Engine (Gemini + Offline Fallback)</div>
+        <div>yourdev · Autonomous Architecture & Spec Studio</div>
         <div>Zero Paid Dependencies · Local First</div>
       </div>
     </footer>

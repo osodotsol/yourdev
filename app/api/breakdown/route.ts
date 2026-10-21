@@ -14,10 +14,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Attempt Live Gemini with 12s timeout
+    // Attempt Live Gemini with 28s timeout
     try {
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("Gemini API call timed out after 12s")), 12000)
+        setTimeout(() => reject(new Error("Gemini API call timed out after 28s")), 28000)
       );
 
       const blueprint = await Promise.race([

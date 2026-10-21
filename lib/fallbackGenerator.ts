@@ -659,7 +659,7 @@ export function generateBlueprint(
   const strategyDecision = buildStrategySummary(category, activeChoices);
 
   // Summary
-  const summary = `${projectTitle}: ${buildSummaryDetail(category, activeChoices, ideaText)}`;
+  const summary = buildSummaryDetail(category, activeChoices, ideaText);
 
   // Pitfalls specific to this build
   const pitfalls = getPitfallsForCategory(category, activeChoices);

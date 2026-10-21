@@ -13,6 +13,9 @@ import {
   RefreshCw,
   Loader2,
   SlidersHorizontal,
+  Map,
+  Layers,
+  Terminal,
 } from "lucide-react";
 import { RoadmapGraph } from "@/components/RoadmapGraph";
 
@@ -45,6 +48,7 @@ export function ConsoleSection({
   const [questions, setQuestions] = useState<ClarifyingQuestion[] | null>(null);
   const [userChoices, setUserChoices] = useState<Record<string, string>>({});
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [activeTab, setActiveTab] = useState<"roadmap" | "pitfalls" | "stack" | "prompt">("roadmap");
 
   const toggleStep = (stepNumber: number) => {
     setCompletedSteps((prev) =>
@@ -88,6 +92,7 @@ export function ConsoleSection({
     }
 
     setCompletedSteps([]);
+    setActiveTab("roadmap");
     onBreakdown(inputText, currentChoices);
 
     // Scroll to results once loading finishes
@@ -374,22 +379,22 @@ export function ConsoleSection({
         {!isLoading && blueprint && (
           <div className="blueprint-stage" id="blueprint-results">
             <div className="blueprint-stage-head">
-              <div>
+              <div style={{ flex: 1, minWidth: "280px" }}>
                 <span className="card-kicker">
                   {blueprint.isFallback ? "ENGINE v1.0 // CACHED" : "✦ TAILORED ARCHITECTURE SPEC"}
                 </span>
-                <h3>{blueprint.projectTitle}</h3>
-                <p style={{ fontSize: "14px", color: "var(--text-muted)", maxWidth: "680px" }}>
+                <h3 style={{ margin: "6px 0 8px" }}>{blueprint.projectTitle}</h3>
+                <p style={{ fontSize: "14.5px", lineHeight: "1.55", color: "var(--text-muted)", maxWidth: "700px" }}>
                   {blueprint.summary}
                 </p>
               </div>
 
-              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
                 <button
                   type="button"
                   className="btn-craft-secondary"
                   onClick={handleToggleCustomizer}
-                  style={{ fontSize: "12px" }}
+                  style={{ fontSize: "12px", padding: "9px 16px" }}
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Re-Calibrate Strategy</span>
@@ -398,6 +403,7 @@ export function ConsoleSection({
                   type="button"
                   className="btn-craft-primary"
                   onClick={handleCopyFull}
+                  style={{ fontSize: "12px", padding: "9px 18px" }}
                 >
                   <Copy className="w-4 h-4" />
                   <span>Copy Full Blueprint</span>
@@ -417,74 +423,80 @@ export function ConsoleSection({
               </div>
             )}
 
-            {/* Interactive Visual Roadmap Graph (roadmap.sh style) */}
-            {blueprint.nodes && blueprint.nodes.length > 0 && (
+            {/* SEGMENTED STUDIO NAVIGATION TABS */}
+            <div className="output-tabs-bar" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "roadmap"}
+                className={`output-tab-btn ${activeTab === "roadmap" ? "is-active" : ""}`}
+                onClick={() => setActiveTab("roadmap")}
+              >
+                <Map className="w-4 h-4 text-emerald-600" />
+                <span>Execution Roadmap & Step Prompts</span>
+                {blueprint.nodes && blueprint.nodes.length > 0 && (
+                  <span style={{ fontSize: "11px", opacity: 0.8, fontFamily: "var(--mono)" }}>
+                    ({blueprint.nodes.length} Steps)
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "pitfalls"}
+                className={`output-tab-btn ${activeTab === "pitfalls" ? "is-active" : ""}`}
+                onClick={() => setActiveTab("pitfalls")}
+              >
+                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                <span>Traps & Failure Modes</span>
+                {blueprint.pitfalls && blueprint.pitfalls.length > 0 && (
+                  <span style={{ fontSize: "11px", opacity: 0.8, fontFamily: "var(--mono)" }}>
+                    ({blueprint.pitfalls.length})
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "stack"}
+                className={`output-tab-btn ${activeTab === "stack" ? "is-active" : ""}`}
+                onClick={() => setActiveTab("stack")}
+              >
+                <Layers className="w-4 h-4 text-indigo-600" />
+                <span>Calibrated Stack & Docs</span>
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "prompt"}
+                className={`output-tab-btn ${activeTab === "prompt" ? "is-active" : ""}`}
+                onClick={() => setActiveTab("prompt")}
+              >
+                <Terminal className="w-4 h-4 text-slate-700" />
+                <span>Master AI Prompt</span>
+              </button>
+            </div>
+
+            {/* TAB CONTENT 1: Interactive Visual Roadmap Graph (roadmap.sh style) */}
+            {activeTab === "roadmap" && blueprint.nodes && blueprint.nodes.length > 0 && (
               <RoadmapGraph nodes={blueprint.nodes} onShowToast={onShowToast} />
             )}
 
-            <div className="blueprint-tiles-layout">
-              {/* Tile 1: Roadmap */}
-              <div className="blueprint-card-item">
-                <div>
-                  <div className="card-kicker">01 · Phased Roadmap</div>
-                  <h4 className="card-title">Sequential Milestones</h4>
-                  <ul className="card-list-clean">
-                    {blueprint.roadmap.map((phase, idx) => (
-                      <li key={idx}>
-                        <strong>{phase.phase}:</strong> {phase.title} —{" "}
-                        <span>{phase.description}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Tile 2: Interactive Next Actions Checklist */}
-              <div className="blueprint-card-item">
-                <div>
-                  <div className="card-kicker">02 · Immediate Next Actions</div>
-                  <h4 className="card-title">Interactive Checklist (Click to tick)</h4>
-                  <div style={{ display: "grid", gap: "8px", marginTop: "12px" }}>
-                    {blueprint.nextActions.map((action) => {
-                      const isDone = completedSteps.includes(action.step);
-                      return (
-                        <div
-                          key={action.step}
-                          className="stage-task-row"
-                          onClick={() => toggleStep(action.step)}
-                        >
-                          <div
-                            className={`stage-task-checkbox ${
-                              isDone ? "is-checked" : ""
-                            }`}
-                          >
-                            {isDone && <Check className="w-3 h-3 stroke-[3]" />}
-                          </div>
-                          <span
-                            className={`stage-task-text ${
-                              isDone ? "is-done" : ""
-                            }`}
-                          >
-                            <strong>Step {action.step}:</strong> {action.action}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Tile 3: Where Beginners Get Stuck (Pitfalls & Traps) */}
+            {/* TAB CONTENT 2: Critical Pitfalls & Traps */}
+            {activeTab === "pitfalls" && (
               <div className="blueprint-card-item tile-wide" style={{ background: "#ffffff", color: "var(--text)" }}>
                 <div>
                   <div className="card-kicker" style={{ color: "#a82a1e" }}>
-                    03 · Where Beginners Get Stuck (Pitfalls & Traps)
+                    Critical Failure Modes & Anti-Patterns
                   </div>
                   <h4 className="card-title" style={{ color: "#18191a", marginBottom: "4px" }}>
-                    Critical Failure Modes for this Specific Project
+                    Where Beginners & AI Coding Agents Get Stuck
                   </h4>
-                  <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "14px" }}>
-                    Pair-programming failure modes and technical traps to guard your coding agent against:
+                  <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "16px" }}>
+                    Pair-programming failure modes and technical traps specifically guarded for this project:
                   </p>
 
                   <div className="pitfalls-container">
@@ -492,7 +504,7 @@ export function ConsoleSection({
                       blueprint.pitfalls.map((pit, idx) => (
                         <div key={idx} className="pitfall-single-item">
                           <div className="pitfall-title">
-                            <AlertTriangle className="w-4 h-4 shrink-0" />
+                            <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
                             <span>Trap {idx + 1}: {pit.trap}</span>
                           </div>
                           <div className="pitfall-body">
@@ -511,51 +523,56 @@ export function ConsoleSection({
                   </div>
                 </div>
               </div>
+            )}
 
-              {/* Tile 4: Tech Stack */}
-              <div className="blueprint-card-item">
-                <div>
-                  <div className="card-kicker">04 · Tech Stack</div>
-                  <h4 className="card-title">Calibrated Stack & Rationale</h4>
-                  <ul className="card-list-clean">
-                    {blueprint.techStack.map((item, idx) => (
-                      <li key={idx}>
-                        <strong>{item.name}</strong> ({item.category}):{" "}
-                        <span>{item.reason}</span>
-                      </li>
-                    ))}
-                  </ul>
+            {/* TAB CONTENT 3: Tech Stack & Official Resources */}
+            {activeTab === "stack" && (
+              <div className="blueprint-tiles-layout" style={{ gridTemplateColumns: "1fr 1fr" }}>
+                <div className="blueprint-card-item">
+                  <div>
+                    <div className="card-kicker">01 · Calibrated Stack</div>
+                    <h4 className="card-title">Technology & Rationale</h4>
+                    <ul className="card-list-clean">
+                      {blueprint.techStack.map((item, idx) => (
+                        <li key={idx}>
+                          <strong>{item.name}</strong> ({item.category}):{" "}
+                          <span>{item.reason}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="blueprint-card-item">
+                  <div>
+                    <div className="card-kicker">02 · Official References</div>
+                    <h4 className="card-title">Verified Official Links</h4>
+                    <ul className="card-list-clean">
+                      {blueprint.resources.map((res, idx) => (
+                        <li key={idx}>
+                          <a
+                            href={res.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              color: "var(--accent-green)",
+                              textDecoration: "underline",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {res.title}
+                          </a>{" "}
+                          — <em>{res.type}</em>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
+            )}
 
-              {/* Tile 5: Free Resources */}
-              <div className="blueprint-card-item">
-                <div>
-                  <div className="card-kicker">05 · Free Resources</div>
-                  <h4 className="card-title">Verified Official Links</h4>
-                  <ul className="card-list-clean">
-                    {blueprint.resources.map((res, idx) => (
-                      <li key={idx}>
-                        <a
-                          href={res.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            color: "var(--accent-green)",
-                            textDecoration: "underline",
-                            fontWeight: 600,
-                          }}
-                        >
-                          {res.title}
-                        </a>{" "}
-                        — <em>{res.type}</em>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Tile 6: AI Coding Agent Guide & First Prompt */}
+            {/* TAB CONTENT 4: Master AI Agent Prompt */}
+            {activeTab === "prompt" && (
               <div className="blueprint-card-item tile-wide">
                 <div
                   style={{
@@ -564,10 +581,11 @@ export function ConsoleSection({
                     alignItems: "center",
                     flexWrap: "wrap",
                     gap: "10px",
+                    marginBottom: "12px",
                   }}
                 >
                   <div>
-                    <div className="card-kicker">06 · Agent First Prompt</div>
+                    <div className="card-kicker">End-to-End Pair-Programming Prompt</div>
                     <h4 className="card-title" style={{ margin: 0, color: "#fff" }}>
                       Paste Directly Into Cursor, Claude, or Copilot
                     </h4>
@@ -577,7 +595,7 @@ export function ConsoleSection({
                     className="btn-craft-secondary"
                     style={{
                       padding: "8px 16px",
-                      fontSize: "11px",
+                      fontSize: "12px",
                       background: "#26282b",
                       color: "#fff",
                       borderColor: "#3d4044",
@@ -585,14 +603,14 @@ export function ConsoleSection({
                     onClick={handleCopyPrompt}
                   >
                     <Copy className="w-3.5 h-3.5" />
-                    <span>Copy Prompt</span>
+                    <span>Copy Master Prompt</span>
                   </button>
                 </div>
                 <pre className="prompt-terminal">
                   {blueprint.agentGuide.firstPrompt}
                 </pre>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>
