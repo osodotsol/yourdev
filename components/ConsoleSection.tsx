@@ -105,21 +105,21 @@ export function ConsoleSection({
             className="craft-preset-chip"
             onClick={() => setPreset("habit")}
           >
-            🎯 AI Habit Tracker
+            + Habit Tracker
           </button>
           <button
             type="button"
             className="craft-preset-chip"
             onClick={() => setPreset("flashcards")}
           >
-            🃏 Spaced Flashcards
+            + Spaced Flashcards
           </button>
           <button
             type="button"
             className="craft-preset-chip"
             onClick={() => setPreset("events")}
           >
-            📍 Dev Event Scraper
+            + Dev Event Scraper
           </button>
         </div>
 
