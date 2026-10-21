@@ -7,8 +7,8 @@ export function SiteFooter() {
     <footer className="craft-footer">
       <div className="footer-top">
         <div className="footer-brand-title">
-          <span>✦ Idea Breakdown Coach</span>
-          <span style={{ fontSize: "12px", color: "#8a867c", marginLeft: "10px", fontFamily: "var(--mono)" }}>
+          <span style={{ fontWeight: 800 }}>yourdev</span>
+          <span style={{ fontSize: "11px", color: "#8a867c", marginLeft: "10px", fontFamily: "var(--mono)" }}>
             DEVPOST // BUILD WITH AI BASICS 2026
           </span>
         </div>
@@ -32,7 +32,7 @@ export function SiteFooter() {
             The to-do list that builds your vision.
           </h2>
           <p style={{ color: "#9ca3af", fontSize: "13px", lineHeight: "1.7" }}>
-            An educational tool helping beginner developers bridge the gap between
+            yourdev helps beginner developers bridge the gap between
             raw ideas and disciplined AI coding agent pair programming.
           </p>
         </div>
@@ -73,7 +73,7 @@ export function SiteFooter() {
       </div>
 
       <div className="footer-bottom">
-        <div>Dual-Mode Engine: Operational · Offline Fallback Ready</div>
+        <div>yourdev · Dual-Mode Engine (Gemini + Offline Fallback)</div>
         <div>Zero Paid Dependencies · Local First</div>
       </div>
     </footer>

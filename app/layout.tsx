@@ -25,9 +25,9 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Idea Breakdown Coach — The to-do list that builds your vision.",
+  title: "yourdev — The to-do list that builds your vision.",
   description:
-    "Transform messy brainstorms into structured, agent-ready execution blueprints. Built with AI Basics 2026.",
+    "yourdev transforms messy brainstorms into structured, agent-ready execution blueprints. Built for Devpost Build With AI Basics 2026.",
 };
 
 export default function RootLayout({

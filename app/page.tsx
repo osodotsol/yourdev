@@ -8,7 +8,6 @@ import { ProblemSection } from "@/components/ProblemSection";
 import { HowItWorksSection } from "@/components/HowItWorksSection";
 import { ConsoleSection } from "@/components/ConsoleSection";
 import { OutputSection } from "@/components/OutputSection";
-import { ArchitectureSection } from "@/components/ArchitectureSection";
 import { SiteFooter } from "@/components/SiteFooter";
 import { IdeaBlueprint } from "@/types/blueprint";
 
@@ -219,9 +218,6 @@ export default function Home() {
 
         {/* 04 / The Output Specification (#output) */}
         <OutputSection />
-
-        {/* 05 / Technical Architecture */}
-        <ArchitectureSection />
       </div>
 
       {/* Dark Craft Footer */}

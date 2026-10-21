@@ -25,7 +25,7 @@ export function HeroSection() {
       <div className="craft-hero-copy">
         <div className="hero-pill-tag">
           <span className="pill-status-dot"></span>
-          <span>DEVPOST · BUILD WITH AI BASICS 2026</span>
+          <span>YOURDEV · AI AGENT WORKFLOWS</span>
         </div>
 
         <h1>
@@ -34,7 +34,7 @@ export function HeroSection() {
         </h1>
 
         <p className="craft-hero-desc">
-          A precision pair-programming coach for beginner developers overwhelmed by blank IDEs.
+          yourdev is a precision pair-programming coach for beginner developers overwhelmed by blank IDEs.
           Turn chaotic brainstorms into an actionable, verifiable 5-part blueprint — with the exact
           first prompt for your AI coding agent.
         </p>
@@ -50,7 +50,7 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* Right Column: ShotCount Interactive Stage Card */}
+      {/* Right Column: Interactive Stage Card */}
       <aside className="craft-stage-card" aria-label="Interactive Specimen Card">
         <div className="stage-card-header">
           <span className="stage-pill">VERIFIED MILESTONE</span>
