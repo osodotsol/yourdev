@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Idea Breakdown Coach — Alien Tech Aesthetic PRD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-black: #050505;
+      --surface-card: #0c0d12;
+      --surface-card-hover: #12131a;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(56, 189, 248, 0.4);
+      --text-white: #ffffff;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --neon-cyan: #38bdf8;
+      --neon-blue: #0284c7;
+      --neon-glow: 0 0 24px rgba(56, 189, 248, 0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-black);
+      color: var(--text-white);
+      min-height: 100vh;
+      padding: 3rem 1.5rem 5rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: -10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, rgba(2, 132, 199, 0.03) 50%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #38bdf8, #1d4ed8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--neon-glow);
+    }
+
+    .badge-alpha {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      letter-spacing: 0.08em;
+    }
+
+    .nav-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    .hero {
+      margin-bottom: 3rem;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--neon-cyan);
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--neon-glow);
+    }
+
+    h1.hero-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+      margin-bottom: 1rem;
+      background: linear-gradient(180deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.hero-desc {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 760px;
+    }
+
+    .positioning-callout {
+      background: rgba(56, 189, 248, 0.05);
+      border-left: 3px solid var(--neon-cyan);
+      padding: 0.85rem 1.25rem;
+      border-radius: 0 12px 12px 0;
+      margin-top: 1.25rem;
+      font-size: 0.95rem;
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+
+    .console-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      position: relative;
+      margin-bottom: 3rem;
+      transition: border-color 0.3s;
+    }
+
+    .console-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .console-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      letter-spacing: -0.02em;
+    }
+
+    .prompt-box-wrapper {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    textarea.prompt-input {
+      width: 100%;
+      min-height: 140px;
+      padding: 1.25rem 1.25rem 2.5rem;
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+      background: #060608;
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    textarea.prompt-input:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+    }
+
+    .char-count {
+      position: absolute;
+      bottom: 14px;
+      right: 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .chips-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .chips-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-bottom: 2rem;
+    }
+
+    .chip-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chip-btn:hover {
+      background: rgba(56, 189, 248, 0.1);
+      border-color: var(--neon-cyan);
+      color: #ffffff;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .cta-row {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-breakdown {
+      background: #ffffff;
+      color: #050505;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 0.95rem 2.25rem;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      box-shadow: 0 4px 20px rgba(255, 255, 255, 0.25);
+      transition: all 0.2s ease;
+    }
+
+    .btn-breakdown:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(255, 255, 255, 0.4);
+      background: #f1f5f9;
+    }
+
+    .btn-breakdown:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .val-tip {
+      font-size: 0.875rem;
+      color: #f59e0b;
+      font-weight: 500;
+      display: none;
+    }
+
+    .skeleton-wrap {
+      display: none;
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .skeleton-box {
+      background: #090a0f;
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skeleton-box::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.08), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .sk-bar {
+      height: 14px;
+      background: #1e2230;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .sk-bar.header { width: 35%; height: 22px; margin-bottom: 18px; background: #252b3d; }
+    .sk-bar.w-80 { width: 80%; }
+    .sk-bar.w-60 { width: 60%; }
+
+    .results-wrap {
+      display: none;
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-subtle);
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .results-bar h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .btn-copy-blueprint {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: var(--neon-cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.6rem 1.25rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      box-shadow: var(--neon-glow);
+    }
+
+    .btn-copy-blueprint:hover {
+      background: rgba(56, 189, 248, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .tech-card {
+      background: #090a0f;
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .tech-card:hover {
+      border-color: rgba(56, 189, 248, 0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .card-heading-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .card-items {
+      list-style: none;
+    }
+
+    .card-items li {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      line-height: 1.55;
+    }
+    .card-items li:last-child { border-bottom: none; }
+
+    .tag-phase {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--neon-cyan);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* First Prompt Callout Box */
+    .first-prompt-box {
+      background: #040507;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+      position: relative;
+    }
+
+    .first-prompt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.65rem;
+    }
+
+    .first-prompt-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--neon-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-copy-prompt {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-copy-prompt:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--neon-cyan);
+      color: #ffffff;
+    }
+
+    .code-console {
+      background: #020305;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+
+    .fallback-note {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #10b981;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+    }
+
+    .specs-section {
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      padding: 2.5rem;
+      margin-top: 3rem;
+    }
+
+    .specs-section h2 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .spec-card {
+      background: #090a0f;
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+
+    .spec-card h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--neon-cyan);
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .spec-card ul {
+      list-style-type: disc;
+      padding-left: 1.25rem;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    .spec-card li { margin-bottom: 0.4rem; }
+
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: #0f172a;
+      border: 1px solid var(--neon-cyan);
+      color: #ffffff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--neon-glow);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 100;
+    }
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <header class="top-bar">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <span>Idea Breakdown Coach</span>
+        <span class="badge-alpha">PRD APPROVED</span>
+      </div>
+      <div class="nav-status">
+        <div class="status-dot"></div>
+        <span>DEVPOST BUILD WITH AI</span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-badge">✦ AGENT-READY BLUEPRINT ARCHITECTURE</div>
+      <h1 class="hero-title">Turn messy ideas into<br>working code with AI agents.</h1>
+      <p class="hero-desc">
+        A precision web console for beginner builders. Convert unformatted, chaotic brainstorms into an actionable, agent-ready blueprint in seconds.
+      </p>
+
+      <div class="positioning-callout">
+        <strong>Updated Positioning:</strong> "Paste a messy idea. Instantly get a clean, copy-paste-ready blueprint designed for beginners using AI coding agents."
+      </div>
+    </section>
+
+    <main class="console-card">
+      <div class="console-header">
+        <div class="console-title">
+          <span>⚡</span>
+          <span>Interactive Prototype Preview</span>
+        </div>
+        <span class="badge-alpha">
+          READY FOR SPEC
+        </span>
+      </div>
+
+      <div class="prompt-box-wrapper">
+        <textarea id="promptInput" class="prompt-input" placeholder="Paste your messy idea here... (e.g. 'I want to build an app that tracks gym workouts and recommends simple meals based on ingredients in my fridge')">I want to build a simple habit tracker with AI that helps me stay consistent, gives me daily reminders, and awards fun badges when I hit a 7-day streak.</textarea>
+        <div id="charCount" class="char-count">162 chars</div>
+      </div>
+
+      <div class="chips-label">Demo Preset Idea Chips:</div>
+      <div class="chips-group">
+        <button class="chip-btn" onclick="setPreset('habit')">🎯 AI Habit Tracker with Streaks</button>
+        <button class="chip-btn" onclick="setPreset('flashcards')">🃏 Spaced Flashcard Generator</button>
+        <button class="chip-btn" onclick="setPreset('events')">📍 Local Dev Event Scraper</button>
+      </div>
+
+      <div class="cta-row">
+        <button id="breakdownBtn" class="btn-breakdown" onclick="runSimulation()">
+          <span>⚡</span> Break it down
+        </button>
+        <span id="valTip" class="val-tip">
+          ⚠️ Please provide at least 15 characters so the coach has enough context!
+        </span>
+      </div>
+
+      <div id="skLoader" class="skeleton-wrap">
+        <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--neon-cyan); margin-bottom: 1rem;">
+          ⚡ COACHING INTENT INTO AGENT-READY PHASES (WITH SMART FALLBACK SAFEGUARD)...
+        </p>
+        <div class="skeleton-box">
+          <div class="sk-bar header"></div>
+          <div class="sk-bar w-80"></div>
+          <div class="sk-bar w-60"></div>
+        </div>
+        <div class="skeleton-box">
+          <div class="sk-bar header"></div>
+          <div class="sk-bar w-80"></div>
+        </div>
+      </div>
+
+      <div id="resultsArea" class="results-wrap">
+        <div class="results-bar">
+          <div>
+            <h3>Generated Agent Blueprint</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.25rem;">
+              Optimized for Antigravity, Cursor, and Claude pairing.
+            </p>
+          </div>
+          <button class="btn-copy-blueprint" onclick="copyBlueprint()">
+            <span>📋</span> Copy Agent-Ready Blueprint
+          </button>
+        </div>
+
+        <!-- Card 1 -->
+        <div class="tech-card">
+          <div class="card-top">
+            <div class="card-heading-group">
+              <div class="card-icon">🗺️</div>
+              <div class="card-title">1. Phased Roadmap (Milestones)</div>
+            </div>
+            <span class="tag-phase">4 PHASES</span>
+          </div>
+          <ul class="card-items">
+            <li>
+              <span class="tag-phase">Phase 1</span>
+              <div><strong>Foundation & Layout:</strong> Single-page shell with habit list, streak badges, and responsive dark layout.</div>
+            </li>
+            <li>
+              <span class="tag-phase">Phase 2</span>
+              <div><strong>Habit Actions & State:</strong> Add/toggle habits, calculate current streak, and store in browser localStorage.</div>
+            </li>
+            <li>
+              <span class="tag-phase">Phase 3</span>
+              <div><strong>Badge & Milestone Logic:</strong> Visual celebration and 7-day streak unlocking animation.</div>
+            </li>
+            <li>
+              <span class="tag-phase">Phase 4</span>
+              <div><strong>AI Motivation Coach:</strong> Generate personalized encouragement snippets on streak milestones.</div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="tech-card">
+          <div class="card-top">
+            <div class="card-heading-group">
+              <div class="card-icon">⚡</div>
+              <div class="card-title">2. Immediate Action Steps (Do These First)</div>
+            </div>
+            <span class="tag-phase">4 ACTIONS</span>
+          </div>
+          <ul class="card-items">
+            <li>
+              <span class="tag-phase">Step 1</span>
+              <div>Initialize fresh Next.js project with TypeScript and Tailwind CSS using <code>npx create-next-app</code>.</div>
+            </li>
+            <li>
+              <span class="tag-phase">Step 2</span>
+              <div>Build mock Habit card component with title, streak pill, and complete checkmark.</div>
+            </li>
+            <li>
+              <span class="tag-phase">Step 3</span>
+              <div>Create new habit input form and hook into React state.</div>
+            </li>
+            <li>
+              <span class="tag-phase">Step 4</span>
+              <div>Connect browser localStorage so habit data persists on page reload.</div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="tech-card">
+          <div class="card-top">
+            <div class="card-heading-group">
+              <div class="card-icon">🛠️</div>
+              <div class="card-title">3. Recommended Tech Stack</div>
+            </div>
+            <span class="tag-phase">FREE / CLIENT-READY</span>
+          </div>
+          <ul class="card-items">
+            <li>
+              <span class="tag-phase">Framework</span>
+              <div><strong>Next.js (App Router):</strong> Fast, full-stack React framework with zero setup friction.</div>
+            </li>
+            <li>
+              <span class="tag-phase">Styling</span>
+              <div><strong>Tailwind CSS:</strong> Sleek dark-mode utilities and rapid prototyping.</div>
+            </li>
+            <li>
+              <span class="tag-phase">Language</span>
+              <div><strong>TypeScript:</strong> Type-safety prevents bugs and assists coding agent completions.</div>
+            </li>
+            <li>
+              <span class="tag-phase">Storage</span>
+              <div><strong>Browser localStorage:</strong> Zero database setup needed for a working hackathon PoC.</div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="tech-card">
+          <div class="card-top">
+            <div class="card-heading-group">
+              <div class="card-icon">📚</div>
+              <div class="card-title">4. Free Learning Resources</div>
+            </div>
+            <span class="tag-phase">VERIFIED FREE</span>
+          </div>
+          <ul class="card-items">
+            <li>
+              <span class="tag-phase">Tutorial</span>
+              <div><strong>Next.js Foundations:</strong> Master Next.js App Router in 30 minutes (nextjs.org/learn).</div>
+            </li>
+            <li>
+              <span class="tag-phase">Documentation</span>
+              <div><strong>Tailwind CSS Docs:</strong> Quick lookup for layouts, dark mode, and flexbox.</div>
+            </li>
+            <li>
+              <span class="tag-phase">Guide</span>
+              <div><strong>Devpost AI Basics Guide:</strong> Best practices for prompting coding agents.</div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="tech-card">
+          <div class="card-top">
+            <div class="card-heading-group">
+              <div class="card-icon">🤖</div>
+              <div class="card-title">5. AI Coding Agent Guide & First Prompt</div>
+            </div>
+            <span class="tag-phase">AGENT READY</span>
+          </div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+            Follow this exact workflow when building with Antigravity, Cursor, or Claude:
+          </p>
+
+          <div class="first-prompt-box">
+            <div class="first-prompt-header">
+              <span class="first-prompt-label">✦ FIRST PROMPT TO USE IN YOUR AGENT:</span>
+              <button class="btn-copy-prompt" onclick="copyFirstPrompt()">📋 Copy Prompt</button>
+            </div>
+            <div id="firstPromptCode" class="code-console">
+"I am building a clean habit tracker web app using Next.js, TypeScript, and Tailwind CSS.
+I already have the approved blueprint. Let's start with Phase 1: create a responsive single-page dark layout with a header, an input to add a new habit, and a list showing habit cards with their current streak and a complete checkmark. Keep the code clean, fully typed, and visually polished."
+            </div>
+          </div>
+
+          <div class="fallback-note">
+            <span>🛡️ Demo Reliability Safeguard:</span> Smart client-side fallback ensures this blueprint generates instantly even if external APIs face latency.
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+          <button class="chip-btn" onclick="resetSimulator()">
+            🔄 Reset & Test Another Idea
+          </button>
+        </div>
+
+      </div>
+
+    </main>
+
+    <section class="specs-section">
+      <h2>PRD Acceptance Specifications</h2>
+      <div class="specs-grid">
+        <div class="spec-card">
+          <h4>// AGENT-READY EXPORT</h4>
+          <ul>
+            <li>Markdown export begins with clear AI instruction header.</li>
+            <li>Outputs distinct phases, steps, and prompt directives.</li>
+            <li>Instant 1-click clipboard copy with visual feedback.</li>
+          </ul>
+        </div>
+
+        <div class="spec-card">
+          <h4>// FIRST PROMPT TO USE</h4>
+          <ul>
+            <li>Card 5 highlights an immediate, ready-to-paste first prompt.</li>
+            <li>Dedicated quick-copy button inside the card.</li>
+            <li>Eliminates beginner blank-page paralysis when opening an IDE.</li>
+          </ul>
+        </div>
+
+        <div class="spec-card">
+          <h4>// DEMO SAFEGUARD</h4>
+          <ul>
+            <li>Free LLM integration (Gemini free tier) with auto-timeout.</li>
+            <li>Smart template fallback activates on timeout or network blip.</li>
+            <li>Zero chance of demo video failure.</li>
+          </ul>
+        </div>
+
+        <div class="spec-card">
+          <h4>// HACKATHON BOUNDARY</h4>
+          <ul>
+            <li>Single-page dark console layout.</li>
+            <li>Zero paid API dependencies.</li>
+            <li>Strictly scoped to coding projects for the PoC.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div id="toast">📋 BLUEPRINT COPIED TO CLIPBOARD</div>
+
+  <script>
+    const textarea = document.getElementById('promptInput');
+    const charCount = document.getElementById('charCount');
+    const btn = document.getElementById('breakdownBtn');
+    const valTip = document.getElementById('valTip');
+    const skLoader = document.getElementById('skLoader');
+    const results = document.getElementById('resultsArea');
+    const toast = document.getElementById('toast');
+
+    textarea.addEventListener('input', () => {
+      const len = textarea.value.trim().length;
+      charCount.textContent = `${len} chars`;
+      if (len >= 15) {
+        valTip.style.display = 'none';
+      }
+    });
+
+    const presets = {
+      habit: "I want to build a simple habit tracker with AI that helps me stay consistent, gives me daily reminders, and awards fun badges when I hit a 7-day streak.",
+      flashcards: "A spaced repetition flashcard app where I can paste my notes, have AI generate 10 quiz cards, and test myself with flip animations.",
+      events: "A local community board that finds free weekend tech meetups and displays them on a clean weekly calendar with RSVP links."
+    };
+
+    function setPreset(key) {
+      textarea.value = presets[key];
+      charCount.textContent = `${textarea.value.length} chars`;
+      valTip.style.display = 'none';
+      textarea.focus();
+    }
+
+    function runSimulation() {
+      const val = textarea.value.trim();
+      if (val.length < 15) {
+        valTip.style.display = 'inline';
+        return;
+      }
+      valTip.style.display = 'none';
+      btn.disabled = true;
+      btn.innerHTML = '<span>⚡</span> Generating Blueprint...';
+      results.style.display = 'none';
+      skLoader.style.display = 'block';
+
+      setTimeout(() => {
+        skLoader.style.display = 'none';
+        results.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<span>⚡</span> Break it down';
+        results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 1100);
+    }
+
+    function resetSimulator() {
+      textarea.value = '';
+      charCount.textContent = '0 chars';
+      results.style.display = 'none';
+      textarea.focus();
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function copyBlueprint() {
+      const text = `# Project Blueprint: AI Habit Tracker
+> **AI Coding Agent Instruction:** Use this blueprint to build the project step by step with the user. Follow the phases sequentially and execute the immediate next actions first.
+
+## 1. Phased Roadmap
+- Phase 1: Foundation & Layout (Single-page shell with clean habit list)
+- Phase 2: Habit Actions & State (Add/toggle habits, calculate streak, localStorage)
+- Phase 3: Badge & Milestone Logic (Visual celebration and 7-day streak animation)
+- Phase 4: AI Motivation Coach (Personalized encouragement snippets on streak milestones)
+
+## 2. Immediate Next Actions
+1. Initialize fresh Next.js project with TypeScript and Tailwind CSS using \`npx create-next-app\`
+2. Build mock Habit card component with title, streak pill, and complete checkmark
+3. Create new habit input form and hook into React state
+4. Connect browser localStorage so habit data persists on page reload
+
+## 3. Recommended Tech Stack
+- Framework: Next.js (App Router)
+- Styling: Tailwind CSS
+- Language: TypeScript
+- Storage: Browser localStorage
+
+## 4. Free Learning Resources
+- Next.js Foundations (nextjs.org/learn)
+- Tailwind CSS Documentation
+- Devpost AI Basics Guide
+
+## 5. First Prompt to Use in Your Coding Agent
+"I am building a clean habit tracker web app using Next.js, TypeScript, and Tailwind CSS. I already have the approved blueprint. Let's start with Phase 1: create a responsive single-page dark layout with a header, an input to add a new habit, and a list showing habit cards with their current streak and a complete checkmark. Keep the code clean, fully typed, and visually polished."`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('📋 AGENT-READY BLUEPRINT COPIED');
+      });
+    }
+
+    function copyFirstPrompt() {
+      const promptText = document.getElementById('firstPromptCode').textContent.trim();
+      navigator.clipboard.writeText(promptText).then(() => {
+        showToast('📋 FIRST PROMPT COPIED');
+      });
+    }
+  </script>
+</body>
+</html>

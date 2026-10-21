@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Idea Breakdown Coach — Technical Spec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0b0f;
+      --surface: #111318;
+      --surface-raised: #16181f;
+      --surface-hover: #1c1f28;
+      --border: rgba(255,255,255,0.07);
+      --border-strong: rgba(255,255,255,0.12);
+      --text: #f0f0f2;
+      --text-soft: #a0a3ad;
+      --text-mute: #5c5f6a;
+      --accent: #e8a849;
+      --accent-soft: rgba(232,168,73,0.15);
+      --accent-glow: rgba(232,168,73,0.08);
+      --serif: 'DM Serif Display', Georgia, serif;
+      --sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', 'SF Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ========== AMBIENT BACKGROUND ========== */
+    .ambient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(232,168,73,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(120,140,255,0.04) 0%, transparent 60%);
+      animation: ambientShift 25s ease-in-out infinite alternate;
+    }
+    @keyframes ambientShift {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    .page-wrapper {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ========== TOP NAV ========== */
+    .top-nav {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 2.5rem;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .nav-brand-icon {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--bg);
+      font-weight: 800;
+      font-size: 1rem;
+      transition: transform 0.3s;
+    }
+    .nav-brand:hover .nav-brand-icon { transform: rotate(12deg) scale(1.05); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+    .nav-links a {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-soft);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid rgba(232,168,73,0.3);
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+    }
+    .nav-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulseDot 2s infinite;
+    }
+    @keyframes pulseDot {
+      0%,100% { opacity:1; transform:scale(1); }
+      50% { opacity:0.4; transform:scale(0.8); }
+    }
+
+    /* ========== LAYOUT HELPERS ========== */
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 2.5rem;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+
+    .section-spacer { height: 6rem; }
+    .section-spacer-sm { height: 3.5rem; }
+
+    /* ========== HERO SPLIT ========== */
+    .hero {
+      padding: 5rem 0 4rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .hero-left {
+      padding-top: 1rem;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 2rem;
+    }
+    .hero-tag .tag-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .hero-headline {
+      font-family: var(--serif);
+      font-size: 3.8rem;
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+    }
+    .hero-headline em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-body {
+      font-size: 1.1rem;
+      color: var(--text-soft);
+      line-height: 1.7;
+      max-width: 520px;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .btn-hero {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--accent);
+      color: var(--bg);
+      font-family: var(--sans);
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 0.85rem 1.75rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 4px 20px rgba(232,168,73,0.25);
+    }
+    .btn-hero:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 30px rgba(232,168,73,0.35);
+    }
+
+    .link-arrow {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-soft);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: color 0.2s;
+    }
+    .link-arrow:hover { color: var(--text); }
+
+    /* Hero Card Preview (Right Side) */
+    .hero-card-preview {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 20px;
+      padding: 2rem;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .preview-label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--text-mute);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .preview-badge {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      border: 1px solid rgba(232,168,73,0.3);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+    }
+
+    .preview-title {
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      line-height: 1.3;
+      margin-bottom: 1.75rem;
+    }
+
+    /* Mini bar chart in hero card */
+    .mini-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 80px;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .mini-bar {
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+      transition: height 0.6s cubic-bezier(0.16,1,0.3,1);
+    }
+    .mini-bar.filled { background: var(--accent); }
+    .mini-bar.empty {
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(255,255,255,0.05),
+        rgba(255,255,255,0.05) 2px,
+        transparent 2px,
+        transparent 5px
+      );
+    }
+
+    .preview-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      padding-top: 0.5rem;
+    }
+    .stat-item {
+      text-align: left;
+    }
+    .stat-number {
+      font-family: var(--serif);
+      font-size: 2rem;
+      font-weight: 400;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text-mute);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .preview-footer {
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .preview-footer-text {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--text-soft);
+      line-height: 1.5;
+    }
+    .preview-footer-note {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text-mute);
+      margin-top: 0.75rem;
+    }
+
+    /* ========== FEATURE PILLARS BAR ========== */
+    .pillars-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pillar-item {
+      padding: 1.25rem 2rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-right: 1px solid var(--border);
+      transition: all 0.2s;
+      cursor: default;
+    }
+    .pillar-item:last-child { border-right: none; }
+    .pillar-item:hover {
+      background: var(--accent-glow);
+      color: var(--text);
+    }
+    .pillar-item .plus {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ========== NUMBERED EDITORIAL SECTIONS ========== */
+    .editorial-section {
+      padding: 5rem 0;
+    }
+
+    .section-number-tag {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-mute);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 1.5rem;
+    }
+
+    .editorial-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .editorial-headline {
+      font-family: var(--serif);
+      font-size: 2.8rem;
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.015em;
+    }
+    .editorial-headline em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .editorial-text {
+      font-size: 1.05rem;
+      color: var(--text-soft);
+      line-height: 1.75;
+    }
+
+    .editorial-callout {
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      border-left: 2px solid var(--accent);
+      background: var(--accent-glow);
+      border-radius: 0 8px 8px 0;
+    }
+    .editorial-callout p {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: var(--text-soft);
+      line-height: 1.6;
+    }
+
+    /* ========== HOW IT WORKS — 3-COLUMN ========== */
+    .how-section {
+      padding: 5rem 0;
+    }
+
+    .how-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 3.5rem;
+    }
+
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+    }
+
+    .how-step {
+      padding: 2rem 2rem 2rem 0;
+      border-top: 1px solid var(--border-strong);
+      position: relative;
+    }
+    .how-step:not(:last-child) {
+      border-right: 1px solid var(--border);
+      padding-right: 2rem;
+    }
+    .how-step:not(:first-child) {
+      padding-left: 2rem;
+    }
+
+    .step-number {
+      font-family: var(--serif);
+      font-size: 2.5rem;
+      color: var(--text-mute);
+      opacity: 0.4;
+      line-height: 1;
+      margin-bottom: 1.25rem;
+    }
+
+    .step-title {
+      font-family: var(--serif);
+      font-size: 1.35rem;
+      font-weight: 400;
+      line-height: 1.3;
+      margin-bottom: 1rem;
+    }
+
+    .step-body {
+      font-size: 0.92rem;
+      color: var(--text-soft);
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .step-meta {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text-mute);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ========== INTERACTIVE CONSOLE (Section 03) ========== */
+    .console-section {
+      padding: 5rem 0;
+    }
+
+    .console-widget {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .console-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .console-label {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .console-engine-tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+    }
+
+    .console-textarea {
+      width: 100%;
+      min-height: 130px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 1rem;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      transition: all 0.25s;
+      margin-bottom: 1rem;
+    }
+    .console-textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 25px var(--accent-glow);
+    }
+    .console-textarea::placeholder {
+      color: var(--text-mute);
+    }
+
+    .chip-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+    .chip-label {
+      font-size: 0.78rem;
+      color: var(--text-mute);
+      margin-right: 0.25rem;
+    }
+
+    .chip {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      font-family: var(--sans);
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 0.45rem 0.95rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16,1,0.3,1);
+    }
+    .chip:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--text);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(232,168,73,0.15);
+    }
+
+    .action-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-primary {
+      background: var(--text);
+      color: var(--bg);
+      font-family: var(--sans);
+      font-size: 0.92rem;
+      font-weight: 700;
+      padding: 0.75rem 1.75rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 4px 15px rgba(255,255,255,0.1);
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(255,255,255,0.2);
+    }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-soft);
+      font-family: var(--sans);
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.65rem 1.25rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    /* Loader */
+    .loader-box {
+      display: none;
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: var(--bg);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .loader-box::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* Results */
+    .results-container {
+      display: none;
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .results-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    .tile {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: all 0.25s;
+    }
+    .tile:hover {
+      border-color: rgba(232,168,73,0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3), 0 0 15px var(--accent-glow);
+    }
+
+    .results-container.revealed .tile-1 { animation: cardPop 0.45s 0.05s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .results-container.revealed .tile-2 { animation: cardPop 0.45s 0.15s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .results-container.revealed .tile-3 { animation: cardPop 0.45s 0.25s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .results-container.revealed .tile-4 { animation: cardPop 0.45s 0.35s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .results-container.revealed .tile-5 { animation: cardPop 0.45s 0.45s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+    @keyframes cardPop {
+      0% { opacity:0; transform: translateY(16px) scale(0.98); }
+      100% { opacity:1; transform: translateY(0) scale(1); }
+    }
+
+    .tile-tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-mute);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+    .tile-title {
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      margin-bottom: 0.75rem;
+    }
+    .tile-list {
+      list-style: none;
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      line-height: 1.65;
+    }
+    .tile-list li {
+      padding: 0.35rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .tile-list li:last-child { border-bottom: none; }
+
+    .tile-full {
+      grid-column: 1 / -1;
+      background: var(--accent-glow);
+      border: 1px solid rgba(232,168,73,0.25);
+      border-radius: 14px;
+      padding: 1.5rem;
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    .prompt-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.15rem;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: #e0e0e5;
+      line-height: 1.65;
+      margin-top: 0.65rem;
+    }
+
+    /* ========== OUTPUT SHOWCASE (Section 04) ========== */
+    .output-section {
+      padding: 5rem 0;
+    }
+
+    .output-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border-top: 1px solid var(--border-strong);
+    }
+
+    .output-card {
+      padding: 2rem;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .output-card:nth-child(3n) { border-right: none; }
+    .output-card:hover { background: var(--surface); }
+
+    .output-card-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .output-card h4 {
+      font-family: var(--serif);
+      font-size: 1.15rem;
+      font-weight: 400;
+      margin-bottom: 0.65rem;
+    }
+    .output-card p {
+      font-size: 0.88rem;
+      color: var(--text-soft);
+      line-height: 1.65;
+    }
+
+    /* ========== ARCHITECTURE (Section 05) ========== */
+    .arch-section {
+      padding: 5rem 0;
+    }
+
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+
+    .arch-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.25s;
+    }
+    .arch-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-2px);
+    }
+
+    .arch-card-number {
+      font-family: var(--serif);
+      font-size: 2rem;
+      color: var(--text-mute);
+      opacity: 0.3;
+      line-height: 1;
+      margin-bottom: 0.75rem;
+    }
+    .arch-card h4 {
+      font-family: var(--serif);
+      font-size: 1.2rem;
+      font-weight: 400;
+      margin-bottom: 0.65rem;
+    }
+    .arch-card p {
+      font-size: 0.88rem;
+      color: var(--text-soft);
+      line-height: 1.65;
+    }
+
+    /* ========== BUILT FOR BEGINNERS (Section 06) ========== */
+    .beginners-section {
+      padding: 5rem 0;
+    }
+
+    .beginners-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .principle-item {
+      padding: 1.75rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .principle-item:first-child { border-top: none; }
+
+    .principle-number {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+    .principle-title {
+      font-family: var(--serif);
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+    .principle-body {
+      font-size: 0.88rem;
+      color: var(--text-soft);
+      line-height: 1.65;
+    }
+
+    /* ========== FILE TREE SECTION (Section 07) ========== */
+    .filetree-section {
+      padding: 5rem 0;
+    }
+
+    .filetree-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      max-width: 700px;
+    }
+
+    .filetree-card pre {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: var(--text-soft);
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+    .filetree-card pre .file-highlight {
+      color: var(--accent);
+    }
+    .filetree-card pre .folder {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* ========== FOOTER ========== */
+    .site-footer {
+      padding: 3rem 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .footer-logo {
+      width: 24px; height: 24px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--bg);
+      font-weight: 800;
+      font-size: 0.75rem;
+    }
+    .footer-text {
+      font-size: 0.82rem;
+      color: var(--text-mute);
+    }
+    .footer-right {
+      display: flex;
+      gap: 1.5rem;
+    }
+    .footer-right a {
+      font-size: 0.82rem;
+      color: var(--text-mute);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-right a:hover { color: var(--text); }
+
+    /* ========== TOAST ========== */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 999px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+      z-index: 100;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ========== STICKY SIDE NAV ========== */
+    .side-nav {
+      position: fixed;
+      right: 2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .side-nav a {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text-mute);
+      text-decoration: none;
+      padding: 0.35rem 0.75rem;
+      border-right: 2px solid transparent;
+      text-align: right;
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+    }
+    .side-nav a:hover,
+    .side-nav a.active {
+      color: var(--text);
+      border-right-color: var(--accent);
+    }
+
+    /* ========== SCROLL REVEAL ========== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 900px) {
+      .hero-grid,
+      .editorial-split,
+      .beginners-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+      .how-grid, .output-cards {
+        grid-template-columns: 1fr;
+      }
+      .how-step { border-right: none !important; padding: 1.5rem 0 !important; }
+      .pillars-bar { grid-template-columns: 1fr 1fr; }
+      .hero-headline { font-size: 2.5rem; }
+      .editorial-headline { font-size: 2rem; }
+      .tiles-grid { grid-template-columns: 1fr; }
+      .arch-grid { grid-template-columns: 1fr; }
+      .side-nav { display: none; }
+      .container { padding: 0 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient"></div>
+
+  <!-- Sticky Side Nav -->
+  <nav class="side-nav" id="sideNav">
+    <a href="#hero" class="active">Top</a>
+    <a href="#problem">Problem</a>
+    <a href="#how">How It Works</a>
+    <a href="#console">Live Console</a>
+    <a href="#output">Output</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#beginners">For Beginners</a>
+    <a href="#files">File Map</a>
+  </nav>
+
+  <div class="page-wrapper">
+
+    <!-- ===== TOP NAV ===== -->
+    <nav class="top-nav">
+      <a href="#" class="nav-brand">
+        <div class="nav-brand-icon">✦</div>
+        <span>Idea Breakdown Coach</span>
+      </a>
+      <div class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#architecture">Architecture</a>
+        <div class="nav-badge">
+          <div class="dot"></div>
+          <span>DEVPOST · BUILD WITH AI</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ===== HERO SPLIT ===== -->
+    <section class="hero container" id="hero">
+      <div class="hero-grid">
+        <div class="hero-left reveal">
+          <div class="hero-tag">
+            <span class="tag-dot"></span>
+            <span>Beginner Builders / AI Agent Workflows</span>
+          </div>
+          <h1 class="hero-headline">
+            Messy ideas in.<br>
+            <em>Agent-ready blueprints out.</em>
+          </h1>
+          <p class="hero-body">
+            A precision web console for new developers overwhelmed by blank IDEs. 
+            Paste chaotic thoughts, receive a structured blueprint your AI coding agent 
+            can execute immediately — phased roadmap, next actions, stack, resources, 
+            and your exact first prompt.
+          </p>
+          <div class="hero-actions">
+            <a href="#console" class="btn-hero">
+              Try the live console <span>↗</span>
+            </a>
+            <a href="#how" class="link-arrow">See how it works <span>↓</span></a>
+          </div>
+        </div>
+
+        <div class="hero-card-preview reveal">
+          <div class="preview-header">
+            <span class="preview-label">Blueprint / 001</span>
+            <span class="preview-badge">Agent-Ready</span>
+          </div>
+          <h3 class="preview-title">An AI habit tracker with streak badges and daily motivation.</h3>
+          <div class="mini-chart" id="heroChart"></div>
+          <div class="preview-stats">
+            <div class="stat-item">
+              <div class="stat-number">4</div>
+              <div class="stat-label">Build Phases</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">6</div>
+              <div class="stat-label">Next Actions</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">1</div>
+              <div class="stat-label">First Prompt</div>
+            </div>
+          </div>
+          <div class="preview-footer">
+            <p class="preview-footer-text">
+              The blank IDE tells you nothing.<br>
+              <em>A blueprint tells you everything.</em>
+            </p>
+            <p class="preview-footer-note">Paste into Antigravity, Cursor, or Claude. Start building.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FEATURE PILLARS BAR ===== -->
+    <div class="container">
+      <div class="pillars-bar reveal">
+        <div class="pillar-item"><span class="plus">+</span> Phased Roadmap</div>
+        <div class="pillar-item"><span class="plus">+</span> Actionable Steps</div>
+        <div class="pillar-item"><span class="plus">+</span> Smart Fallback</div>
+        <div class="pillar-item"><span class="plus">+</span> Agent-Ready Export</div>
+      </div>
+    </div>
+
+    <div class="section-spacer"></div>
+
+    <!-- ===== 01 / THE PROBLEM ===== -->
+    <section class="editorial-section container" id="problem">
+      <div class="reveal">
+        <div class="section-number-tag">01 / The Problem</div>
+      </div>
+      <div class="editorial-split">
+        <div class="reveal">
+          <h2 class="editorial-headline">
+            A beginner has an idea.<br>
+            <em>Where does it go?</em>
+          </h2>
+        </div>
+        <div class="reveal">
+          <p class="editorial-text">
+            New developers open a coding agent and face the same wall: a blank prompt field 
+            and no idea what to type. The idea is in their head — messy, exciting, unstructured. 
+            The agent is powerful but idle. The gap between "I want to build a thing" and 
+            "Here's my Phase 1 prompt" is where most beginners stall.
+          </p>
+          <p class="editorial-text" style="margin-top: 1rem;">
+            Idea Breakdown Coach bridges that gap. It transforms raw, unformatted brainstorms 
+            into a clean, structured blueprint that AI coding agents understand instantly — 
+            phased milestones, a recommended stack, and the exact first prompt to type.
+          </p>
+          <div class="editorial-callout">
+            <p>Built for beginners using AI coding agents for the first time. 
+            No login. No database. No cost. Just paste and build.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container"><hr class="divider"></div>
+
+    <!-- ===== 02 / HOW IT WORKS ===== -->
+    <section class="how-section container" id="how">
+      <div class="how-header reveal">
+        <div>
+          <div class="section-number-tag">02 / From Idea to Blueprint</div>
+          <h2 class="editorial-headline" style="font-size: 2.2rem;">Three steps. <em>One blueprint.</em></h2>
+        </div>
+        <a href="#console" class="link-arrow">Try it in the console ↗</a>
+      </div>
+
+      <div class="how-grid">
+        <div class="how-step reveal">
+          <div class="step-number">01</div>
+          <h3 class="step-title">Paste your idea.</h3>
+          <p class="step-body">
+            Drop your messy, half-formed brainstorm into the text console. 
+            No formatting needed. Write like you think — run-on sentences, 
+            bullet fragments, stream of consciousness. Or pick a preset.
+          </p>
+          <div class="step-meta">Your raw thoughts + one click</div>
+        </div>
+
+        <div class="how-step reveal">
+          <div class="step-number">02</div>
+          <h3 class="step-title">Get a structured blueprint.</h3>
+          <p class="step-body">
+            The coach analyzes your intent and returns five sections: 
+            phased roadmap, immediate next actions, recommended tech stack, 
+            free learning resources, and an AI agent guide with your first prompt.
+          </p>
+          <div class="step-meta">Dual-mode engine / Gemini + offline fallback</div>
+        </div>
+
+        <div class="how-step reveal">
+          <div class="step-number">03</div>
+          <h3 class="step-title">Copy. Paste. Build.</h3>
+          <p class="step-body">
+            Hit "Copy Blueprint" — the entire result is formatted as clean Markdown 
+            with an explicit agent instruction header. Paste it into your coding agent. 
+            Start building Phase 1 immediately.
+          </p>
+          <div class="step-meta">Agent-ready markdown / zero extra prompting</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container"><hr class="divider"></div>
+
+    <!-- ===== 03 / LIVE CONSOLE ===== -->
+    <section class="console-section container" id="console">
+      <div class="reveal" style="text-align: center; margin-bottom: 3rem;">
+        <div class="section-number-tag">03 / Live Interactive Console</div>
+        <h2 class="editorial-headline" style="font-size: 2.2rem;">
+          Try the breakdown engine. <em>Right here.</em>
+        </h2>
+      </div>
+
+      <div class="console-widget reveal">
+        <div class="console-top">
+          <span class="console-label">⚡ Breakdown Console</span>
+          <span class="console-engine-tag">DUAL-MODE: LIVE + SMART OFFLINE</span>
+        </div>
+
+        <textarea id="promptInput" class="console-textarea" 
+          placeholder="Paste your messy idea here... (e.g. 'I want to build a fitness tracker that gives me smart AI encouragement when I hit a 7-day streak')"
+        >I want to build a simple habit tracker with AI that helps me stay consistent, gives me daily reminders, and awards fun badges when I hit a 7-day streak.</textarea>
+
+        <div class="chip-row">
+          <span class="chip-label">Try a preset:</span>
+          <button class="chip" onclick="setPreset('habit')">🎯 AI Habit Tracker</button>
+          <button class="chip" onclick="setPreset('flashcards')">🃏 Spaced Flashcards</button>
+          <button class="chip" onclick="setPreset('events')">📍 Dev Event Scraper</button>
+        </div>
+
+        <div class="action-row">
+          <button id="breakdownBtn" class="btn-primary" onclick="runSim()">
+            <span>Break it down</span>
+            <span aria-hidden="true">→</span>
+          </button>
+          <button class="btn-ghost" onclick="resetSim()">Clear</button>
+        </div>
+
+        <!-- Loader -->
+        <div id="loaderBox" class="loader-box">
+          <p style="font-family: var(--mono); font-size: 0.82rem; color: var(--accent); margin-bottom: 0.4rem;">
+            ✦ COACHING INTENT INTO AGENT-READY PHASES...
+          </p>
+          <p style="font-size: 0.78rem; color: var(--text-mute);">Structuring milestones, stack rationales, and first prompts...</p>
+        </div>
+
+        <!-- Results -->
+        <div id="resultsWrap" class="results-container">
+          <div class="results-head">
+            <div>
+              <h3 style="font-family: var(--serif); font-size: 1.3rem;">Generated Agent Blueprint</h3>
+              <p style="font-size: 0.82rem; color: var(--text-soft);">Optimized for Antigravity, Cursor, and Claude.</p>
+            </div>
+            <button class="btn-ghost" onclick="copyFull()">
+              <span>📋</span> Copy Full Blueprint
+            </button>
+          </div>
+
+          <div class="tiles-grid">
+            <div class="tile tile-1">
+              <p class="tile-tag">01 · Roadmap</p>
+              <h4 class="tile-title">Phased Milestones</h4>
+              <ul class="tile-list">
+                <li><strong>Phase 1:</strong> Single-page shell with clean habit list & counters</li>
+                <li><strong>Phase 2:</strong> Habit actions, streak tracking & localStorage</li>
+                <li><strong>Phase 3:</strong> 7-day streak celebration and unlockable badges</li>
+                <li><strong>Phase 4:</strong> Dynamic encouragement coach integration</li>
+              </ul>
+            </div>
+
+            <div class="tile tile-2">
+              <p class="tile-tag">02 · Actions</p>
+              <h4 class="tile-title">Immediate Next Steps</h4>
+              <ul class="tile-list">
+                <li><strong>Step 1:</strong> Scaffold Next.js + TypeScript + Tailwind</li>
+                <li><strong>Step 2:</strong> Build mock Habit card with checkmark pill</li>
+                <li><strong>Step 3:</strong> Implement add habit form with local state</li>
+                <li><strong>Step 4:</strong> Connect browser storage for persistence</li>
+              </ul>
+            </div>
+
+            <div class="tile tile-3">
+              <p class="tile-tag">03 · Tech Stack</p>
+              <h4 class="tile-title">Recommended Stack</h4>
+              <ul class="tile-list">
+                <li><strong>Next.js (App Router):</strong> Fast, full-stack React</li>
+                <li><strong>Tailwind CSS:</strong> Minimalist utility classes</li>
+                <li><strong>TypeScript:</strong> Type safety for agent autocomplete</li>
+                <li><strong>localStorage:</strong> Zero database setup needed</li>
+              </ul>
+            </div>
+
+            <div class="tile tile-4">
+              <p class="tile-tag">04 · Resources</p>
+              <h4 class="tile-title">Free Learning Links</h4>
+              <ul class="tile-list">
+                <li><strong>Next.js Foundations:</strong> nextjs.org/learn</li>
+                <li><strong>Tailwind CSS Docs:</strong> tailwindcss.com</li>
+                <li><strong>Devpost AI Guide:</strong> Working with coding agents</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- First Prompt Card -->
+          <div class="tile-full tile-5">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <p class="tile-tag" style="color: var(--accent); margin: 0;">05 · First Prompt to Use in Your Agent</p>
+              <button class="btn-ghost" style="padding: 0.3rem 0.75rem; font-size: 0.72rem;" onclick="copyPrompt()">
+                Copy Prompt
+              </button>
+            </div>
+            <div id="firstPromptCode" class="prompt-box">"I am building a clean habit tracker web app using Next.js, TypeScript, and Tailwind CSS.
+I already have the approved blueprint. Let's start with Phase 1: create a responsive single-page dark layout with a header, an input to add a new habit, and a list showing habit cards with their current streak and a complete checkmark. Keep the code clean, fully typed, and visually polished."</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-spacer"></div>
+
+    <!-- ===== 04 / THE OUTPUT ===== -->
+    <section class="output-section container" id="output">
+      <div class="reveal">
+        <div class="section-number-tag">04 / What You Get</div>
+        <div class="editorial-split" style="margin-bottom: 3.5rem;">
+          <h2 class="editorial-headline">Five sections.<br><em>One agent-ready document.</em></h2>
+          <div>
+            <p class="editorial-text">Every generated blueprint includes exactly the structure an AI coding agent needs to start executing — no extra prompting, no interpretation gaps, no wasted conversation.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="output-cards reveal">
+        <div class="output-card">
+          <div class="output-card-icon">🗺️</div>
+          <h4>Phase Roadmap</h4>
+          <p>3–5 sequential milestones from skeleton to polish. Each phase is scoped to a single working commit an agent can build independently.</p>
+        </div>
+        <div class="output-card">
+          <div class="output-card-icon">⚡</div>
+          <h4>Immediate Actions</h4>
+          <p>4–6 concrete steps with action verbs. The first thing you do after reading the blueprint — no ambiguity about where to begin.</p>
+        </div>
+        <div class="output-card">
+          <div class="output-card-icon">🧱</div>
+          <h4>Tech Stack</h4>
+          <p>Beginner-friendly tools with plain-English rationales. Every choice explained so you understand why, not just what.</p>
+        </div>
+        <div class="output-card">
+          <div class="output-card-icon">📚</div>
+          <h4>Free Resources</h4>
+          <p>2–4 targeted, verified links to documentation and tutorials. All free, all immediately useful. No paid courses.</p>
+        </div>
+        <div class="output-card">
+          <div class="output-card-icon">🤖</div>
+          <h4>Agent Guide</h4>
+          <p>Practical tips for collaborating with AI coding agents — what to ask, what to verify, how to iterate effectively.</p>
+        </div>
+        <div class="output-card">
+          <div class="output-card-icon">💬</div>
+          <h4>First Prompt</h4>
+          <p>An exact, copy-pasteable prompt to kick off Phase 1 in your agent. One click → paste → start building.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="container"><hr class="divider"></div>
+
+    <!-- ===== 05 / ARCHITECTURE ===== -->
+    <section class="arch-section container" id="architecture">
+      <div class="reveal">
+        <div class="section-number-tag">05 / Technical Architecture</div>
+        <div class="editorial-split" style="margin-bottom: 3rem;">
+          <h2 class="editorial-headline">Built to never fail <em>on demo day.</em></h2>
+          <p class="editorial-text">A dual-mode engine that tries the live Gemini API first, then falls back to smart client-side templates — so the breakdown always works, every time, even offline.</p>
+        </div>
+      </div>
+
+      <div class="arch-grid reveal">
+        <div class="arch-card">
+          <div class="arch-card-number">01</div>
+          <h4>Dual-Mode Engine</h4>
+          <p>Live Google Gemini calls when an API key is set. Automatic smart offline fallback on timeout (>10s) or rate limit. Zero demo failures guaranteed.</p>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-number">02</div>
+          <h4>Single-Page App Router</h4>
+          <p>Next.js 14+ App Router. All state lives client-side in React. Zero routing complexity, zero auth, zero database. Just the core loop.</p>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-number">03</div>
+          <h4>Agent-Ready Formatting</h4>
+          <p>Copy action outputs clean Markdown with an explicit agent instruction header, so AI coding agents execute phases without extra prompting.</p>
+        </div>
+        <div class="arch-card">
+          <div class="arch-card-number">04</div>
+          <h4>Local Dev & Recording</h4>
+          <p>Runs locally at <code style="color:var(--accent);">localhost:3000</code> with <code style="color:var(--accent);">npm run dev</code>. Sized to record a clean 1–2 minute Devpost demo video.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="container"><hr class="divider"></div>
+
+    <!-- ===== 06 / BUILT FOR BEGINNERS ===== -->
+    <section class="beginners-section container" id="beginners">
+      <div class="reveal">
+        <div class="section-number-tag">06 / Design Principles</div>
+      </div>
+
+      <div class="beginners-grid">
+        <div class="reveal">
+          <h2 class="editorial-headline">Not a toy.<br><em>A real tool.</em></h2>
+          <p class="editorial-text" style="margin-top: 1rem;">
+            Every decision — from the color of the textarea border to the structure of the 
+            copied Markdown — is calibrated for someone using an AI coding agent for the 
+            very first time.
+          </p>
+        </div>
+
+        <div class="reveal">
+          <div class="principle-item" style="border-top: none;">
+            <div class="principle-number">Principle 01</div>
+            <h4 class="principle-title">No intimidation</h4>
+            <p class="principle-body">A single text box, three sample chips, one button. The entire interface fits in one viewport. No menus, no settings, no accounts.</p>
+          </div>
+          <div class="principle-item">
+            <div class="principle-number">Principle 02</div>
+            <h4 class="principle-title">Never fails</h4>
+            <p class="principle-body">The smart fallback engine means the demo recording always works. No API key? No network? Still generates a valid, useful blueprint.</p>
+          </div>
+          <div class="principle-item">
+            <div class="principle-number">Principle 03</div>
+            <h4 class="principle-title">Agent-first output</h4>
+            <p class="principle-body">The copied blueprint is structured specifically for AI agents. Not a human summary — a machine-parseable instruction document.</p>
+          </div>
+          <div class="principle-item">
+            <div class="principle-number">Principle 04</div>
+            <h4 class="principle-title">Free everything</h4>
+            <p class="principle-body">Free API tier. Free resources. Free to run. The only investment is the idea in your head.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container"><hr class="divider"></div>
+
+    <!-- ===== 07 / FILE MAP ===== -->
+    <section class="filetree-section container" id="files">
+      <div class="reveal">
+        <div class="section-number-tag">07 / Project File Map</div>
+        <div class="editorial-split" style="margin-bottom: 2.5rem;">
+          <h2 class="editorial-headline">Everything in <em>one place.</em></h2>
+          <p class="editorial-text">Standard Next.js 14 App Router structure. Eight core files. No hidden complexity.</p>
+        </div>
+      </div>
+
+      <div class="filetree-card reveal">
+        <pre>
+<span class="folder">idea-breakdown-coach/</span>
+├── <span class="folder">app/</span>
+│   ├── <span class="file-highlight">layout.tsx</span>          ← Root layout + global styles
+│   ├── <span class="file-highlight">page.tsx</span>            ← Single-page client component
+│   ├── globals.css             ← Design tokens + component styles
+│   └── <span class="folder">api/</span>
+│       └── <span class="folder">breakdown/</span>
+│           └── <span class="file-highlight">route.ts</span>    ← Gemini API call + fallback trigger
+├── <span class="folder">components/</span>
+│   ├── <span class="file-highlight">InputConsole.tsx</span>    ← Textarea, chips, submit button
+│   ├── <span class="file-highlight">BlueprintCard.tsx</span>   ← Individual result tile
+│   └── <span class="file-highlight">CopyButton.tsx</span>     ← Clipboard action + toast
+├── <span class="folder">lib/</span>
+│   ├── <span class="file-highlight">fallbackGenerator.ts</span> ← Smart offline blueprint builder
+│   └── <span class="file-highlight">formatMarkdown.ts</span>   ← Agent-ready MD formatter
+├── .env.local                   ← GEMINI_API_KEY (optional)
+├── package.json
+└── tsconfig.json</pre>
+      </div>
+    </section>
+
+    <div class="section-spacer"></div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-inner">
+          <div class="footer-left">
+            <div class="footer-logo">✦</div>
+            <span class="footer-text">Idea Breakdown Coach · Devpost Build With AI 2026</span>
+          </div>
+          <div class="footer-right">
+            <a href="#hero">Back to top ↑</a>
+            <a href="https://devpost.com" target="_blank" rel="noopener">Devpost ↗</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+  </div><!-- /page-wrapper -->
+
+  <div id="toast">📋 COPIED TO CLIPBOARD</div>
+
+  <script>
+    // ===== PRESET CHIPS =====
+    const textarea = document.getElementById('promptInput');
+    const btn = document.getElementById('breakdownBtn');
+    const loader = document.getElementById('loaderBox');
+    const results = document.getElementById('resultsWrap');
+    const toast = document.getElementById('toast');
+
+    const presets = {
+      habit: "I want to build a simple habit tracker with AI that helps me stay consistent, gives me daily reminders, and awards fun badges when I hit a 7-day streak.",
+      flashcards: "A spaced repetition flashcard app where I can paste my notes, have AI generate 10 quiz cards, and test myself with flip animations.",
+      events: "A local community board that finds free weekend tech meetups and displays them on a clean weekly calendar with RSVP links."
+    };
+
+    function setPreset(key) {
+      textarea.value = presets[key];
+      textarea.focus();
+    }
+
+    // ===== SIMULATE BREAKDOWN =====
+    function runSim() {
+      if (textarea.value.trim().length < 15) {
+        alert('Please enter at least 15 characters.');
+        return;
+      }
+      btn.disabled = true;
+      btn.innerHTML = '<span>Coaching idea...</span>';
+      results.style.display = 'none';
+      results.classList.remove('revealed');
+      loader.style.display = 'block';
+
+      setTimeout(() => {
+        loader.style.display = 'none';
+        results.style.display = 'block';
+        setTimeout(() => results.classList.add('revealed'), 20);
+        btn.disabled = false;
+        btn.innerHTML = '<span>Break it down</span> <span aria-hidden="true">→</span>';
+        results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 900);
+    }
+
+    function resetSim() {
+      textarea.value = '';
+      results.style.display = 'none';
+      results.classList.remove('revealed');
+      textarea.focus();
+    }
+
+    // ===== CLIPBOARD =====
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    function copyFull() {
+      const text = `# Project Blueprint: AI Habit Tracker
+> **AI Coding Agent Instruction:** Use this blueprint to build the project step by step with the user. Follow the phases sequentially and execute the immediate next actions first.
+
+## 1. Phased Roadmap
+- Phase 1: Foundation & Layout
+- Phase 2: Habit Actions & State
+- Phase 3: Badge & Milestone Logic
+- Phase 4: AI Motivation Coach
+
+## 2. Immediate Next Actions
+1. Initialize fresh Next.js project with TypeScript and Tailwind CSS
+2. Build mock Habit card component with title, streak pill, and complete checkmark
+3. Create new habit input form and hook into React state
+4. Connect browser localStorage so habit data persists on page reload
+
+## 3. Recommended Tech Stack: Next.js + Tailwind CSS + TypeScript + localStorage
+## 4. Free Resources: Next.js Foundations, Tailwind Docs, Devpost AI Guide
+## 5. First Prompt: "Build Phase 1 single page habit tracker layout..."`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('📋 BLUEPRINT COPIED');
+      });
+    }
+
+    function copyPrompt() {
+      const p = document.getElementById('firstPromptCode').textContent.trim();
+      navigator.clipboard.writeText(p).then(() => {
+        showToast('📋 FIRST PROMPT COPIED');
+      });
+    }
+
+    // ===== HERO MINI CHART =====
+    function buildHeroChart() {
+      const chart = document.getElementById('heroChart');
+      const heights = [65, 80, 45, 90, 70, 55, 85, 40, 95, 60, 75, 50, 0, 88, 72, 0, 55, 80, 0, 65, 78, 90, 42, 70];
+      heights.forEach((h, i) => {
+        const bar = document.createElement('div');
+        bar.className = 'mini-bar ' + (h > 0 ? 'filled' : 'empty');
+        bar.style.height = (h > 0 ? h : 30) + '%';
+        bar.style.opacity = h > 0 ? '1' : '0.5';
+        chart.appendChild(bar);
+      });
+    }
+    buildHeroChart();
+
+    // ===== SCROLL REVEAL =====
+    const revealEls = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+    revealEls.forEach(el => revealObserver.observe(el));
+
+    // ===== SIDE NAV ACTIVE STATE =====
+    const sections = document.querySelectorAll('section[id], .hero[id]');
+    const sideLinks = document.querySelectorAll('.side-nav a');
+    const navObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          sideLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+          });
+        }
+      });
+    }, { threshold: 0.3 });
+    sections.forEach(s => navObserver.observe(s));
+  </script>
+</body>
+</html>

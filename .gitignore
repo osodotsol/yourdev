@@ -1,0 +1,12 @@
+# Devpost personal learner context
+/devpost/learner-profile.md
+
+# Environment and local credentials
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+.next/
+dist/
