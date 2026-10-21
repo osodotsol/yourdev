@@ -6,7 +6,9 @@ import {
   ResourceItem,
   PitfallItem,
   ClarifyingQuestion,
+  RoadmapNode,
 } from "@/types/blueprint";
+import { retrieveKnowledge, buildRoadmapNodes } from "@/lib/knowledgeBank";
 
 export type ProjectCategory =
   | "extension"
@@ -677,6 +679,9 @@ export function generateBlueprint(
   // AI Agent Pairing Guide & First Prompt
   const agentGuide = buildAgentGuide(category, activeChoices, projectTitle, summary, roadmap, nextActions);
 
+  const matchedSkills = retrieveKnowledge(ideaText, activeChoices);
+  const nodes: RoadmapNode[] = buildRoadmapNodes(matchedSkills[0], projectTitle, summary);
+
   return {
     projectTitle,
     summary,
@@ -687,6 +692,7 @@ export function generateBlueprint(
     techStack,
     resources,
     agentGuide,
+    nodes,
     isFallback: true,
     userChoices: activeChoices,
   };

@@ -46,6 +46,19 @@ export interface ClarifyingQuestion {
   options: QuestionOption[];
 }
 
+export interface RoadmapNode {
+  id: string;
+  step: number;
+  title: string;
+  subtitle: string;
+  badge: "CORE MVP" | "RECOMMENDED" | "POLISH";
+  goal: string;
+  filesToCreate: string[];
+  keyPackages?: string[];
+  stepPrompt: string;
+  resources: { title: string; url: string }[];
+}
+
 export interface IdeaBlueprint {
   projectTitle: string;
   summary: string;
@@ -56,6 +69,7 @@ export interface IdeaBlueprint {
   techStack: StackItem[];
   resources: ResourceItem[];
   agentGuide: AgentGuide;
+  nodes?: RoadmapNode[];
   isFallback?: boolean;
   userChoices?: Record<string, string>;
 }

@@ -1,4 +1,5 @@
-import { IdeaBlueprint } from "@/types/blueprint";
+import { IdeaBlueprint, RoadmapNode } from "@/types/blueprint";
+import { retrieveKnowledge, buildRoadmapNodes } from "@/lib/knowledgeBank";
 
 const GEMINI_MODELS = [
   "gemini-3.5-flash-lite",
@@ -12,7 +13,7 @@ Your mission is to take a raw, messy, or beginner-level software project idea an
 CRITICAL INSTRUCTIONS:
 1. NEVER output generic boilerplate. Do NOT output generic steps like "create project folder" or "build UI card" without project-specific context.
 2. Read the user's idea carefully. If they mention specific domains (e.g., audio transcription, WhatsApp, Notion, Chrome extensions, scraping, finance, healthcare, bots), YOU MUST use actual domain-specific libraries, APIs, protocols, data models, and real-world failure modes.
-3. Incorporate any user choices (e.g., preferred persistence, data source, platform) directly into the architecture.
+3. Adhere strictly to the verified architecture rules provided in the KNOWLEDGE BANK GROUND TRUTH section.
 4. Output MUST be 100% valid JSON matching the exact schema below, with NO markdown backticks or commentary outside the JSON.
 
 SCHEMA:
@@ -25,6 +26,56 @@ SCHEMA:
       "trap": "string (specific technical failure mode or trap for this exact domain)",
       "whyItHappens": "string (why beginners or AI coding agents fall into this trap)",
       "howToAvoid": "string (exact code-level or architectural practice to prevent it)"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "node-1",
+      "step": 1,
+      "title": "string (e.g. Data Schema & Type Contracts)",
+      "subtitle": "string (e.g. Core TypeScript interfaces)",
+      "badge": "CORE MVP",
+      "goal": "string (what to achieve in this milestone)",
+      "filesToCreate": ["string (e.g. types/task.ts)"],
+      "keyPackages": ["string"],
+      "stepPrompt": "string (The exact focused prompt to feed into an AI coding agent like Cursor or Claude to build JUST this milestone)",
+      "resources": [{ "title": "string", "url": "string" }]
+    },
+    {
+      "id": "node-2",
+      "step": 2,
+      "title": "string",
+      "subtitle": "string",
+      "badge": "CORE MVP",
+      "goal": "string",
+      "filesToCreate": ["string"],
+      "keyPackages": ["string"],
+      "stepPrompt": "string",
+      "resources": [{ "title": "string", "url": "string" }]
+    },
+    {
+      "id": "node-3",
+      "step": 3,
+      "title": "string",
+      "subtitle": "string",
+      "badge": "RECOMMENDED",
+      "goal": "string",
+      "filesToCreate": ["string"],
+      "keyPackages": ["string"],
+      "stepPrompt": "string",
+      "resources": [{ "title": "string", "url": "string" }]
+    },
+    {
+      "id": "node-4",
+      "step": 4,
+      "title": "string",
+      "subtitle": "string",
+      "badge": "POLISH",
+      "goal": "string",
+      "filesToCreate": ["string"],
+      "keyPackages": ["string"],
+      "stepPrompt": "string",
+      "resources": [{ "title": "string", "url": "string" }]
     }
   ],
   "roadmap": [
@@ -67,11 +118,28 @@ export async function generateGeminiBlueprint(
     throw new Error("GEMINI_API_KEY is not configured.");
   }
 
+  // Retrieve curated skills and framework patterns from the knowledge bank
+  const matchedKnowledge = retrieveKnowledge(ideaText, userChoices);
+  const knowledgeGroundTruth = matchedKnowledge
+    .map(
+      (k) => `
+MODULE: ${k.name} (${k.category})
+- SUMMARY: ${k.summary}
+- ARCHITECTURAL RULES: ${k.architectureRules.join(" | ")}
+- RECOMMENDED PACKAGES: ${k.recommendedPackages.join(", ")}
+- COMMON TRAPS: ${k.pitfalls.map((p) => p.trap).join(" | ")}
+`
+    )
+    .join("\n");
+
   const promptContent = `PROJECT IDEA:
 "${ideaText}"
 
 USER ARCHITECTURAL CHOICES & CONSTRAINTS:
 ${JSON.stringify(userChoices, null, 2)}
+
+KNOWLEDGE BANK GROUND TRUTH (USE THESE PATTERNS):
+${knowledgeGroundTruth}
 
 Produce a custom, non-generic, high-signal execution blueprint adhering strictly to the JSON schema.`;
 
@@ -106,7 +174,7 @@ Produce a custom, non-generic, high-signal execution blueprint adhering strictly
         const errMsg = errorData.error?.message || `HTTP ${res.status}`;
         console.warn(`[Gemini API] Model ${model} failed: ${errMsg}`);
         lastError = new Error(errMsg);
-        continue; // Try next model
+        continue;
       }
 
       const data = await res.json();
@@ -116,7 +184,6 @@ Produce a custom, non-generic, high-signal execution blueprint adhering strictly
         throw new Error("Empty candidate response from Gemini.");
       }
 
-      // Clean possible markdown fences
       const cleaned = rawText
         .replace(/^```json\s*/i, "")
         .replace(/^```\s*/i, "")
@@ -126,6 +193,11 @@ Produce a custom, non-generic, high-signal execution blueprint adhering strictly
       const parsed: IdeaBlueprint = JSON.parse(cleaned);
       parsed.isFallback = false;
       parsed.userChoices = userChoices;
+
+      // Ensure nodes are populated
+      if (!parsed.nodes || parsed.nodes.length === 0) {
+        parsed.nodes = buildRoadmapNodes(matchedKnowledge[0], parsed.projectTitle, parsed.summary);
+      }
 
       return parsed;
     } catch (err: any) {

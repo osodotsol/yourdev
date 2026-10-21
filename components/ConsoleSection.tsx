@@ -14,6 +14,7 @@ import {
   Loader2,
   SlidersHorizontal,
 } from "lucide-react";
+import { RoadmapGraph } from "@/components/RoadmapGraph";
 
 interface ConsoleSectionProps {
   blueprint: IdeaBlueprint | null;
@@ -163,7 +164,7 @@ export function ConsoleSection({
       <div className={`craft-console-box ${isLoading ? "is-loading" : ""}`}>
         <div className="console-meta-strip">
           <span>⚡ AI ARCHITECT ENGINE // yourdev</span>
-          <span>POWERED BY GOOGLE GEMINI 1.5</span>
+          <span>AUTONOMOUS SPECIFICATION STUDIO</span>
         </div>
 
         {/* ALWAYS VISIBLE INPUT TEXTAREA */}
@@ -228,7 +229,7 @@ export function ConsoleSection({
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin text-amber-300" />
-                <span>Architecting with Gemini AI...</span>
+                <span>Synthesizing Architecture...</span>
               </>
             ) : (
               <>
@@ -286,7 +287,7 @@ export function ConsoleSection({
                 marginBottom: "16px",
               }}
             >
-              Adjusting these tells Gemini how to size your Phase 1 MVP cutline:
+              Adjusting these calibrates your Phase 1 MVP cutline:
             </p>
 
             {questions.map((q) => (
@@ -347,7 +348,7 @@ export function ConsoleSection({
                   margin: 0,
                 }}
               >
-                ✦ CONSULTING GOOGLE GEMINI 1.5 ARCHITECT...
+                ✦ SYNTHESIZING SYSTEM ARCHITECTURE...
               </p>
             </div>
             <p style={{ fontSize: "13.5px", color: "var(--text)", marginBottom: "14px", lineHeight: 1.5 }}>
@@ -375,7 +376,7 @@ export function ConsoleSection({
             <div className="blueprint-stage-head">
               <div>
                 <span className="card-kicker">
-                  {blueprint.isFallback ? "OFFLINE ENGINE BACKUP" : "✦ LIVE GEMINI AI STRATEGY"}
+                  {blueprint.isFallback ? "ENGINE v1.0 // CACHED" : "✦ TAILORED ARCHITECTURE SPEC"}
                 </span>
                 <h3>{blueprint.projectTitle}</h3>
                 <p style={{ fontSize: "14px", color: "var(--text-muted)", maxWidth: "680px" }}>
@@ -414,6 +415,11 @@ export function ConsoleSection({
                   {blueprint.strategyDecision}
                 </div>
               </div>
+            )}
+
+            {/* Interactive Visual Roadmap Graph (roadmap.sh style) */}
+            {blueprint.nodes && blueprint.nodes.length > 0 && (
+              <RoadmapGraph nodes={blueprint.nodes} onShowToast={onShowToast} />
             )}
 
             <div className="blueprint-tiles-layout">
