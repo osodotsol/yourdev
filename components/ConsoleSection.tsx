@@ -4,7 +4,16 @@ import React, { useState } from "react";
 import { IdeaBlueprint, ClarifyingQuestion } from "@/types/blueprint";
 import { formatBlueprintMarkdown } from "@/lib/clipboard";
 import { getClarifyingQuestions } from "@/lib/fallbackGenerator";
-import { Check, Copy, ArrowRight, ArrowLeft, AlertTriangle, Sparkles, RefreshCw, Terminal } from "lucide-react";
+import {
+  Check,
+  Copy,
+  ArrowRight,
+  AlertTriangle,
+  Sparkles,
+  RefreshCw,
+  Loader2,
+  SlidersHorizontal,
+} from "lucide-react";
 
 interface ConsoleSectionProps {
   blueprint: IdeaBlueprint | null;
@@ -31,6 +40,7 @@ export function ConsoleSection({
   onShowToast,
 }: ConsoleSectionProps) {
   const [inputText, setInputText] = useState("");
+  const [showCustomizer, setShowCustomizer] = useState(false);
   const [questions, setQuestions] = useState<ClarifyingQuestion[] | null>(null);
   const [userChoices, setUserChoices] = useState<Record<string, string>>({});
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
@@ -46,7 +56,6 @@ export function ConsoleSection({
   const handleSelectPreset = (key: keyof typeof PRESETS) => {
     const text = PRESETS[key];
     setInputText(text);
-    // Prepare the clarifying questions for this preset
     const qs = getClarifyingQuestions(text);
     setQuestions(qs);
     const defaults: Record<string, string> = {};
@@ -57,28 +66,54 @@ export function ConsoleSection({
     setUserChoices(defaults);
   };
 
-  const handleStartCoaching = () => {
+  const handleTriggerBreakdown = () => {
     if (inputText.trim().length < 15) {
       onShowToast("Please enter at least 15 characters (or click a quick preset).");
       return;
     }
-    const qs = getClarifyingQuestions(inputText);
-    setQuestions(qs);
 
-    const defaults: Record<string, string> = {};
-    qs.forEach((q) => {
-      const rec = q.options.find((o) => o.recommendation) || q.options[0];
-      defaults[q.id] = rec.id;
-    });
-    setUserChoices(defaults);
+    // Ensure questions and defaults exist
+    let currentChoices = { ...userChoices };
+    if (!questions) {
+      const qs = getClarifyingQuestions(inputText);
+      setQuestions(qs);
+      qs.forEach((q) => {
+        if (!currentChoices[q.id]) {
+          const rec = q.options.find((o) => o.recommendation) || q.options[0];
+          currentChoices[q.id] = rec.id;
+        }
+      });
+      setUserChoices(currentChoices);
+    }
 
-    // Scroll slightly to reveal questions
+    setCompletedSteps([]);
+    onBreakdown(inputText, currentChoices);
+
+    // Scroll to results once loading finishes
     setTimeout(() => {
-      const qEl = document.getElementById("calibration-stage");
-      if (qEl) {
-        qEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      const el = document.getElementById("loader-indicator");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
       }
-    }, 100);
+    }, 150);
+  };
+
+  const handleToggleCustomizer = () => {
+    if (inputText.trim().length < 10) {
+      onShowToast("Please type an idea first to calibrate architecture.");
+      return;
+    }
+    if (!questions) {
+      const qs = getClarifyingQuestions(inputText);
+      setQuestions(qs);
+      const defaults: Record<string, string> = {};
+      qs.forEach((q) => {
+        const rec = q.options.find((o) => o.recommendation) || q.options[0];
+        defaults[q.id] = rec.id;
+      });
+      setUserChoices(defaults);
+    }
+    setShowCustomizer((prev) => !prev);
   };
 
   const handleSelectOption = (questionId: string, optionId: string) => {
@@ -86,18 +121,6 @@ export function ConsoleSection({
       ...prev,
       [questionId]: optionId,
     }));
-  };
-
-  const handleGenerateFinal = () => {
-    setCompletedSteps([]);
-    onBreakdown(inputText, userChoices);
-
-    setTimeout(() => {
-      const resEl = document.getElementById("blueprint-results");
-      if (resEl) {
-        resEl.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }, 800);
   };
 
   const handleCopyFull = async () => {
@@ -125,6 +148,7 @@ export function ConsoleSection({
     setInputText("");
     setQuestions(null);
     setUserChoices({});
+    setShowCustomizer(false);
     onClear();
   };
 
@@ -136,10 +160,10 @@ export function ConsoleSection({
         Break down your idea. <em>Right here.</em>
       </h2>
 
-      <div className="craft-console-box">
+      <div className={`craft-console-box ${isLoading ? "is-loading" : ""}`}>
         <div className="console-meta-strip">
-          <span>⚡ FLIPPED INTERACTION COACH // yourdev</span>
-          <span>STEP 1: TYPE OR CHOOSE YOUR PROJECT IDEA</span>
+          <span>⚡ AI ARCHITECT ENGINE // yourdev</span>
+          <span>POWERED BY GOOGLE GEMINI 1.5</span>
         </div>
 
         {/* ALWAYS VISIBLE INPUT TEXTAREA */}
@@ -150,6 +174,7 @@ export function ConsoleSection({
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Type or paste your raw project idea here... (e.g. 'A mobile expense tracker that lets me take photos of receipts and categorizes them offline with zero cloud server')"
             rows={4}
+            disabled={isLoading}
           />
         </div>
 
@@ -170,6 +195,7 @@ export function ConsoleSection({
             type="button"
             className="craft-preset-chip"
             onClick={() => handleSelectPreset("habit")}
+            disabled={isLoading}
           >
             + Habit Tracker
           </button>
@@ -177,6 +203,7 @@ export function ConsoleSection({
             type="button"
             className="craft-preset-chip"
             onClick={() => handleSelectPreset("flashcards")}
+            disabled={isLoading}
           >
             + Spaced Flashcards
           </button>
@@ -184,60 +211,82 @@ export function ConsoleSection({
             type="button"
             className="craft-preset-chip"
             onClick={() => handleSelectPreset("events")}
+            disabled={isLoading}
           >
             + Dev Event Scraper
           </button>
         </div>
 
-        {/* ACTIONS BAR */}
+        {/* ACTIONS BAR WITH ANIMATED BUTTON */}
         <div className="console-actions-bar">
           <button
             type="button"
-            className="btn-craft-primary"
-            onClick={handleStartCoaching}
+            className={`btn-craft-primary ${isLoading ? "is-loading" : ""}`}
+            onClick={handleTriggerBreakdown}
             disabled={isLoading || inputText.trim().length < 15}
           >
-            <span>Analyze Idea & Clarify Strategy</span>
-            <ArrowRight className="w-4 h-4" />
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-amber-300" />
+                <span>Architecting with Gemini AI...</span>
+              </>
+            ) : (
+              <>
+                <span>Break it down with AI</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
-          {inputText && (
+
+          <button
+            type="button"
+            className="btn-craft-secondary"
+            onClick={handleToggleCustomizer}
+            disabled={isLoading || inputText.trim().length < 10}
+            style={{ fontSize: "13px" }}
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>{showCustomizer ? "Hide Constraints" : "Calibrate Constraints"}</span>
+          </button>
+
+          {inputText && !isLoading && (
             <button
               type="button"
               className="btn-craft-secondary"
               onClick={handleClearAll}
+              style={{ fontSize: "13px" }}
             >
               Clear
             </button>
           )}
         </div>
 
-        {/* INTERACTIVE COACHING QUESTIONS (VISIBLE ONCE IDEA IS ENTERED/CLICKED) */}
-        {questions && questions.length > 0 && (
-          <div className="coaching-card-wrap" id="calibration-stage">
+        {/* OPTIONAL ARCHITECTURAL CALIBRATION */}
+        {showCustomizer && questions && questions.length > 0 && (
+          <div className="coaching-card-wrap" style={{ marginTop: "20px" }}>
             <div className="coaching-step-badge">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Step 2 · Architectural Calibration Questions</span>
+              <span>Architectural Constraints (Optional Tuning)</span>
             </div>
 
             <h3
               style={{
                 fontFamily: "var(--serif)",
-                fontSize: "26px",
+                fontSize: "22px",
                 fontWeight: 400,
-                marginBottom: "6px",
+                marginBottom: "4px",
               }}
             >
-              Let’s calibrate your strategy before building.
+              Fine-tune your technical boundaries
             </h3>
             <p
               style={{
-                fontSize: "13.5px",
+                fontSize: "13px",
                 color: "var(--text-muted)",
-                marginBottom: "20px",
+                marginBottom: "16px",
               }}
             >
-              A senior engineer would ask these exact questions to keep your Demo Day project focused,
-              avoiding weeks of wasted refactoring:
+              Adjusting these tells Gemini how to size your Phase 1 MVP cutline:
             </p>
 
             {questions.map((q) => (
@@ -279,45 +328,44 @@ export function ConsoleSection({
                 </div>
               </div>
             ))}
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                marginTop: "24px",
-              }}
-            >
-              <button
-                type="button"
-                className="btn-craft-primary"
-                onClick={handleGenerateFinal}
-                disabled={isLoading}
-              >
-                <span>Generate Tailored Strategy</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
           </div>
         )}
 
-        {/* LOADING SHIMMER */}
+        {/* ANIMATED LOADING SHIMMER CARD */}
         {isLoading && (
-          <div className="craft-loader-card">
-            <p
-              style={{
-                fontFamily: "var(--mono)",
-                fontSize: "11px",
-                color: "var(--accent-gold)",
-                fontWeight: 600,
-                marginBottom: "4px",
-              }}
-            >
-              ✦ SYNTHESIZING TAILORED ARCHITECTURE & PITFALL SAFEGUARDS...
+          <div className="craft-loader-card" id="loader-indicator">
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+              <Loader2 className="w-5 h-5 animate-spin text-amber-600" />
+              <p
+                style={{
+                  fontFamily: "var(--mono)",
+                  fontSize: "12px",
+                  color: "#92400e",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  margin: 0,
+                }}
+              >
+                ✦ CONSULTING GOOGLE GEMINI 1.5 ARCHITECT...
+              </p>
+            </div>
+            <p style={{ fontSize: "13.5px", color: "var(--text)", marginBottom: "14px", lineHeight: 1.5 }}>
+              Analyzing domain requirements, sizing Phase 1 MVP boundaries, extracting common pitfalls, and generating your code-ready agent prompt...
             </p>
-            <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-              Applying your chosen constraints into concrete milestones, pitfalls to avoid, and exact starter prompts...
-            </p>
+
+            {/* Pulsing Step Indicators */}
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "11px", fontFamily: "var(--mono)", background: "#fff", padding: "4px 8px", borderRadius: "4px", border: "1px solid #fed7aa", color: "#9a3412" }}>
+                ✓ Domain & Entity Extraction
+              </span>
+              <span style={{ fontSize: "11px", fontFamily: "var(--mono)", background: "#fff", padding: "4px 8px", borderRadius: "4px", border: "1px solid #fed7aa", color: "#9a3412", animation: "pulse 1.2s infinite" }}>
+                ✦ Proof-of-Concept Cutline
+              </span>
+              <span style={{ fontSize: "11px", fontFamily: "var(--mono)", background: "#fff", padding: "4px 8px", borderRadius: "4px", border: "1px solid #fed7aa", color: "#9a3412" }}>
+                ✦ Agent Prompt Synthesis
+              </span>
+            </div>
           </div>
         )}
 
@@ -327,7 +375,7 @@ export function ConsoleSection({
             <div className="blueprint-stage-head">
               <div>
                 <span className="card-kicker">
-                  TAILORED STRATEGY // {blueprint.isFallback ? "OFFLINE ENGINE" : "LIVE GEMINI"}
+                  {blueprint.isFallback ? "OFFLINE ENGINE BACKUP" : "✦ LIVE GEMINI AI STRATEGY"}
                 </span>
                 <h3>{blueprint.projectTitle}</h3>
                 <p style={{ fontSize: "14px", color: "var(--text-muted)", maxWidth: "680px" }}>
@@ -336,6 +384,15 @@ export function ConsoleSection({
               </div>
 
               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className="btn-craft-secondary"
+                  onClick={handleToggleCustomizer}
+                  style={{ fontSize: "12px" }}
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Re-Calibrate Strategy</span>
+                </button>
                 <button
                   type="button"
                   className="btn-craft-primary"
