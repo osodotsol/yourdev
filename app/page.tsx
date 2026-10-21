@@ -10,6 +10,7 @@ import { ConsoleSection } from "@/components/ConsoleSection";
 import { OutputSection } from "@/components/OutputSection";
 import { SiteFooter } from "@/components/SiteFooter";
 import { IdeaBlueprint } from "@/types/blueprint";
+import { generateBlueprint } from "@/lib/fallbackGenerator";
 
 const DEFAULT_SAMPLE_BLUEPRINT: IdeaBlueprint = {
   projectTitle: "AI Habit Tracker with Adaptive Streaks",
@@ -148,30 +149,8 @@ export default function Home() {
     setIsLoading(true);
 
     setTimeout(() => {
-      const lower = text.toLowerCase();
-      let title = "AI Habit Tracker with Adaptive Streaks";
-      let summary =
-        "A privacy-first web application that tracks micro-habits, analyzes streak friction using AI heuristics, and gives gentle adaptive pacing prompts.";
-
-      if (lower.includes("flashcard") || lower.includes("spaced")) {
-        title = "Spaced Flashcards Learning Platform";
-        summary =
-          "A minimal spaced repetition flashcard web app for learning technical vocabulary with Leitner box scheduling and AI-generated sample sentences.";
-      } else if (
-        lower.includes("scraper") ||
-        lower.includes("event") ||
-        lower.includes("meetup")
-      ) {
-        title = "Local Developer Event Scraper & Digest";
-        summary =
-          "An automated scraper dashboard collecting community tech meetups and workshops, filtering duplicates, and generating weekly digests.";
-      }
-
-      setBlueprint({
-        ...DEFAULT_SAMPLE_BLUEPRINT,
-        projectTitle: title,
-        summary: summary,
-      });
+      const generated = generateBlueprint(text);
+      setBlueprint(generated);
       setIsLoading(false);
       triggerToast("✓ BLUEPRINT GENERATED");
 
@@ -179,7 +158,7 @@ export default function Home() {
       if (consoleEl) {
         consoleEl.scrollIntoView({ behavior: "smooth", block: "start" });
       }
-    }, 900);
+    }, 700);
   };
 
   const handleClear = () => {

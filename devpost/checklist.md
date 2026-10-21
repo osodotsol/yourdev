@@ -19,7 +19,7 @@ Build mode: fast
   Learner check: Open http://localhost:3000, try typing an idea and hitting "Break it down". Try the preset chips. Does the flow feel right? Does the design match what you pictured?
   Commit: `feat: core breakdown flow with fallback data`
 
-- [ ] **2. The smart fallback engine generates a relevant blueprint from your actual idea**
+- [x] **2. The smart fallback engine generates a relevant blueprint from your actual idea**
   Becomes usable: Instead of always showing the same hardcoded response, the app now parses your idea text and generates a tailored 5-part blueprint using the client-side smart template engine — no API key needed.
   Why now: This is the demo reliability guarantee. Once this works, the app is fully functional offline — the API call in slice 3 is an enhancement, not a requirement.
   PRD ref: `prd.md > 2. Breakdown Generation & Smart Fallback`

@@ -1,14 +1,15 @@
 "use client";
 
 import React from "react";
+import { Logo } from "@/components/Logo";
 
 export function SiteFooter() {
   return (
     <footer className="craft-footer">
       <div className="footer-top">
         <div className="footer-brand-title">
-          <span style={{ fontWeight: 800 }}>yourdev</span>
-          <span style={{ fontSize: "11px", color: "#8a867c", marginLeft: "10px", fontFamily: "var(--mono)" }}>
+          <Logo size={28} showWordmark={true} color="#f4eddf" />
+          <span style={{ fontSize: "11px", color: "#8a867c", marginLeft: "14px", fontFamily: "var(--mono)" }}>
             DEVPOST // BUILD WITH AI BASICS 2026
           </span>
         </div>
