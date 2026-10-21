@@ -17,9 +17,7 @@ const DEFAULT_SAMPLE_BLUEPRINT: IdeaBlueprint = generateBlueprint(
 );
 
 export default function Home() {
-  const [blueprint, setBlueprint] = useState<IdeaBlueprint | null>(
-    DEFAULT_SAMPLE_BLUEPRINT
-  );
+  const [blueprint, setBlueprint] = useState<IdeaBlueprint | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);

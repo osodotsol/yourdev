@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { IdeaBlueprint, ClarifyingQuestion } from "@/types/blueprint";
 import { formatBlueprintMarkdown } from "@/lib/clipboard";
 import { getClarifyingQuestions } from "@/lib/fallbackGenerator";
-import { Check, Copy, ArrowRight, ArrowLeft, AlertTriangle, Sparkles, RefreshCw } from "lucide-react";
+import { Check, Copy, ArrowRight, ArrowLeft, AlertTriangle, Sparkles, RefreshCw, Terminal } from "lucide-react";
 
 interface ConsoleSectionProps {
   blueprint: IdeaBlueprint | null;
@@ -30,9 +30,8 @@ export function ConsoleSection({
   onClear,
   onShowToast,
 }: ConsoleSectionProps) {
-  const [inputText, setInputText] = useState(PRESETS.habit);
-  const [step, setStep] = useState<"input" | "coaching" | "blueprint">("blueprint");
-  const [questions, setQuestions] = useState<ClarifyingQuestion[]>([]);
+  const [inputText, setInputText] = useState("");
+  const [questions, setQuestions] = useState<ClarifyingQuestion[] | null>(null);
   const [userChoices, setUserChoices] = useState<Record<string, string>>({});
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
@@ -44,32 +43,42 @@ export function ConsoleSection({
     );
   };
 
-  const setPreset = (key: keyof typeof PRESETS) => {
-    setInputText(PRESETS[key]);
-    setStep("input");
-  };
-
-  const handleStartCoaching = () => {
-    if (inputText.trim().length < 15) {
-      onShowToast("Please enter at least 15 characters to analyze.");
-      return;
-    }
-    const qs = getClarifyingQuestions(inputText);
+  const handleSelectPreset = (key: keyof typeof PRESETS) => {
+    const text = PRESETS[key];
+    setInputText(text);
+    // Prepare the clarifying questions for this preset
+    const qs = getClarifyingQuestions(text);
     setQuestions(qs);
-
-    // Pre-select recommended options
     const defaults: Record<string, string> = {};
     qs.forEach((q) => {
       const rec = q.options.find((o) => o.recommendation) || q.options[0];
       defaults[q.id] = rec.id;
     });
     setUserChoices(defaults);
-    setStep("coaching");
+  };
 
-    const consoleEl = document.getElementById("console");
-    if (consoleEl) {
-      consoleEl.scrollIntoView({ behavior: "smooth", block: "start" });
+  const handleStartCoaching = () => {
+    if (inputText.trim().length < 15) {
+      onShowToast("Please enter at least 15 characters (or click a quick preset).");
+      return;
     }
+    const qs = getClarifyingQuestions(inputText);
+    setQuestions(qs);
+
+    const defaults: Record<string, string> = {};
+    qs.forEach((q) => {
+      const rec = q.options.find((o) => o.recommendation) || q.options[0];
+      defaults[q.id] = rec.id;
+    });
+    setUserChoices(defaults);
+
+    // Scroll slightly to reveal questions
+    setTimeout(() => {
+      const qEl = document.getElementById("calibration-stage");
+      if (qEl) {
+        qEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
   };
 
   const handleSelectOption = (questionId: string, optionId: string) => {
@@ -82,7 +91,13 @@ export function ConsoleSection({
   const handleGenerateFinal = () => {
     setCompletedSteps([]);
     onBreakdown(inputText, userChoices);
-    setStep("blueprint");
+
+    setTimeout(() => {
+      const resEl = document.getElementById("blueprint-results");
+      if (resEl) {
+        resEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 800);
   };
 
   const handleCopyFull = async () => {
@@ -106,6 +121,13 @@ export function ConsoleSection({
     }
   };
 
+  const handleClearAll = () => {
+    setInputText("");
+    setQuestions(null);
+    setUserChoices({});
+    onClear();
+  };
+
   return (
     <section className="craft-section" id="console">
       <div className="section-eyebrow">03 / LIVE INTERACTIVE CONSOLE</div>
@@ -117,92 +139,84 @@ export function ConsoleSection({
       <div className="craft-console-box">
         <div className="console-meta-strip">
           <span>⚡ FLIPPED INTERACTION COACH // yourdev</span>
-          <span>
-            {step === "coaching"
-              ? "STEP 2 OF 2: ARCHITECTURAL CALIBRATION"
-              : step === "input"
-              ? "STEP 1 OF 2: DESCRIBE RAW IDEA"
-              : "STRATEGIC EXECUTION BLUEPRINT"}
-          </span>
+          <span>STEP 1: TYPE OR CHOOSE YOUR PROJECT IDEA</span>
         </div>
 
-        {/* STEP 1: IDEA INPUT */}
-        {step === "input" && (
-          <div>
-            <textarea
-              className="craft-textarea"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Paste your raw concept here... (e.g. 'I want to build a Chrome extension that highlights and saves recipe ingredients from blogs with zero cloud database')"
-            />
+        {/* ALWAYS VISIBLE INPUT TEXTAREA */}
+        <div style={{ position: "relative" }}>
+          <textarea
+            className="craft-textarea"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Type or paste your raw project idea here... (e.g. 'A mobile expense tracker that lets me take photos of receipts and categorizes them offline with zero cloud server')"
+            rows={4}
+          />
+        </div>
 
-            {/* Preset Chips */}
-            <div className="craft-presets-row">
-              <span
-                style={{
-                  fontSize: "11px",
-                  color: "var(--text-soft)",
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                }}
-              >
-                Quick Presets:
-              </span>
-              <button
-                type="button"
-                className="craft-preset-chip"
-                onClick={() => setPreset("habit")}
-              >
-                + Habit Tracker
-              </button>
-              <button
-                type="button"
-                className="craft-preset-chip"
-                onClick={() => setPreset("flashcards")}
-              >
-                + Spaced Flashcards
-              </button>
-              <button
-                type="button"
-                className="craft-preset-chip"
-                onClick={() => setPreset("events")}
-              >
-                + Dev Event Scraper
-              </button>
-            </div>
+        {/* PRESET CHIPS */}
+        <div className="craft-presets-row">
+          <span
+            style={{
+              fontSize: "11px",
+              color: "var(--text-soft)",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            Or pick a sample preset:
+          </span>
+          <button
+            type="button"
+            className="craft-preset-chip"
+            onClick={() => handleSelectPreset("habit")}
+          >
+            + Habit Tracker
+          </button>
+          <button
+            type="button"
+            className="craft-preset-chip"
+            onClick={() => handleSelectPreset("flashcards")}
+          >
+            + Spaced Flashcards
+          </button>
+          <button
+            type="button"
+            className="craft-preset-chip"
+            onClick={() => handleSelectPreset("events")}
+          >
+            + Dev Event Scraper
+          </button>
+        </div>
 
-            {/* Actions Bar */}
-            <div className="console-actions-bar">
-              <button
-                type="button"
-                className="btn-craft-primary"
-                onClick={handleStartCoaching}
-                disabled={isLoading || inputText.trim().length < 15}
-              >
-                <span>Analyze Idea & Clarify Strategy</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                className="btn-craft-secondary"
-                onClick={() => {
-                  setInputText("");
-                  onClear();
-                }}
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-        )}
+        {/* ACTIONS BAR */}
+        <div className="console-actions-bar">
+          <button
+            type="button"
+            className="btn-craft-primary"
+            onClick={handleStartCoaching}
+            disabled={isLoading || inputText.trim().length < 15}
+          >
+            <span>Analyze Idea & Clarify Strategy</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+          {inputText && (
+            <button
+              type="button"
+              className="btn-craft-secondary"
+              onClick={handleClearAll}
+            >
+              Clear
+            </button>
+          )}
+        </div>
 
-        {/* STEP 2: INTERACTIVE COACHING QUESTIONS */}
-        {step === "coaching" && (
-          <div className="coaching-card-wrap">
+        {/* INTERACTIVE COACHING QUESTIONS (VISIBLE ONCE IDEA IS ENTERED/CLICKED) */}
+        {questions && questions.length > 0 && (
+          <div className="coaching-card-wrap" id="calibration-stage">
             <div className="coaching-step-badge">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Step 2 of 2 · Flipped Architecture Calibration</span>
+              <span>Step 2 · Architectural Calibration Questions</span>
             </div>
 
             <h3
@@ -271,8 +285,7 @@ export function ConsoleSection({
                 display: "flex",
                 alignItems: "center",
                 gap: "12px",
-                marginTop: "28px",
-                flexWrap: "wrap",
+                marginTop: "24px",
               }}
             >
               <button
@@ -283,14 +296,6 @@ export function ConsoleSection({
               >
                 <span>Generate Tailored Strategy</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                className="btn-craft-secondary"
-                onClick={() => setStep("input")}
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Idea</span>
               </button>
             </div>
           </div>
@@ -316,9 +321,9 @@ export function ConsoleSection({
           </div>
         )}
 
-        {/* STEP 3: DYNAMIC BLUEPRINT STAGE */}
-        {!isLoading && step === "blueprint" && blueprint && (
-          <div className="blueprint-stage">
+        {/* DYNAMIC BLUEPRINT STAGE */}
+        {!isLoading && blueprint && (
+          <div className="blueprint-stage" id="blueprint-results">
             <div className="blueprint-stage-head">
               <div>
                 <span className="card-kicker">
@@ -331,15 +336,6 @@ export function ConsoleSection({
               </div>
 
               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  className="btn-craft-secondary"
-                  onClick={() => setStep("coaching")}
-                  style={{ fontSize: "12px" }}
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Re-Calibrate Strategy</span>
-                </button>
                 <button
                   type="button"
                   className="btn-craft-primary"
