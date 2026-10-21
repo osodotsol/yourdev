@@ -4,19 +4,16 @@ import React from "react";
 
 export function ProblemSection() {
   return (
-    <section className="landing-section" id="problem">
-      <div className="landing-eyebrow">
-        <span className="eyebrow-dot"></span>
-        <span>01 / THE BEGINNER&apos;S GAP</span>
-      </div>
+    <section className="craft-section" id="problem">
+      <div className="section-eyebrow">01 / THE BEGINNER&apos;S GAP</div>
 
-      <h2>
+      <h2 className="section-headline">
         A beginner has an idea.<br />
         <em>Where does it go?</em>
       </h2>
 
-      <div className="landing-problem">
-        <div className="landing-prose">
+      <div className="craft-problem-split">
+        <div className="problem-prose">
           <p>
             New developers open an AI coding agent and face the same wall: a blank prompt field
             and no idea what to type. The idea is in their head — exciting, unstructured, and
@@ -28,15 +25,18 @@ export function ProblemSection() {
           </p>
         </div>
 
-        <div className="landing-prose">
+        <div className="problem-prose">
           <p>
             Idea Breakdown Coach bridges that gap. It transforms raw, unformatted brainstorms
             into a clean, structured blueprint that AI coding agents understand instantly —
             phased milestones, a recommended stack, and the exact first prompt to type.
           </p>
-          <div className="landing-margin-note">
-            Built for beginners using AI coding agents for the first time.
-            No login. No database. No cost. Just paste and build.
+          <div className="problem-callout-card">
+            <strong>The Golden Rule for Agent Pair Programming:</strong>
+            <p style={{ margin: "6px 0 0", color: "var(--text-muted)" }}>
+              Never ask an agent to build an entire app at once. Build one small verifiable slice,
+              test it, commit it, and only then move to the next.
+            </p>
           </div>
         </div>
       </div>

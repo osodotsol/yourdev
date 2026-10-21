@@ -4,23 +4,21 @@ import React from "react";
 
 export function SiteFooter() {
   return (
-    <footer className="site-footer">
-      <div className="footer-heading">
+    <footer className="craft-footer">
+      <div className="footer-top">
         <div className="footer-brand-title">
-          <div className="brand-icon" style={{ width: "32px", height: "32px", fontSize: "14px" }}>
-            ✦
-          </div>
-          <div>
-            <span>Idea Breakdown Coach</span>
-            <small>DEVPOST // BUILD WITH AI BASICS 2026</small>
-          </div>
+          <span>✦ Idea Breakdown Coach</span>
+          <span style={{ fontSize: "12px", color: "#8a867c", marginLeft: "10px", fontFamily: "var(--mono)" }}>
+            DEVPOST // BUILD WITH AI BASICS 2026
+          </span>
         </div>
 
         <a
           href="#top"
           style={{
-            font: "11px var(--mono)",
-            color: "#e7dfcf",
+            fontFamily: "var(--mono)",
+            fontSize: "12px",
+            color: "#e5e7eb",
             textDecoration: "none",
           }}
         >
@@ -28,16 +26,18 @@ export function SiteFooter() {
         </a>
       </div>
 
-      <div className="footer-grid-cols">
-        <div className="footer-purpose">
-          <h2>Messy ideas in. Agent-ready blueprints out.</h2>
-          <p>
-            An open educational project helping beginner developers bridge the gap
-            between raw concepts and disciplined AI coding agent pair programming.
+      <div className="footer-cols">
+        <div>
+          <h2 style={{ fontFamily: "var(--serif)", fontSize: "24px", fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>
+            The to-do list that builds your vision.
+          </h2>
+          <p style={{ color: "#9ca3af", fontSize: "13px", lineHeight: "1.7" }}>
+            An educational tool helping beginner developers bridge the gap between
+            raw ideas and disciplined AI coding agent pair programming.
           </p>
         </div>
 
-        <div className="footer-nav-col">
+        <div>
           <h3>Navigation</h3>
           <a href="#problem">The Problem</a>
           <a href="#how">How It Works</a>
@@ -45,7 +45,7 @@ export function SiteFooter() {
           <a href="#output">Output Specification</a>
         </div>
 
-        <div className="footer-nav-col">
+        <div>
           <h3>Hackathon</h3>
           <a href="https://devpost.com" target="_blank" rel="noopener noreferrer">
             Devpost Hackathon
@@ -58,7 +58,7 @@ export function SiteFooter() {
           </a>
         </div>
 
-        <div className="footer-nav-col">
+        <div>
           <h3>Technology</h3>
           <a href="https://nextjs.org" target="_blank" rel="noopener noreferrer">
             Next.js 14 App Router
@@ -72,11 +72,8 @@ export function SiteFooter() {
         </div>
       </div>
 
-      <div className="footer-bottom-strip">
-        <div className="footer-service-status">
-          <span className="footer-status-dot"></span>
-          <span>Dual-Mode Engine: Operational · Offline Fallback Ready</span>
-        </div>
+      <div className="footer-bottom">
+        <div>Dual-Mode Engine: Operational · Offline Fallback Ready</div>
         <div>Zero Paid Dependencies · Local First</div>
       </div>
     </footer>

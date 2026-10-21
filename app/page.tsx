@@ -51,7 +51,7 @@ const DEFAULT_SAMPLE_BLUEPRINT: IdeaBlueprint = {
     },
     {
       step: 2,
-      action: "Build mock Habit card component with checkmark pill",
+      action: "Build mock Habit card component with interactive checkmark pill",
       detail:
         "Create an accessible, tactile completion button with optimistic state and micro-sound feedback.",
     },
@@ -188,16 +188,18 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      {/* Top Nav */}
+    <main className="min-h-screen relative">
+      <div className="app-backdrop" />
+
+      {/* Floating Pill Nav */}
       <TopNav />
 
-      {/* Main Landing Wrap */}
-      <div className="landing-wrap">
+      {/* Main Container */}
+      <div className="page-container">
         {/* Hero Section */}
         <HeroSection />
 
-        {/* 4-Principles Bar */}
+        {/* 4-Feature Strip */}
         <PillarsBar />
 
         {/* 01 / The Problem */}
@@ -222,11 +224,11 @@ export default function Home() {
         <ArchitectureSection />
       </div>
 
-      {/* Dark Site Footer */}
+      {/* Dark Craft Footer */}
       <SiteFooter />
 
-      {/* Floating Paper Toast */}
-      <div className={`paper-toast ${showToast ? "show" : ""}`}>
+      {/* Toast Notification */}
+      <div className={`craft-toast ${showToast ? "show" : ""}`}>
         {toastMessage}
       </div>
     </main>

@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { Libre_Baskerville, DM_Sans, DM_Mono } from "next/font/google";
+import { Instrument_Serif, Manrope, DM_Mono } from "next/font/google";
 import "./globals.css";
 
-const libreBaskerville = Libre_Baskerville({
-  weight: ["400", "700"],
+const instrumentSerif = Instrument_Serif({
+  weight: "400",
   style: ["normal", "italic"],
   subsets: ["latin"],
   variable: "--font-serif",
   display: "swap",
 });
 
-const dmSans = DM_Sans({
-  weight: ["400", "500", "600", "700"],
+const manrope = Manrope({
+  weight: ["400", "500", "600", "700", "800"],
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
@@ -25,9 +25,9 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Idea Breakdown Coach | Turn messy ideas into agent-ready blueprints",
+  title: "Idea Breakdown Coach — The to-do list that builds your vision.",
   description:
-    "A precision editorial coach for beginner developers overwhelmed by blank IDEs. Inspired by GapWitness.",
+    "Transform messy brainstorms into structured, agent-ready execution blueprints. Built with AI Basics 2026.",
 };
 
 export default function RootLayout({
@@ -38,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${libreBaskerville.variable} ${dmSans.variable} ${dmMono.variable}`}
+        className={`${instrumentSerif.variable} ${manrope.variable} ${dmMono.variable}`}
       >
         {children}
       </body>

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { IdeaBlueprint } from "@/types/blueprint";
 import { formatBlueprintMarkdown } from "@/lib/clipboard";
+import { Check, Copy } from "lucide-react";
 
 interface ConsoleSectionProps {
   blueprint: IdeaBlueprint | null;
@@ -29,6 +30,15 @@ export function ConsoleSection({
   onShowToast,
 }: ConsoleSectionProps) {
   const [inputText, setInputText] = useState(PRESETS.habit);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+
+  const toggleStep = (stepNumber: number) => {
+    setCompletedSteps((prev) =>
+      prev.includes(stepNumber)
+        ? prev.filter((s) => s !== stepNumber)
+        : [...prev, stepNumber]
+    );
+  };
 
   const setPreset = (key: keyof typeof PRESETS) => {
     setInputText(PRESETS[key]);
@@ -39,6 +49,7 @@ export function ConsoleSection({
       onShowToast("Please enter at least 15 characters.");
       return;
     }
+    setCompletedSteps([]);
     onBreakdown(inputText);
   };
 
@@ -64,60 +75,59 @@ export function ConsoleSection({
   };
 
   return (
-    <section className="landing-section" id="console">
-      <div className="landing-eyebrow">
-        <span className="eyebrow-dot"></span>
-        <span>03 / LIVE INTERACTIVE CONSOLE</span>
-      </div>
+    <section className="craft-section" id="console">
+      <div className="section-eyebrow">03 / LIVE INTERACTIVE CONSOLE</div>
 
-      <h2>
-        Try the breakdown engine. <em>Right here.</em>
+      <h2 className="section-headline">
+        Break down your idea. <em>Right here.</em>
       </h2>
 
-      <div className="console-paper">
-        <div className="console-heading-strip">
-          <span>⚡ BREAKDOWN ENGINE // SPECIFICATION READY</span>
+      <div className="craft-console-box">
+        <div className="console-meta-strip">
+          <span>⚡ BREAKDOWN ENGINE // DEVPOST HACKATHON</span>
           <span>DUAL-MODE: LIVE GEMINI + INSTANT OFFLINE FALLBACK</span>
         </div>
 
         <textarea
-          className="console-textarea-paper"
+          className="craft-textarea"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Paste your messy idea here... (e.g. 'I want to build a fitness tracker that gives me smart AI encouragement when I hit a 7-day streak')"
+          placeholder="Paste your raw concept here... (e.g. 'I want to build a habit tracker that gives me AI suggestions when I miss a routine')"
         />
 
         {/* Preset Chips */}
-        <div className="preset-chip-row">
-          <span className="preset-chip-label">Try a preset:</span>
+        <div className="craft-presets-row">
+          <span style={{ fontSize: "11px", color: "var(--text-soft)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Quick Presets:
+          </span>
           <button
             type="button"
-            className="preset-chip-btn"
+            className="craft-preset-chip"
             onClick={() => setPreset("habit")}
           >
             🎯 AI Habit Tracker
           </button>
           <button
             type="button"
-            className="preset-chip-btn"
+            className="craft-preset-chip"
             onClick={() => setPreset("flashcards")}
           >
             🃏 Spaced Flashcards
           </button>
           <button
             type="button"
-            className="preset-chip-btn"
+            className="craft-preset-chip"
             onClick={() => setPreset("events")}
           >
             📍 Dev Event Scraper
           </button>
         </div>
 
-        {/* Actions */}
-        <div className="console-action-bar">
+        {/* Actions Bar */}
+        <div className="console-actions-bar">
           <button
             type="button"
-            className="btn-paper-primary"
+            className="btn-craft-primary"
             onClick={handleSubmit}
             disabled={isLoading || inputText.trim().length < 15}
           >
@@ -126,7 +136,7 @@ export function ConsoleSection({
           </button>
           <button
             type="button"
-            className="btn-paper-clear"
+            className="btn-craft-secondary"
             onClick={() => {
               setInputText("");
               onClear();
@@ -138,45 +148,32 @@ export function ConsoleSection({
 
         {/* Shimmer Loader */}
         {isLoading && (
-          <div className="console-loader-paper">
+          <div className="craft-loader-card">
             <p
               style={{
                 fontFamily: "var(--mono)",
                 fontSize: "11px",
-                color: "var(--gold-accent)",
+                color: "var(--accent-gold)",
                 fontWeight: 600,
                 marginBottom: "4px",
               }}
             >
               ✦ COACHING INTENT INTO AGENT-READY PHASES...
             </p>
-            <p
-              style={{
-                fontSize: "13px",
-                color: "var(--text-muted)",
-              }}
-            >
-              Structuring milestones, stack rationales, and first prompts...
+            <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+              Extracting milestones, stack rationales, and exact starter prompts...
             </p>
           </div>
         )}
 
-        {/* Dynamic Results Tiles */}
+        {/* Dynamic Blueprint Stage */}
         {!isLoading && blueprint && (
-          <div className="blueprint-paper-wrap">
-            <div className="blueprint-header-bar">
+          <div className="blueprint-stage">
+            <div className="blueprint-stage-head">
               <div>
-                <p
-                  style={{
-                    fontFamily: "var(--mono)",
-                    fontSize: "9px",
-                    color: "var(--text-soft)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                  }}
-                >
-                  GENERATED SPECIFICATION // {blueprint.isFallback ? "OFFLINE ENGINE" : "GEMINI AI"}
-                </p>
+                <span className="card-kicker">
+                  BLUEPRINT SPECIFICATION // {blueprint.isFallback ? "OFFLINE ENGINE" : "LIVE GEMINI"}
+                </span>
                 <h3>{blueprint.projectTitle}</h3>
                 <p style={{ fontSize: "14px", color: "var(--text-muted)", maxWidth: "680px" }}>
                   {blueprint.summary}
@@ -185,20 +182,21 @@ export function ConsoleSection({
 
               <button
                 type="button"
-                className="btn-paper-primary"
+                className="btn-craft-primary"
                 onClick={handleCopyFull}
               >
-                <span>📋 Copy Full Blueprint</span>
+                <Copy className="w-4 h-4" />
+                <span>Copy Full Blueprint</span>
               </button>
             </div>
 
-            <div className="blueprint-tiles-grid">
+            <div className="blueprint-tiles-layout">
               {/* Tile 1: Roadmap */}
-              <div className="blueprint-tile-card">
+              <div className="blueprint-card-item">
                 <div>
-                  <div className="tile-mono-tag">01 · Phased Roadmap</div>
-                  <h4 className="tile-serif-title">Sequential Milestones</h4>
-                  <ul className="tile-item-list">
+                  <div className="card-kicker">01 · Phased Roadmap</div>
+                  <h4 className="card-title">Sequential Milestones</h4>
+                  <ul className="card-list-clean">
                     {blueprint.roadmap.map((phase, idx) => (
                       <li key={idx}>
                         <strong>{phase.phase}:</strong> {phase.title} —{" "}
@@ -209,28 +207,47 @@ export function ConsoleSection({
                 </div>
               </div>
 
-              {/* Tile 2: Actions */}
-              <div className="blueprint-tile-card">
+              {/* Tile 2: Interactive Next Actions Checklist */}
+              <div className="blueprint-card-item">
                 <div>
-                  <div className="tile-mono-tag">02 · Immediate Actions</div>
-                  <h4 className="tile-serif-title">Next Steps to Execute</h4>
-                  <ul className="tile-item-list">
-                    {blueprint.nextActions.map((action) => (
-                      <li key={action.step}>
-                        <strong>Step {action.step}:</strong> {action.action} —{" "}
-                        <span>{action.detail}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="card-kicker">02 · Immediate Next Actions</div>
+                  <h4 className="card-title">Interactive Checklist (Click to tick)</h4>
+                  <div style={{ display: "grid", gap: "8px", marginTop: "12px" }}>
+                    {blueprint.nextActions.map((action) => {
+                      const isDone = completedSteps.includes(action.step);
+                      return (
+                        <div
+                          key={action.step}
+                          className="stage-task-row"
+                          onClick={() => toggleStep(action.step)}
+                        >
+                          <div
+                            className={`stage-task-checkbox ${
+                              isDone ? "is-checked" : ""
+                            }`}
+                          >
+                            {isDone && <Check className="w-3 h-3 stroke-[3]" />}
+                          </div>
+                          <span
+                            className={`stage-task-text ${
+                              isDone ? "is-done" : ""
+                            }`}
+                          >
+                            <strong>Step {action.step}:</strong> {action.action}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
               {/* Tile 3: Tech Stack */}
-              <div className="blueprint-tile-card">
+              <div className="blueprint-card-item">
                 <div>
-                  <div className="tile-mono-tag">03 · Tech Stack</div>
-                  <h4 className="tile-serif-title">Recommended Tools</h4>
-                  <ul className="tile-item-list">
+                  <div className="card-kicker">03 · Tech Stack</div>
+                  <h4 className="card-title">Recommended Stack</h4>
+                  <ul className="card-list-clean">
                     {blueprint.techStack.map((item, idx) => (
                       <li key={idx}>
                         <strong>{item.name}</strong> ({item.category}):{" "}
@@ -241,12 +258,12 @@ export function ConsoleSection({
                 </div>
               </div>
 
-              {/* Tile 4: Resources */}
-              <div className="blueprint-tile-card">
+              {/* Tile 4: Free Resources */}
+              <div className="blueprint-card-item">
                 <div>
-                  <div className="tile-mono-tag">04 · Free Resources</div>
-                  <h4 className="tile-serif-title">Targeted Learning Links</h4>
-                  <ul className="tile-item-list">
+                  <div className="card-kicker">04 · Free Resources</div>
+                  <h4 className="card-title">Verified Official Links</h4>
+                  <ul className="card-list-clean">
                     {blueprint.resources.map((res, idx) => (
                       <li key={idx}>
                         <a
@@ -254,7 +271,7 @@ export function ConsoleSection({
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{
-                            color: "var(--green-primary)",
+                            color: "var(--accent-green)",
                             textDecoration: "underline",
                             fontWeight: 600,
                           }}
@@ -268,8 +285,8 @@ export function ConsoleSection({
                 </div>
               </div>
 
-              {/* Tile 5: First Prompt */}
-              <div className="blueprint-tile-card tile-full">
+              {/* Tile 5: AI Coding Agent Guide & First Prompt */}
+              <div className="blueprint-card-item tile-wide">
                 <div
                   style={{
                     display: "flex",
@@ -280,25 +297,24 @@ export function ConsoleSection({
                   }}
                 >
                   <div>
-                    <div className="tile-mono-tag" style={{ color: "var(--green-accent)" }}>
-                      05 · Agent First Prompt
-                    </div>
-                    <h4 className="tile-serif-title" style={{ margin: 0 }}>
-                      Copy Directly Into Your Coding Agent
+                    <div className="card-kicker">05 · Agent First Prompt</div>
+                    <h4 className="card-title" style={{ margin: 0, color: "#fff" }}>
+                      Paste Directly Into Cursor, Claude, or Copilot
                     </h4>
                   </div>
                   <button
                     type="button"
-                    className="btn-paper-clear"
-                    style={{ padding: "8px 14px", fontSize: "10px" }}
+                    className="btn-craft-secondary"
+                    style={{ padding: "8px 16px", fontSize: "11px", background: "#26282b", color: "#fff", borderColor: "#3d4044" }}
                     onClick={handleCopyPrompt}
                   >
-                    Copy Prompt
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Prompt</span>
                   </button>
                 </div>
-                <div className="prompt-paper-box">
+                <pre className="prompt-terminal">
                   {blueprint.agentGuide.firstPrompt}
-                </div>
+                </pre>
               </div>
             </div>
           </div>
