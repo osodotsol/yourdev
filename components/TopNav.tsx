@@ -4,21 +4,23 @@ import React from "react";
 
 export function TopNav() {
   return (
-    <nav className="top-nav">
-      <a href="#hero" className="nav-brand">
-        <div className="nav-brand-icon">✦</div>
+    <header className="landing-nav" id="top">
+      <a href="#top" className="landing-brand">
+        <div className="brand-icon">✦</div>
         <span>Idea Breakdown Coach</span>
       </a>
-      <div className="nav-links">
-        <a href="#how">How it works</a>
-        <a href="#console">Live Console</a>
-        <a href="#output">Output</a>
+
+      <nav className="landing-nav-links" aria-label="Main Navigation">
+        <a href="#problem">The Problem</a>
+        <a href="#how">How It Works</a>
+        <a href="#console">Breakdown Console</a>
+        <a href="#output">The Output</a>
         <a href="#architecture">Architecture</a>
-        <div className="nav-badge">
-          <div className="dot"></div>
-          <span>DEVPOST · BUILD WITH AI</span>
-        </div>
-      </div>
-    </nav>
+      </nav>
+
+      <a href="#console" className="landing-nav-cta">
+        Launch Console →
+      </a>
+    </header>
   );
 }

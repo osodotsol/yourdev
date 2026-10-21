@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { TopNav } from "@/components/TopNav";
-import { SideNav } from "@/components/SideNav";
 import { HeroSection } from "@/components/HeroSection";
 import { PillarsBar } from "@/components/PillarsBar";
 import { ProblemSection } from "@/components/ProblemSection";
@@ -10,19 +9,17 @@ import { HowItWorksSection } from "@/components/HowItWorksSection";
 import { ConsoleSection } from "@/components/ConsoleSection";
 import { OutputSection } from "@/components/OutputSection";
 import { ArchitectureSection } from "@/components/ArchitectureSection";
-import { BeginnersSection } from "@/components/BeginnersSection";
-import { FileMapSection } from "@/components/FileMapSection";
 import { SiteFooter } from "@/components/SiteFooter";
 import { IdeaBlueprint } from "@/types/blueprint";
 
 const DEFAULT_SAMPLE_BLUEPRINT: IdeaBlueprint = {
-  projectTitle: "AI Habit Tracker with Streak Motivation",
+  projectTitle: "AI Habit Tracker with Adaptive Streaks",
   summary:
-    "A clean web application that tracks micro-habits, analyzes streak friction using AI heuristics, and gives gentle adaptive pacing prompts instead of punitive streak resets.",
+    "A privacy-first web application that tracks micro-habits, analyzes streak friction using AI heuristics, and gives gentle adaptive pacing prompts instead of punitive streak resets.",
   roadmap: [
     {
       phase: "Phase 1",
-      title: "Foundation & Habit Layout",
+      title: "Core Habit Logger & Local Persistence",
       description:
         "Single-page UI with habit creation, daily toggle completion, streak counter, and localStorage persistence.",
     },
@@ -82,7 +79,7 @@ const DEFAULT_SAMPLE_BLUEPRINT: IdeaBlueprint = {
       category: "Styling & UI",
       name: "Tailwind CSS",
       reason:
-        "Clean dark theme tokens with zero runtime CSS overhead.",
+        "Clean responsive utilities with zero runtime CSS overhead.",
     },
     {
       category: "Language",
@@ -100,12 +97,12 @@ const DEFAULT_SAMPLE_BLUEPRINT: IdeaBlueprint = {
   resources: [
     {
       type: "Official Docs",
-      title: "Next.js Foundations Guide",
+      title: "Next.js App Router Documentation",
       url: "https://nextjs.org/docs",
     },
     {
       type: "Interactive Reference",
-      title: "Tailwind CSS Utility Documentation",
+      title: "Tailwind CSS Layouts and Utility Reference",
       url: "https://tailwindcss.com/docs",
     },
     {
@@ -124,7 +121,7 @@ const DEFAULT_SAMPLE_BLUEPRINT: IdeaBlueprint = {
     firstPrompt: `I am building an AI Habit Tracker web app using Next.js 14, TypeScript, and Tailwind CSS.
 
 I already have the approved blueprint. Let's start with Phase 1:
-1. Create a responsive single-page dark layout matching an obsidian theme.
+1. Create a responsive single-page layout with a header.
 2. Build an input bar to add a new habit with title and category.
 3. Render a list of active habit cards with a streak count pill and a checkmark toggle for today.
 4. Persist all habit entries and completions in browser localStorage.
@@ -152,17 +149,20 @@ export default function Home() {
     setIsLoading(true);
 
     setTimeout(() => {
-      // For slice 1, generate or update the blueprint from the text
       const lower = text.toLowerCase();
-      let title = "AI Habit Tracker with Streak Motivation";
+      let title = "AI Habit Tracker with Adaptive Streaks";
       let summary =
-        "A clean web application that tracks micro-habits, analyzes streak friction using AI heuristics, and gives gentle adaptive pacing prompts.";
+        "A privacy-first web application that tracks micro-habits, analyzes streak friction using AI heuristics, and gives gentle adaptive pacing prompts.";
 
       if (lower.includes("flashcard") || lower.includes("spaced")) {
         title = "Spaced Flashcards Learning Platform";
         summary =
           "A minimal spaced repetition flashcard web app for learning technical vocabulary with Leitner box scheduling and AI-generated sample sentences.";
-      } else if (lower.includes("scraper") || lower.includes("event") || lower.includes("meetup")) {
+      } else if (
+        lower.includes("scraper") ||
+        lower.includes("event") ||
+        lower.includes("meetup")
+      ) {
         title = "Local Developer Event Scraper & Digest";
         summary =
           "An automated scraper dashboard collecting community tech meetups and workshops, filtering duplicates, and generating weekly digests.";
@@ -174,7 +174,7 @@ export default function Home() {
         summary: summary,
       });
       setIsLoading(false);
-      triggerToast("✦ BLUEPRINT GENERATED");
+      triggerToast("✓ BLUEPRINT GENERATED");
 
       const consoleEl = document.getElementById("console");
       if (consoleEl) {
@@ -188,21 +188,16 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-canvas text-zinc-100 selection:bg-accent/20 selection:text-accent relative">
-      {/* Ambient background shift */}
-      <div className="ambient" />
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+      {/* Top Nav */}
+      <TopNav />
 
-      {/* Quick Section Side Navigation */}
-      <SideNav />
-
-      <div className="page-wrapper">
-        {/* Top Navigation */}
-        <TopNav />
-
-        {/* Hero Split Section */}
+      {/* Main Landing Wrap */}
+      <div className="landing-wrap">
+        {/* Hero Section */}
         <HeroSection />
 
-        {/* Feature Pillars Bar */}
+        {/* 4-Principles Bar */}
         <PillarsBar />
 
         {/* 01 / The Problem */}
@@ -220,24 +215,18 @@ export default function Home() {
           onShowToast={triggerToast}
         />
 
-        {/* 04 / The Output (What You Get) — #output */}
+        {/* 04 / The Output Specification (#output) */}
         <OutputSection />
 
         {/* 05 / Technical Architecture */}
         <ArchitectureSection />
-
-        {/* 06 / Designed For Beginners */}
-        <BeginnersSection />
-
-        {/* 07 / Project File Map */}
-        <FileMapSection />
-
-        {/* Site Footer */}
-        <SiteFooter />
       </div>
 
-      {/* Toast Notification */}
-      <div className={`toast-custom ${showToast ? "show" : ""}`}>
+      {/* Dark Site Footer */}
+      <SiteFooter />
+
+      {/* Floating Paper Toast */}
+      <div className={`paper-toast ${showToast ? "show" : ""}`}>
         {toastMessage}
       </div>
     </main>

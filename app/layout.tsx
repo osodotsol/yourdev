@@ -1,30 +1,33 @@
 import type { Metadata } from "next";
-import { DM_Serif_Display, Inter, JetBrains_Mono } from "next/font/google";
+import { Libre_Baskerville, DM_Sans, DM_Mono } from "next/font/google";
 import "./globals.css";
 
-const dmSerif = DM_Serif_Display({
-  weight: "400",
+const libreBaskerville = Libre_Baskerville({
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
   subsets: ["latin"],
   variable: "--font-serif",
   display: "swap",
 });
 
-const inter = Inter({
+const dmSans = DM_Sans({
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const dmMono = DM_Mono({
+  weight: ["400", "500"],
   subsets: ["latin"],
   variable: "--font-mono",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Idea Breakdown Coach — Turn Messy Ideas Into Clear AI Build Steps",
+  title: "Idea Breakdown Coach | Turn messy ideas into agent-ready blueprints",
   description:
-    "A precision web console for new developers overwhelmed by blank IDEs. Paste chaotic thoughts, receive a structured blueprint your AI coding agent can execute immediately.",
+    "A precision editorial coach for beginner developers overwhelmed by blank IDEs. Inspired by GapWitness.",
 };
 
 export default function RootLayout({
@@ -33,9 +36,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body
-        className={`${dmSerif.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+        className={`${libreBaskerville.variable} ${dmSans.variable} ${dmMono.variable}`}
       >
         {children}
       </body>

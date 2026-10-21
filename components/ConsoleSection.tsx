@@ -47,7 +47,7 @@ export function ConsoleSection({
     try {
       const markdown = formatBlueprintMarkdown(blueprint);
       await navigator.clipboard.writeText(markdown);
-      onShowToast("📋 BLUEPRINT COPIED");
+      onShowToast("✓ BLUEPRINT COPIED TO CLIPBOARD");
     } catch {
       onShowToast("Failed to copy blueprint.");
     }
@@ -57,78 +57,76 @@ export function ConsoleSection({
     if (!blueprint) return;
     try {
       await navigator.clipboard.writeText(blueprint.agentGuide.firstPrompt);
-      onShowToast("📋 FIRST PROMPT COPIED");
+      onShowToast("✓ FIRST PROMPT COPIED TO CLIPBOARD");
     } catch {
       onShowToast("Failed to copy prompt.");
     }
   };
 
   return (
-    <section className="console-section container-custom" id="console">
-      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-        <div className="section-number-tag">03 / Live Interactive Console</div>
-        <h2 className="editorial-headline" style={{ fontSize: "2.2rem" }}>
-          Try the breakdown engine. <em>Right here.</em>
-        </h2>
+    <section className="landing-section" id="console">
+      <div className="landing-eyebrow">
+        <span className="eyebrow-dot"></span>
+        <span>03 / LIVE INTERACTIVE CONSOLE</span>
       </div>
 
-      <div className="console-widget">
-        <div className="console-top">
-          <span className="console-label">⚡ Breakdown Console</span>
-          <span className="console-engine-tag">
-            {blueprint?.isFallback
-              ? "SMART OFFLINE FALLBACK ENGINE"
-              : "DUAL-MODE: LIVE GEMINI + OFFLINE"}
-          </span>
+      <h2>
+        Try the breakdown engine. <em>Right here.</em>
+      </h2>
+
+      <div className="console-paper">
+        <div className="console-heading-strip">
+          <span>⚡ BREAKDOWN ENGINE // SPECIFICATION READY</span>
+          <span>DUAL-MODE: LIVE GEMINI + INSTANT OFFLINE FALLBACK</span>
         </div>
 
         <textarea
-          id="promptInput"
-          className="console-textarea"
+          className="console-textarea-paper"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Paste your messy idea here... (e.g. 'I want to build a fitness tracker that gives me smart AI encouragement when I hit a 7-day streak')"
         />
 
-        <div className="chip-row">
-          <span className="chip-label">Try a preset:</span>
+        {/* Preset Chips */}
+        <div className="preset-chip-row">
+          <span className="preset-chip-label">Try a preset:</span>
           <button
             type="button"
-            className="chip"
+            className="preset-chip-btn"
             onClick={() => setPreset("habit")}
           >
             🎯 AI Habit Tracker
           </button>
           <button
             type="button"
-            className="chip"
+            className="preset-chip-btn"
             onClick={() => setPreset("flashcards")}
           >
             🃏 Spaced Flashcards
           </button>
           <button
             type="button"
-            className="chip"
+            className="preset-chip-btn"
             onClick={() => setPreset("events")}
           >
             📍 Dev Event Scraper
           </button>
         </div>
 
-        <div className="action-row">
+        {/* Actions */}
+        <div className="console-action-bar">
           <button
-            id="breakdownBtn"
             type="button"
-            className="btn-primary"
+            className="btn-paper-primary"
             onClick={handleSubmit}
             disabled={isLoading || inputText.trim().length < 15}
           >
             <span>{isLoading ? "Coaching idea..." : "Break it down"}</span>
-            <span aria-hidden="true">→</span>
+            <span>→</span>
           </button>
           <button
             type="button"
-            className="btn-ghost"
+            className="btn-paper-clear"
             onClick={() => {
               setInputText("");
               onClear();
@@ -138,20 +136,26 @@ export function ConsoleSection({
           </button>
         </div>
 
-        {/* Shimmering Loader */}
+        {/* Shimmer Loader */}
         {isLoading && (
-          <div id="loaderBox" className="loader-box">
+          <div className="console-loader-paper">
             <p
               style={{
                 fontFamily: "var(--mono)",
-                fontSize: "0.82rem",
-                color: "var(--accent)",
-                marginBottom: "0.4rem",
+                fontSize: "11px",
+                color: "var(--gold-accent)",
+                fontWeight: 600,
+                marginBottom: "4px",
               }}
             >
               ✦ COACHING INTENT INTO AGENT-READY PHASES...
             </p>
-            <p style={{ fontSize: "0.78rem", color: "var(--text-mute)" }}>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "var(--text-muted)",
+              }}
+            >
               Structuring milestones, stack rationales, and first prompts...
             </p>
           </div>
@@ -159,133 +163,140 @@ export function ConsoleSection({
 
         {/* Dynamic Results Tiles */}
         {!isLoading && blueprint && (
-          <div
-            id="resultsWrap"
-            className="results-container"
-            style={{ display: "block" }}
-          >
-            <div className="results-head">
+          <div className="blueprint-paper-wrap">
+            <div className="blueprint-header-bar">
               <div>
-                <h3
+                <p
                   style={{
-                    fontFamily: "var(--serif)",
-                    fontSize: "1.3rem",
+                    fontFamily: "var(--mono)",
+                    fontSize: "9px",
+                    color: "var(--text-soft)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
                   }}
                 >
-                  Generated Agent Blueprint: {blueprint.projectTitle}
-                </h3>
-                <p style={{ fontSize: "0.82rem", color: "var(--text-soft)" }}>
+                  GENERATED SPECIFICATION // {blueprint.isFallback ? "OFFLINE ENGINE" : "GEMINI AI"}
+                </p>
+                <h3>{blueprint.projectTitle}</h3>
+                <p style={{ fontSize: "14px", color: "var(--text-muted)", maxWidth: "680px" }}>
                   {blueprint.summary}
                 </p>
               </div>
+
               <button
                 type="button"
-                className="btn-ghost"
+                className="btn-paper-primary"
                 onClick={handleCopyFull}
               >
-                <span>📋</span> Copy Full Blueprint
+                <span>📋 Copy Full Blueprint</span>
               </button>
             </div>
 
-            <div className="tiles-grid">
+            <div className="blueprint-tiles-grid">
               {/* Tile 1: Roadmap */}
-              <div className="tile tile-1">
-                <p className="tile-tag">01 · Roadmap</p>
-                <h4 className="tile-title">Phased Milestones</h4>
-                <ul className="tile-list">
-                  {blueprint.roadmap.map((phase, idx) => (
-                    <li key={idx}>
-                      <strong>{phase.phase}:</strong> {phase.title} —{" "}
-                      <span style={{ color: "var(--text-mute)" }}>
-                        {phase.description}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="blueprint-tile-card">
+                <div>
+                  <div className="tile-mono-tag">01 · Phased Roadmap</div>
+                  <h4 className="tile-serif-title">Sequential Milestones</h4>
+                  <ul className="tile-item-list">
+                    {blueprint.roadmap.map((phase, idx) => (
+                      <li key={idx}>
+                        <strong>{phase.phase}:</strong> {phase.title} —{" "}
+                        <span>{phase.description}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
               {/* Tile 2: Actions */}
-              <div className="tile tile-2">
-                <p className="tile-tag">02 · Actions</p>
-                <h4 className="tile-title">Immediate Next Steps</h4>
-                <ul className="tile-list">
-                  {blueprint.nextActions.map((action) => (
-                    <li key={action.step}>
-                      <strong>Step {action.step}:</strong> {action.action} —{" "}
-                      <span style={{ color: "var(--text-mute)" }}>
-                        {action.detail}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="blueprint-tile-card">
+                <div>
+                  <div className="tile-mono-tag">02 · Immediate Actions</div>
+                  <h4 className="tile-serif-title">Next Steps to Execute</h4>
+                  <ul className="tile-item-list">
+                    {blueprint.nextActions.map((action) => (
+                      <li key={action.step}>
+                        <strong>Step {action.step}:</strong> {action.action} —{" "}
+                        <span>{action.detail}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
               {/* Tile 3: Tech Stack */}
-              <div className="tile tile-3">
-                <p className="tile-tag">03 · Tech Stack</p>
-                <h4 className="tile-title">Recommended Stack</h4>
-                <ul className="tile-list">
-                  {blueprint.techStack.map((item, idx) => (
-                    <li key={idx}>
-                      <strong>
-                        {item.name} ({item.category}):
-                      </strong>{" "}
-                      {item.reason}
-                    </li>
-                  ))}
-                </ul>
+              <div className="blueprint-tile-card">
+                <div>
+                  <div className="tile-mono-tag">03 · Tech Stack</div>
+                  <h4 className="tile-serif-title">Recommended Tools</h4>
+                  <ul className="tile-item-list">
+                    {blueprint.techStack.map((item, idx) => (
+                      <li key={idx}>
+                        <strong>{item.name}</strong> ({item.category}):{" "}
+                        <span>{item.reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
               {/* Tile 4: Resources */}
-              <div className="tile tile-4">
-                <p className="tile-tag">04 · Resources</p>
-                <h4 className="tile-title">Free Learning Links</h4>
-                <ul className="tile-list">
-                  {blueprint.resources.map((res, idx) => (
-                    <li key={idx}>
-                      <a
-                        href={res.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          color: "var(--accent)",
-                          textDecoration: "underline",
-                        }}
-                      >
-                        <strong>{res.title}</strong>
-                      </a>{" "}
-                      — <em>{res.type}</em>
-                    </li>
-                  ))}
-                </ul>
+              <div className="blueprint-tile-card">
+                <div>
+                  <div className="tile-mono-tag">04 · Free Resources</div>
+                  <h4 className="tile-serif-title">Targeted Learning Links</h4>
+                  <ul className="tile-item-list">
+                    {blueprint.resources.map((res, idx) => (
+                      <li key={idx}>
+                        <a
+                          href={res.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "var(--green-primary)",
+                            textDecoration: "underline",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {res.title}
+                        </a>{" "}
+                        — <em>{res.type}</em>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
-              {/* Tile 5: First Prompt Box */}
-              <div className="tile-full tile-5">
+              {/* Tile 5: First Prompt */}
+              <div className="blueprint-tile-card tile-full">
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    marginBottom: "0.5rem",
+                    flexWrap: "wrap",
+                    gap: "10px",
                   }}
                 >
-                  <p
-                    className="tile-tag"
-                    style={{ color: "var(--accent)", margin: 0 }}
-                  >
-                    05 · First Prompt to Use in Your Coding Agent
-                  </p>
+                  <div>
+                    <div className="tile-mono-tag" style={{ color: "var(--green-accent)" }}>
+                      05 · Agent First Prompt
+                    </div>
+                    <h4 className="tile-serif-title" style={{ margin: 0 }}>
+                      Copy Directly Into Your Coding Agent
+                    </h4>
+                  </div>
                   <button
                     type="button"
-                    className="btn-ghost"
-                    style={{ padding: "0.3rem 0.75rem", fontSize: "0.72rem" }}
+                    className="btn-paper-clear"
+                    style={{ padding: "8px 14px", fontSize: "10px" }}
                     onClick={handleCopyPrompt}
                   >
                     Copy Prompt
                   </button>
                 </div>
-                <div id="firstPromptCode" className="prompt-box">
+                <div className="prompt-paper-box">
                   {blueprint.agentGuide.firstPrompt}
                 </div>
               </div>
