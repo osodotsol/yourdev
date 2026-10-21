@@ -9,6 +9,15 @@ export function formatBlueprintMarkdown(blueprint: IdeaBlueprint): string {
     .map((a) => `${a.step}. **${a.action}**: ${a.detail}`)
     .join("\n");
 
+  const pitfallsMarkdown = blueprint.pitfalls && blueprint.pitfalls.length > 0
+    ? blueprint.pitfalls
+        .map(
+          (p, i) =>
+            `### Trap ${i + 1}: ${p.trap}\n- **Why it happens:** ${p.whyItHappens}\n- **How to avoid:** ${p.howToAvoid}`
+        )
+        .join("\n\n")
+    : "";
+
   const stackMarkdown = blueprint.techStack
     .map((s) => `- **${s.category} (${s.name})**: ${s.reason}`)
     .join("\n");
@@ -26,6 +35,12 @@ export function formatBlueprintMarkdown(blueprint: IdeaBlueprint): string {
 
 ## Executive Summary
 ${blueprint.summary}
+
+## Strategic Architecture Decision
+${blueprint.strategyDecision}
+
+## Where Beginners Get Stuck (Pitfalls & Traps)
+${pitfallsMarkdown}
 
 ## 1. Phased Roadmap
 ${roadmapMarkdown}

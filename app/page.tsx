@@ -12,124 +12,9 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { IdeaBlueprint } from "@/types/blueprint";
 import { generateBlueprint } from "@/lib/fallbackGenerator";
 
-const DEFAULT_SAMPLE_BLUEPRINT: IdeaBlueprint = {
-  projectTitle: "AI Habit Tracker with Adaptive Streaks",
-  summary:
-    "A privacy-first web application that tracks micro-habits, analyzes streak friction using AI heuristics, and gives gentle adaptive pacing prompts instead of punitive streak resets.",
-  roadmap: [
-    {
-      phase: "Phase 1",
-      title: "Core Habit Logger & Local Persistence",
-      description:
-        "Single-page UI with habit creation, daily toggle completion, streak counter, and localStorage persistence.",
-    },
-    {
-      phase: "Phase 2",
-      title: "Streak Analytics & Friction Detection",
-      description:
-        "Visual weekly completion matrix, streak analytics, and detection of high-risk lapse patterns.",
-    },
-    {
-      phase: "Phase 3",
-      title: "Badge & Milestone Celebrations",
-      description:
-        "7-day streak animations, unlockable celebratory badges, and habit momentum scoring.",
-    },
-    {
-      phase: "Phase 4",
-      title: "AI Motivation Coach Integration",
-      description:
-        "Empathetic coaching prompt generation offering routine recovery plans after missed days.",
-    },
-  ],
-  nextActions: [
-    {
-      step: 1,
-      action: "Scaffold Next.js 14 project with TypeScript and Tailwind",
-      detail:
-        "Initialize project directory and establish base types for Habit, CompletionLog, and StreakMetrics.",
-    },
-    {
-      step: 2,
-      action: "Build mock Habit card component with interactive checkmark pill",
-      detail:
-        "Create an accessible, tactile completion button with optimistic state and micro-sound feedback.",
-    },
-    {
-      step: 3,
-      action: "Implement add habit form with local state",
-      detail:
-        "Allow typing a habit name, selecting an emoji category, and saving to the active list.",
-    },
-    {
-      step: 4,
-      action: "Connect browser localStorage for zero-database persistence",
-      detail:
-        "Verify adding a habit, marking complete, and refreshing page maintains exact state without a database.",
-    },
-  ],
-  techStack: [
-    {
-      category: "Frontend Framework",
-      name: "Next.js 14 (App Router)",
-      reason:
-        "Fast single-page hydration, zero-config TypeScript, and simple deployment to Vercel.",
-    },
-    {
-      category: "Styling & UI",
-      name: "Tailwind CSS",
-      reason:
-        "Clean responsive utilities with zero runtime CSS overhead.",
-    },
-    {
-      category: "Language",
-      name: "TypeScript",
-      reason:
-        "Strict type contracts preventing silent bugs and improving AI agent pairing.",
-    },
-    {
-      category: "Persistence",
-      name: "Browser LocalStorage",
-      reason:
-        "Zero setup, 100% offline-first storage with no login wall.",
-    },
-  ],
-  resources: [
-    {
-      type: "Official Docs",
-      title: "Next.js App Router Documentation",
-      url: "https://nextjs.org/docs",
-    },
-    {
-      type: "Interactive Reference",
-      title: "Tailwind CSS Layouts and Utility Reference",
-      url: "https://tailwindcss.com/docs",
-    },
-    {
-      type: "Workflow Guide",
-      title: "Devpost AI Basics: Coding Agent Pair Programming",
-      url: "https://devpost.com",
-    },
-  ],
-  agentGuide: {
-    workflowTips: [
-      "Always ask your coding agent to implement one small verifiable slice at a time.",
-      "Never allow the agent to edit more than 2 files per prompt before verifying the change.",
-      "Keep types strictly defined in a dedicated types/ file so the agent adheres to strict boundaries.",
-      "When a bug occurs, paste the terminal error directly into the agent prompt with the exact line number.",
-    ],
-    firstPrompt: `I am building an AI Habit Tracker web app using Next.js 14, TypeScript, and Tailwind CSS.
-
-I already have the approved blueprint. Let's start with Phase 1:
-1. Create a responsive single-page layout with a header.
-2. Build an input bar to add a new habit with title and category.
-3. Render a list of active habit cards with a streak count pill and a checkmark toggle for today.
-4. Persist all habit entries and completions in browser localStorage.
-
-Please write clean, self-contained TypeScript components with no external UI library dependencies. Start by defining the Habit interface in types/habit.ts.`,
-  },
-  isFallback: true,
-};
+const DEFAULT_SAMPLE_BLUEPRINT: IdeaBlueprint = generateBlueprint(
+  "I want to build a simple habit tracker with AI that helps me stay consistent, gives me daily reminders, and awards fun badges when I hit a 7-day streak."
+);
 
 export default function Home() {
   const [blueprint, setBlueprint] = useState<IdeaBlueprint | null>(
@@ -145,14 +30,14 @@ export default function Home() {
     setTimeout(() => setShowToast(false), 2400);
   };
 
-  const handleBreakdown = (text: string) => {
+  const handleBreakdown = (text: string, choices?: Record<string, string>) => {
     setIsLoading(true);
 
     setTimeout(() => {
-      const generated = generateBlueprint(text);
+      const generated = generateBlueprint(text, choices);
       setBlueprint(generated);
       setIsLoading(false);
-      triggerToast("✓ BLUEPRINT GENERATED");
+      triggerToast("✓ STRATEGY BLUEPRINT GENERATED");
 
       const consoleEl = document.getElementById("console");
       if (consoleEl) {

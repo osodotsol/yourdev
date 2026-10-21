@@ -840,6 +840,191 @@ body {
   opacity: 1;
 }
 
+/* Interactive Coaching Questions & Pitfalls */
+.coaching-card-wrap {
+  margin-top: 24px;
+  background: #ffffff;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.coaching-card-wrap::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent-gold), var(--accent-green));
+}
+
+.coaching-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-gold);
+  background: #fff8e8;
+  border: 1px solid rgba(201, 147, 38, 0.25);
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.coaching-question-block {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.coaching-question-block:first-of-type {
+  margin-top: 14px;
+  padding-top: 0;
+  border-top: none;
+}
+
+.coaching-question-title {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.coaching-question-helper {
+  font-size: 12.5px;
+  color: var(--text-soft);
+  margin-bottom: 12px;
+}
+
+.coaching-options-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.coaching-option-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  background: var(--surface-alt);
+  border: 1.5px solid var(--border);
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.coaching-option-pill:hover {
+  background: #fff;
+  border-color: rgba(28, 26, 23, 0.3);
+  transform: translateY(-1px);
+}
+
+.coaching-option-pill.is-selected {
+  background: #18191a;
+  color: #ffffff;
+  border-color: #18191a;
+  box-shadow: 0 4px 12px rgba(24, 25, 26, 0.15);
+}
+
+.coaching-rec-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--accent-green-soft);
+  color: var(--accent-green);
+  border: 1px solid rgba(15, 122, 61, 0.2);
+}
+
+.coaching-option-pill.is-selected .coaching-rec-tag {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Strategic Architecture Callout */
+.strategy-callout-card {
+  background: #18191a;
+  color: #f7f5f0;
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  border-left: 4px solid var(--accent-gold);
+}
+
+.strategy-callout-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-gold);
+  margin-bottom: 6px;
+}
+
+.strategy-callout-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #e5e3dc;
+}
+
+/* Pitfalls Cards */
+.pitfalls-container {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.pitfall-single-item {
+  background: #fbfaf7;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.pitfall-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #a82a1e;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pitfall-body {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.pitfall-how-to-avoid {
+  margin-top: 6px;
+  font-size: 12px;
+  background: rgba(15, 122, 61, 0.08);
+  border-left: 3px solid var(--accent-green);
+  padding: 6px 10px;
+  border-radius: 4px;
+  color: #0b5c2d;
+  font-weight: 500;
+}
+
 /* Responsive */
 @media (max-width: 960px) {
   .craft-hero {
@@ -878,3 +1063,4 @@ body {
     grid-template-columns: 1fr;
   }
 }
+

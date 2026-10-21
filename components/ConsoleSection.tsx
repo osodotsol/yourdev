@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { IdeaBlueprint } from "@/types/blueprint";
+import { IdeaBlueprint, ClarifyingQuestion } from "@/types/blueprint";
 import { formatBlueprintMarkdown } from "@/lib/clipboard";
-import { Check, Copy } from "lucide-react";
+import { getClarifyingQuestions } from "@/lib/fallbackGenerator";
+import { Check, Copy, ArrowRight, ArrowLeft, AlertTriangle, Sparkles, RefreshCw } from "lucide-react";
 
 interface ConsoleSectionProps {
   blueprint: IdeaBlueprint | null;
   isLoading: boolean;
-  onBreakdown: (text: string) => void;
+  onBreakdown: (text: string, choices?: Record<string, string>) => void;
   onClear: () => void;
   onShowToast: (msg: string) => void;
 }
@@ -30,6 +31,9 @@ export function ConsoleSection({
   onShowToast,
 }: ConsoleSectionProps) {
   const [inputText, setInputText] = useState(PRESETS.habit);
+  const [step, setStep] = useState<"input" | "coaching" | "blueprint">("blueprint");
+  const [questions, setQuestions] = useState<ClarifyingQuestion[]>([]);
+  const [userChoices, setUserChoices] = useState<Record<string, string>>({});
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
   const toggleStep = (stepNumber: number) => {
@@ -42,15 +46,43 @@ export function ConsoleSection({
 
   const setPreset = (key: keyof typeof PRESETS) => {
     setInputText(PRESETS[key]);
+    setStep("input");
   };
 
-  const handleSubmit = () => {
+  const handleStartCoaching = () => {
     if (inputText.trim().length < 15) {
-      onShowToast("Please enter at least 15 characters.");
+      onShowToast("Please enter at least 15 characters to analyze.");
       return;
     }
+    const qs = getClarifyingQuestions(inputText);
+    setQuestions(qs);
+
+    // Pre-select recommended options
+    const defaults: Record<string, string> = {};
+    qs.forEach((q) => {
+      const rec = q.options.find((o) => o.recommendation) || q.options[0];
+      defaults[q.id] = rec.id;
+    });
+    setUserChoices(defaults);
+    setStep("coaching");
+
+    const consoleEl = document.getElementById("console");
+    if (consoleEl) {
+      consoleEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleSelectOption = (questionId: string, optionId: string) => {
+    setUserChoices((prev) => ({
+      ...prev,
+      [questionId]: optionId,
+    }));
+  };
+
+  const handleGenerateFinal = () => {
     setCompletedSteps([]);
-    onBreakdown(inputText);
+    onBreakdown(inputText, userChoices);
+    setStep("blueprint");
   };
 
   const handleCopyFull = async () => {
@@ -58,7 +90,7 @@ export function ConsoleSection({
     try {
       const markdown = formatBlueprintMarkdown(blueprint);
       await navigator.clipboard.writeText(markdown);
-      onShowToast("✓ BLUEPRINT COPIED TO CLIPBOARD");
+      onShowToast("✓ FULL STRATEGY BLUEPRINT COPIED");
     } catch {
       onShowToast("Failed to copy blueprint.");
     }
@@ -68,7 +100,7 @@ export function ConsoleSection({
     if (!blueprint) return;
     try {
       await navigator.clipboard.writeText(blueprint.agentGuide.firstPrompt);
-      onShowToast("✓ FIRST PROMPT COPIED TO CLIPBOARD");
+      onShowToast("✓ FIRST AGENT PROMPT COPIED");
     } catch {
       onShowToast("Failed to copy prompt.");
     }
@@ -84,69 +116,187 @@ export function ConsoleSection({
 
       <div className="craft-console-box">
         <div className="console-meta-strip">
-          <span>⚡ BREAKDOWN ENGINE // DEVPOST HACKATHON</span>
-          <span>DUAL-MODE: LIVE GEMINI + INSTANT OFFLINE FALLBACK</span>
-        </div>
-
-        <textarea
-          className="craft-textarea"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          placeholder="Paste your raw concept here... (e.g. 'I want to build a habit tracker that gives me AI suggestions when I miss a routine')"
-        />
-
-        {/* Preset Chips */}
-        <div className="craft-presets-row">
-          <span style={{ fontSize: "11px", color: "var(--text-soft)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Quick Presets:
+          <span>⚡ FLIPPED INTERACTION COACH // yourdev</span>
+          <span>
+            {step === "coaching"
+              ? "STEP 2 OF 2: ARCHITECTURAL CALIBRATION"
+              : step === "input"
+              ? "STEP 1 OF 2: DESCRIBE RAW IDEA"
+              : "STRATEGIC EXECUTION BLUEPRINT"}
           </span>
-          <button
-            type="button"
-            className="craft-preset-chip"
-            onClick={() => setPreset("habit")}
-          >
-            + Habit Tracker
-          </button>
-          <button
-            type="button"
-            className="craft-preset-chip"
-            onClick={() => setPreset("flashcards")}
-          >
-            + Spaced Flashcards
-          </button>
-          <button
-            type="button"
-            className="craft-preset-chip"
-            onClick={() => setPreset("events")}
-          >
-            + Dev Event Scraper
-          </button>
         </div>
 
-        {/* Actions Bar */}
-        <div className="console-actions-bar">
-          <button
-            type="button"
-            className="btn-craft-primary"
-            onClick={handleSubmit}
-            disabled={isLoading || inputText.trim().length < 15}
-          >
-            <span>{isLoading ? "Coaching idea..." : "Break it down"}</span>
-            <span>→</span>
-          </button>
-          <button
-            type="button"
-            className="btn-craft-secondary"
-            onClick={() => {
-              setInputText("");
-              onClear();
-            }}
-          >
-            Clear
-          </button>
-        </div>
+        {/* STEP 1: IDEA INPUT */}
+        {step === "input" && (
+          <div>
+            <textarea
+              className="craft-textarea"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Paste your raw concept here... (e.g. 'I want to build a Chrome extension that highlights and saves recipe ingredients from blogs with zero cloud database')"
+            />
 
-        {/* Shimmer Loader */}
+            {/* Preset Chips */}
+            <div className="craft-presets-row">
+              <span
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text-soft)",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                Quick Presets:
+              </span>
+              <button
+                type="button"
+                className="craft-preset-chip"
+                onClick={() => setPreset("habit")}
+              >
+                + Habit Tracker
+              </button>
+              <button
+                type="button"
+                className="craft-preset-chip"
+                onClick={() => setPreset("flashcards")}
+              >
+                + Spaced Flashcards
+              </button>
+              <button
+                type="button"
+                className="craft-preset-chip"
+                onClick={() => setPreset("events")}
+              >
+                + Dev Event Scraper
+              </button>
+            </div>
+
+            {/* Actions Bar */}
+            <div className="console-actions-bar">
+              <button
+                type="button"
+                className="btn-craft-primary"
+                onClick={handleStartCoaching}
+                disabled={isLoading || inputText.trim().length < 15}
+              >
+                <span>Analyze Idea & Clarify Strategy</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                className="btn-craft-secondary"
+                onClick={() => {
+                  setInputText("");
+                  onClear();
+                }}
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 2: INTERACTIVE COACHING QUESTIONS */}
+        {step === "coaching" && (
+          <div className="coaching-card-wrap">
+            <div className="coaching-step-badge">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Step 2 of 2 · Flipped Architecture Calibration</span>
+            </div>
+
+            <h3
+              style={{
+                fontFamily: "var(--serif)",
+                fontSize: "26px",
+                fontWeight: 400,
+                marginBottom: "6px",
+              }}
+            >
+              Let’s calibrate your strategy before building.
+            </h3>
+            <p
+              style={{
+                fontSize: "13.5px",
+                color: "var(--text-muted)",
+                marginBottom: "20px",
+              }}
+            >
+              A senior engineer would ask these exact questions to keep your Demo Day project focused,
+              avoiding weeks of wasted refactoring:
+            </p>
+
+            {questions.map((q) => (
+              <div key={q.id} className="coaching-question-block">
+                <div className="coaching-question-title">{q.title}</div>
+                <div className="coaching-question-helper">{q.helper}</div>
+                <div className="coaching-options-grid">
+                  {q.options.map((opt) => {
+                    const isSelected = userChoices[q.id] === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        className={`coaching-option-pill ${
+                          isSelected ? "is-selected" : ""
+                        }`}
+                        onClick={() => handleSelectOption(q.id, opt.id)}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <div
+                            style={{
+                              width: "16px",
+                              height: "16px",
+                              borderRadius: "50%",
+                              border: isSelected
+                                ? "4px solid #fff"
+                                : "1.5px solid var(--border-strong)",
+                              background: isSelected ? "#18191a" : "transparent",
+                            }}
+                          />
+                          <span>{opt.label}</span>
+                        </div>
+                        {opt.recommendation && (
+                          <span className="coaching-rec-tag">Recommended</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                marginTop: "28px",
+                flexWrap: "wrap",
+              }}
+            >
+              <button
+                type="button"
+                className="btn-craft-primary"
+                onClick={handleGenerateFinal}
+                disabled={isLoading}
+              >
+                <span>Generate Tailored Strategy</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                className="btn-craft-secondary"
+                onClick={() => setStep("input")}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Idea</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* LOADING SHIMMER */}
         {isLoading && (
           <div className="craft-loader-card">
             <p
@@ -158,21 +308,21 @@ export function ConsoleSection({
                 marginBottom: "4px",
               }}
             >
-              ✦ COACHING INTENT INTO AGENT-READY PHASES...
+              ✦ SYNTHESIZING TAILORED ARCHITECTURE & PITFALL SAFEGUARDS...
             </p>
             <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-              Extracting milestones, stack rationales, and exact starter prompts...
+              Applying your chosen constraints into concrete milestones, pitfalls to avoid, and exact starter prompts...
             </p>
           </div>
         )}
 
-        {/* Dynamic Blueprint Stage */}
-        {!isLoading && blueprint && (
+        {/* STEP 3: DYNAMIC BLUEPRINT STAGE */}
+        {!isLoading && step === "blueprint" && blueprint && (
           <div className="blueprint-stage">
             <div className="blueprint-stage-head">
               <div>
                 <span className="card-kicker">
-                  BLUEPRINT SPECIFICATION // {blueprint.isFallback ? "OFFLINE ENGINE" : "LIVE GEMINI"}
+                  TAILORED STRATEGY // {blueprint.isFallback ? "OFFLINE ENGINE" : "LIVE GEMINI"}
                 </span>
                 <h3>{blueprint.projectTitle}</h3>
                 <p style={{ fontSize: "14px", color: "var(--text-muted)", maxWidth: "680px" }}>
@@ -180,15 +330,38 @@ export function ConsoleSection({
                 </p>
               </div>
 
-              <button
-                type="button"
-                className="btn-craft-primary"
-                onClick={handleCopyFull}
-              >
-                <Copy className="w-4 h-4" />
-                <span>Copy Full Blueprint</span>
-              </button>
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  className="btn-craft-secondary"
+                  onClick={() => setStep("coaching")}
+                  style={{ fontSize: "12px" }}
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Re-Calibrate Strategy</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn-craft-primary"
+                  onClick={handleCopyFull}
+                >
+                  <Copy className="w-4 h-4" />
+                  <span>Copy Full Blueprint</span>
+                </button>
+              </div>
             </div>
+
+            {/* Strategic Architecture Callout */}
+            {blueprint.strategyDecision && (
+              <div className="strategy-callout-card">
+                <div className="strategy-callout-label">
+                  ✦ Strategic Architecture & Proof-of-Concept Cutline
+                </div>
+                <div className="strategy-callout-text">
+                  {blueprint.strategyDecision}
+                </div>
+              </div>
+            )}
 
             <div className="blueprint-tiles-layout">
               {/* Tile 1: Roadmap */}
@@ -242,11 +415,49 @@ export function ConsoleSection({
                 </div>
               </div>
 
-              {/* Tile 3: Tech Stack */}
+              {/* Tile 3: Where Beginners Get Stuck (Pitfalls & Traps) */}
+              <div className="blueprint-card-item tile-wide" style={{ background: "#ffffff", color: "var(--text)" }}>
+                <div>
+                  <div className="card-kicker" style={{ color: "#a82a1e" }}>
+                    03 · Where Beginners Get Stuck (Pitfalls & Traps)
+                  </div>
+                  <h4 className="card-title" style={{ color: "#18191a", marginBottom: "4px" }}>
+                    Critical Failure Modes for this Specific Project
+                  </h4>
+                  <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "14px" }}>
+                    Pair-programming failure modes and technical traps to guard your coding agent against:
+                  </p>
+
+                  <div className="pitfalls-container">
+                    {blueprint.pitfalls && blueprint.pitfalls.length > 0 ? (
+                      blueprint.pitfalls.map((pit, idx) => (
+                        <div key={idx} className="pitfall-single-item">
+                          <div className="pitfall-title">
+                            <AlertTriangle className="w-4 h-4 shrink-0" />
+                            <span>Trap {idx + 1}: {pit.trap}</span>
+                          </div>
+                          <div className="pitfall-body">
+                            <strong>Why it happens:</strong> {pit.whyItHappens}
+                          </div>
+                          <div className="pitfall-how-to-avoid">
+                            <strong>How to avoid:</strong> {pit.howToAvoid}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+                        No known high-risk traps detected for this configuration.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Tile 4: Tech Stack */}
               <div className="blueprint-card-item">
                 <div>
-                  <div className="card-kicker">03 · Tech Stack</div>
-                  <h4 className="card-title">Recommended Stack</h4>
+                  <div className="card-kicker">04 · Tech Stack</div>
+                  <h4 className="card-title">Calibrated Stack & Rationale</h4>
                   <ul className="card-list-clean">
                     {blueprint.techStack.map((item, idx) => (
                       <li key={idx}>
@@ -258,10 +469,10 @@ export function ConsoleSection({
                 </div>
               </div>
 
-              {/* Tile 4: Free Resources */}
+              {/* Tile 5: Free Resources */}
               <div className="blueprint-card-item">
                 <div>
-                  <div className="card-kicker">04 · Free Resources</div>
+                  <div className="card-kicker">05 · Free Resources</div>
                   <h4 className="card-title">Verified Official Links</h4>
                   <ul className="card-list-clean">
                     {blueprint.resources.map((res, idx) => (
@@ -285,7 +496,7 @@ export function ConsoleSection({
                 </div>
               </div>
 
-              {/* Tile 5: AI Coding Agent Guide & First Prompt */}
+              {/* Tile 6: AI Coding Agent Guide & First Prompt */}
               <div className="blueprint-card-item tile-wide">
                 <div
                   style={{
@@ -297,7 +508,7 @@ export function ConsoleSection({
                   }}
                 >
                   <div>
-                    <div className="card-kicker">05 · Agent First Prompt</div>
+                    <div className="card-kicker">06 · Agent First Prompt</div>
                     <h4 className="card-title" style={{ margin: 0, color: "#fff" }}>
                       Paste Directly Into Cursor, Claude, or Copilot
                     </h4>
@@ -305,7 +516,13 @@ export function ConsoleSection({
                   <button
                     type="button"
                     className="btn-craft-secondary"
-                    style={{ padding: "8px 16px", fontSize: "11px", background: "#26282b", color: "#fff", borderColor: "#3d4044" }}
+                    style={{
+                      padding: "8px 16px",
+                      fontSize: "11px",
+                      background: "#26282b",
+                      color: "#fff",
+                      borderColor: "#3d4044",
+                    }}
                     onClick={handleCopyPrompt}
                   >
                     <Copy className="w-3.5 h-3.5" />
