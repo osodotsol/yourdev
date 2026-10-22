@@ -5,33 +5,33 @@ import React from "react";
 const OUTPUT_ITEMS = [
   {
     tag: "01 · ROADMAP",
-    title: "Phased Roadmap",
-    desc: "3–5 sequential milestones from skeleton to polish. Each phase is scoped to a single verifiable commit an agent can build independently.",
+    title: "Visual Execution Tree",
+    desc: "4 sequential milestones from data contracts to polish. Each node has exact files to create, verified docs, and an agent prompt.",
   },
   {
-    tag: "02 · ACTIONS",
-    title: "Immediate Next Actions",
-    desc: "4–6 concrete steps with clear action verbs. Tells you exactly what file to touch first so you never stare at a blank prompt.",
+    tag: "02 · VERIFICATION",
+    title: "Per-Step Mentor Review",
+    desc: "Submit your code or test logs at each milestone to receive instant AI mentor critique, approval checks, and guidance.",
   },
   {
-    tag: "03 · TECH STACK",
-    title: "Recommended Tech Stack",
-    desc: "Zero-friction, modern tools chosen for speed and agent compatibility. Plain-English rationales for every architectural choice.",
+    tag: "03 · PITFALLS",
+    title: "Failure Modes & Traps",
+    desc: "Guards against domain-specific beginner traps (e.g., manifest permissions, hydration mismatches, premature auth).",
   },
   {
-    tag: "04 · RESOURCES",
-    title: "Free Learning Resources",
-    desc: "Targeted official documentation and verified interactive tutorials. 100% free with zero paywalled courses.",
+    tag: "04 · TECH STACK",
+    title: "Calibrated Architecture",
+    desc: "Carefully chosen framework, language, and persistence tools with plain-English rationales for every technical trade-off.",
   },
   {
-    tag: "05 · AGENT GUIDE",
-    title: "AI Agent Guide",
-    desc: "Practical paired-programming rules — what to verify, boundary enforcement, and how to handle edge-case errors cleanly.",
+    tag: "05 · PROMPTS",
+    title: "Single-Slice & Master Prompts",
+    desc: "Copy either a milestone-specific prompt or the master blueprint prompt directly into Cursor, Claude, or Copilot.",
   },
   {
-    tag: "06 · STARTER PROMPT",
-    title: "First Agent Prompt",
-    desc: "The exact starter prompt to kick off Phase 1 in your coding agent. One click to copy, paste into your chat, and begin.",
+    tag: "06 · PERSISTENCE",
+    title: "Local State Reliability",
+    desc: "100% offline-first session persistence. Your progress, choices, and reviews are saved across page reloads.",
   },
 ];
 
@@ -41,13 +41,12 @@ export function OutputSection() {
       <div className="section-eyebrow">04 / THE OUTPUT SPECIFICATION</div>
 
       <h2 className="section-headline">
-        Five sections.<br />
-        <em>One agent-ready document.</em>
+        Four studio views.<br />
+        <em>One actionable mentor roadmap.</em>
       </h2>
 
       <p className="craft-hero-desc" style={{ marginBottom: "24px" }}>
-        Every generated blueprint is structured so modern coding agents can build milestone by milestone
-        without hallucinating or drifting out of scope.
+        Every generated blueprint is structured so beginners can build milestone by milestone with continuous verification, avoiding hallucination and scope drift.
       </p>
 
       <div className="craft-output-grid">

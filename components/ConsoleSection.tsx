@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import { IdeaBlueprint, ClarifyingQuestion } from "@/types/blueprint";
+import React, { useState, useEffect } from "react";
+import { IdeaBlueprint, ClarifyingQuestion, StepReviewResult } from "@/types/blueprint";
 import { formatBlueprintMarkdown } from "@/lib/clipboard";
 import { getClarifyingQuestions } from "@/lib/fallbackGenerator";
+import { saveSession, loadSession, clearSession } from "@/lib/persistence";
 import {
   Check,
   Copy,
@@ -47,28 +48,86 @@ export function ConsoleSection({
   const [showCustomizer, setShowCustomizer] = useState(false);
   const [questions, setQuestions] = useState<ClarifyingQuestion[] | null>(null);
   const [userChoices, setUserChoices] = useState<Record<string, string>>({});
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [completedNodeIds, setCompletedNodeIds] = useState<string[]>([]);
+  const [savedReviews, setSavedReviews] = useState<Record<string, StepReviewResult>>({});
   const [activeTab, setActiveTab] = useState<"roadmap" | "pitfalls" | "stack" | "prompt">("roadmap");
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
 
-  const toggleStep = (stepNumber: number) => {
-    setCompletedSteps((prev) =>
-      prev.includes(stepNumber)
-        ? prev.filter((s) => s !== stepNumber)
-        : [...prev, stepNumber]
-    );
+  useEffect(() => {
+    const saved = loadSession();
+    if (saved.rawIdea && !inputText) {
+      setInputText(saved.rawIdea);
+    }
+    if (saved.userChoices && Object.keys(saved.userChoices).length > 0) {
+      setUserChoices(saved.userChoices);
+    }
+    if (saved.completedNodeIds && saved.completedNodeIds.length > 0) {
+      setCompletedNodeIds(saved.completedNodeIds);
+    }
+    if (saved.reviews) {
+      setSavedReviews(saved.reviews);
+    }
+  }, []);
+
+  const handleToggleNode = (nodeId: string) => {
+    setCompletedNodeIds((prev) => {
+      const updated = prev.includes(nodeId) ? prev.filter((id) => id !== nodeId) : [...prev, nodeId];
+      saveSession({ completedNodeIds: updated });
+      return updated;
+    });
+  };
+
+  const handleSaveReview = (stepId: string, review: StepReviewResult) => {
+    const updated = { ...savedReviews, [stepId]: review };
+    setSavedReviews(updated);
+    saveSession({ reviews: updated });
+  };
+
+  const loadAdaptiveQuestions = async (text: string) => {
+    setIsGeneratingQuestions(true);
+    try {
+      const res = await fetch("/api/questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idea: text }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.questions) && data.questions.length > 0) {
+          setQuestions(data.questions);
+          const defaults: Record<string, string> = { ...userChoices };
+          data.questions.forEach((q: any) => {
+            if (!defaults[q.id]) {
+              const rec = q.options.find((o: any) => o.recommendation) || q.options[0];
+              defaults[q.id] = rec.id;
+            }
+          });
+          setUserChoices(defaults);
+          return;
+        }
+      }
+    } catch {
+      // Fallback below
+    } finally {
+      setIsGeneratingQuestions(false);
+    }
+
+    const qs = getClarifyingQuestions(text);
+    setQuestions(qs);
+    const defaults: Record<string, string> = { ...userChoices };
+    qs.forEach((q) => {
+      if (!defaults[q.id]) {
+        const rec = q.options.find((o) => o.recommendation) || q.options[0];
+        defaults[q.id] = rec.id;
+      }
+    });
+    setUserChoices(defaults);
   };
 
   const handleSelectPreset = (key: keyof typeof PRESETS) => {
     const text = PRESETS[key];
     setInputText(text);
-    const qs = getClarifyingQuestions(text);
-    setQuestions(qs);
-    const defaults: Record<string, string> = {};
-    qs.forEach((q) => {
-      const rec = q.options.find((o) => o.recommendation) || q.options[0];
-      defaults[q.id] = rec.id;
-    });
-    setUserChoices(defaults);
+    loadAdaptiveQuestions(text);
   };
 
   const handleTriggerBreakdown = () => {
@@ -91,7 +150,7 @@ export function ConsoleSection({
       setUserChoices(currentChoices);
     }
 
-    setCompletedSteps([]);
+    setCompletedNodeIds([]);
     setActiveTab("roadmap");
     onBreakdown(inputText, currentChoices);
 
@@ -110,23 +169,18 @@ export function ConsoleSection({
       return;
     }
     if (!questions) {
-      const qs = getClarifyingQuestions(inputText);
-      setQuestions(qs);
-      const defaults: Record<string, string> = {};
-      qs.forEach((q) => {
-        const rec = q.options.find((o) => o.recommendation) || q.options[0];
-        defaults[q.id] = rec.id;
-      });
-      setUserChoices(defaults);
+      loadAdaptiveQuestions(inputText);
     }
     setShowCustomizer((prev) => !prev);
   };
 
   const handleSelectOption = (questionId: string, optionId: string) => {
-    setUserChoices((prev) => ({
-      ...prev,
+    const updated = {
+      ...userChoices,
       [questionId]: optionId,
-    }));
+    };
+    setUserChoices(updated);
+    saveSession({ userChoices: updated });
   };
 
   const handleCopyFull = async () => {
@@ -155,6 +209,9 @@ export function ConsoleSection({
     setQuestions(null);
     setUserChoices({});
     setShowCustomizer(false);
+    setCompletedNodeIds([]);
+    setSavedReviews({});
+    clearSession();
     onClear();
   };
 
@@ -482,7 +539,15 @@ export function ConsoleSection({
 
             {/* TAB CONTENT 1: Interactive Visual Roadmap Graph (roadmap.sh style) */}
             {activeTab === "roadmap" && blueprint.nodes && blueprint.nodes.length > 0 && (
-              <RoadmapGraph nodes={blueprint.nodes} onShowToast={onShowToast} />
+              <RoadmapGraph
+                nodes={blueprint.nodes}
+                ideaText={inputText}
+                completedNodeIds={completedNodeIds}
+                onToggleNode={handleToggleNode}
+                savedReviews={savedReviews}
+                onSaveReview={handleSaveReview}
+                onShowToast={onShowToast}
+              />
             )}
 
             {/* TAB CONTENT 2: Critical Pitfalls & Traps */}

@@ -1,5 +1,6 @@
 import { IdeaBlueprint, RoadmapNode } from "@/types/blueprint";
 import { retrieveKnowledge, buildRoadmapNodes } from "@/lib/knowledgeBank";
+import { validateAndRepairBlueprint } from "@/lib/validateBlueprint";
 
 const GEMINI_MODELS = [
   "gemini-3.5-flash-lite",
@@ -190,16 +191,17 @@ Produce a custom, non-generic, high-signal execution blueprint adhering strictly
         .replace(/```\s*$/i, "")
         .trim();
 
-      const parsed: IdeaBlueprint = JSON.parse(cleaned);
-      parsed.isFallback = false;
-      parsed.userChoices = userChoices;
+      const rawObj = JSON.parse(cleaned);
+      const validation = validateAndRepairBlueprint(rawObj, matchedKnowledge[0], ideaText);
+      const blueprint = validation.blueprint;
+      blueprint.isFallback = false;
+      blueprint.userChoices = userChoices;
 
-      // Ensure nodes are populated
-      if (!parsed.nodes || parsed.nodes.length === 0) {
-        parsed.nodes = buildRoadmapNodes(matchedKnowledge[0], parsed.projectTitle, parsed.summary);
+      if (validation.warnings.length > 0) {
+        console.info(`[Gemini API] Repaired ${validation.warnings.length} fields:`, validation.warnings);
       }
 
-      return parsed;
+      return blueprint;
     } catch (err: any) {
       console.warn(`[Gemini API] Attempt with ${model} error:`, err?.message);
       lastError = err;

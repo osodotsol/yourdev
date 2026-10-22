@@ -59,6 +59,17 @@ export interface RoadmapNode {
   resources: { title: string; url: string }[];
 }
 
+export interface StepReviewResult {
+  stepId: string;
+  verdict: "passed" | "needs_work" | "warning";
+  verdictLabel: string;
+  feedback: string;
+  positivePoints: string[];
+  suggestedFixes: string[];
+  nextTip: string;
+  timestamp: number;
+}
+
 export interface IdeaBlueprint {
   projectTitle: string;
   summary: string;
@@ -72,4 +83,5 @@ export interface IdeaBlueprint {
   nodes?: RoadmapNode[];
   isFallback?: boolean;
   userChoices?: Record<string, string>;
+  reviews?: Record<string, StepReviewResult>;
 }

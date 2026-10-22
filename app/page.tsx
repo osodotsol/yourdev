@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TopNav } from "@/components/TopNav";
 import { HeroSection } from "@/components/HeroSection";
 import { PillarsBar } from "@/components/PillarsBar";
@@ -11,6 +11,7 @@ import { OutputSection } from "@/components/OutputSection";
 import { SiteFooter } from "@/components/SiteFooter";
 import { IdeaBlueprint } from "@/types/blueprint";
 import { generateBlueprint } from "@/lib/fallbackGenerator";
+import { loadSession, saveSession, clearSession } from "@/lib/persistence";
 
 const DEFAULT_SAMPLE_BLUEPRINT: IdeaBlueprint = generateBlueprint(
   "I want to build a simple habit tracker with AI that helps me stay consistent, gives me daily reminders, and awards fun badges when I hit a 7-day streak."
@@ -21,6 +22,13 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    const saved = loadSession();
+    if (saved.blueprint) {
+      setBlueprint(saved.blueprint);
+    }
+  }, []);
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
@@ -45,6 +53,7 @@ export default function Home() {
       const data = await res.json();
       if (data.blueprint) {
         setBlueprint(data.blueprint);
+        saveSession({ blueprint: data.blueprint, rawIdea: text, userChoices: choices });
         triggerToast("✦ TAILORED STRATEGY GENERATED");
       } else {
         throw new Error("No blueprint returned in payload");
@@ -53,6 +62,7 @@ export default function Home() {
       console.warn("Client fallback activated:", err);
       const fallback = generateBlueprint(text, choices);
       setBlueprint(fallback);
+      saveSession({ blueprint: fallback, rawIdea: text, userChoices: choices });
       triggerToast("✓ STRATEGY BLUEPRINT GENERATED");
     } finally {
       setIsLoading(false);
@@ -65,6 +75,7 @@ export default function Home() {
 
   const handleClear = () => {
     setBlueprint(null);
+    clearSession();
   };
 
   return (
