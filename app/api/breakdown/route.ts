@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateGeminiBlueprint } from "@/lib/gemini";
 import { generateBlueprint as generateFallbackBlueprint } from "@/lib/fallbackGenerator";
 import { ProjectArchitecture } from "@/types/blueprint";
+import { sanitizeLogMessage } from "@/lib/redact";
 
 const DEFAULT_TIMEOUT_MS = 35000;
 
@@ -17,12 +18,32 @@ function isTestHookAllowed(req?: NextRequest): boolean {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json(
+        { error: "Invalid JSON request body." },
+        { status: 400 }
+      );
+    }
     const { idea, choices } = body;
 
     if (!idea || typeof idea !== "string" || idea.trim().length < 10) {
       return NextResponse.json(
         { error: "Idea must be at least 10 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (idea.length > 1500) {
+      return NextResponse.json(
+        { error: "Project idea exceeds maximum allowed length of 1,500 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (choices !== undefined && (typeof choices !== "object" || choices === null || Array.isArray(choices))) {
+      return NextResponse.json(
+        { error: "Choices must be an object with key-value pairs." },
         { status: 400 }
       );
     }
@@ -82,10 +103,7 @@ export async function POST(req: NextRequest) {
       });
     } catch (apiError: any) {
       // Sanitize error message to prevent any API key leakage
-      const rawError = String(apiError?.message || apiError || "Unknown error");
-      const sanitizedReason = rawError
-        .replace(/key=[^&\s]+/gi, "key=[REDACTED]")
-        .slice(0, 250);
+      const sanitizedReason = sanitizeLogMessage(apiError);
 
       console.warn("[Breakdown Route] Gemini API unavailable, activating offline heuristic:", sanitizedReason);
 
@@ -115,9 +133,7 @@ export async function POST(req: NextRequest) {
       }
     }
   } catch (err: any) {
-    const sanitizedServerError = String(err?.message || err || "Internal server error")
-      .replace(/key=[^&\s]+/gi, "key=[REDACTED]")
-      .slice(0, 200);
+    const sanitizedServerError = sanitizeLogMessage(err);
     console.error("[Breakdown Route] Unexpected server error:", sanitizedServerError);
     return NextResponse.json(
       { error: "Internal server error occurred." },

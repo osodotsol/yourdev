@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { classifyAndDecomposeProject } from "@/lib/gemini";
 import { generateFallbackArchitecture } from "@/lib/fallbackGenerator";
+import { sanitizeLogMessage } from "@/lib/redact";
 
 const DEFAULT_TIMEOUT_MS = 18000;
 
@@ -16,12 +17,32 @@ function isTestHookAllowed(req?: NextRequest): boolean {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json(
+        { error: "Invalid JSON request body." },
+        { status: 400 }
+      );
+    }
     const { idea, choices } = body;
 
     if (!idea || typeof idea !== "string" || idea.trim().length < 5) {
       return NextResponse.json(
         { error: "Idea must be at least 5 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (idea.length > 1500) {
+      return NextResponse.json(
+        { error: "Project idea exceeds maximum allowed length of 1,500 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (choices !== undefined && (typeof choices !== "object" || choices === null || Array.isArray(choices))) {
+      return NextResponse.json(
+        { error: "Choices must be an object with key-value pairs." },
         { status: 400 }
       );
     }
@@ -67,7 +88,7 @@ export async function POST(req: NextRequest) {
         architecture: result.architecture,
       });
     } catch (err: any) {
-      console.warn("[Architecture Route] Model failed, using fallback:", err?.message);
+      console.warn("[Architecture Route] Model failed, using fallback:", sanitizeLogMessage(err));
       const fallbackArch = generateFallbackArchitecture(idea, choices);
       return NextResponse.json({
         success: true,
@@ -81,7 +102,7 @@ export async function POST(req: NextRequest) {
       }
     }
   } catch (err: any) {
-    console.error("[Architecture Route] Unexpected error:", err);
+    console.error("[Architecture Route] Unexpected error:", sanitizeLogMessage(err));
     return NextResponse.json(
       { error: "Internal server error." },
       { status: 500 }

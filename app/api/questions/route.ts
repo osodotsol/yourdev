@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ClarifyingQuestion } from "@/types/blueprint";
+import { sanitizeLogMessage } from "@/lib/redact";
 
 const INTAKE_FOUNDATION_QUESTIONS: ClarifyingQuestion[] = [
   {
@@ -66,8 +67,21 @@ const INTAKE_FOUNDATION_QUESTIONS: ClarifyingQuestion[] = [
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json(
+        { error: "Invalid JSON request body." },
+        { status: 400 }
+      );
+    }
     const { idea } = body;
+
+    if (idea !== undefined && (typeof idea !== "string" || idea.length > 1500)) {
+      return NextResponse.json(
+        { error: "Project idea must be a string not exceeding 1,500 characters." },
+        { status: 400 }
+      );
+    }
 
     const lower = (idea || "").toLowerCase();
 
@@ -141,7 +155,7 @@ export async function POST(req: NextRequest) {
       questions: allQuestions,
     });
   } catch (err: any) {
-    console.error("[Questions Route] Error:", err);
+    console.error("[Questions Route] Error:", sanitizeLogMessage(err));
     return NextResponse.json(
       { error: "Failed to generate intake questions." },
       { status: 500 }

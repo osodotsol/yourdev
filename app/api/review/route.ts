@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RoadmapNode, StepReviewResult } from "@/types/blueprint";
 import { verifyArtifact } from "@/lib/artifactVerifier";
+import { sanitizeLogMessage } from "@/lib/redact";
 
 const GEMINI_MODELS = [
   "gemini-3.5-flash-lite",
@@ -64,8 +65,49 @@ function buildFallbackReview(milestone: RoadmapNode, submission: string): StepRe
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json(
+        { error: "Invalid JSON request body." },
+        { status: 400 }
+      );
+    }
     const { idea, milestone, submission, submissionType, filename } = body;
+
+    if (submission !== undefined && typeof submission === "string" && submission.length > 8000) {
+      return NextResponse.json(
+        { error: "Submission exceeds maximum allowed length of 8,000 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (idea !== undefined && (typeof idea !== "string" || idea.length > 1500)) {
+      return NextResponse.json(
+        { error: "Project idea must be a string not exceeding 1,500 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (filename !== undefined && (typeof filename !== "string" || filename.length > 255)) {
+      return NextResponse.json(
+        { error: "Filename must be a string not exceeding 255 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (submissionType !== undefined && (typeof submissionType !== "string" || submissionType.length > 50)) {
+      return NextResponse.json(
+        { error: "Submission type must be a string not exceeding 50 characters." },
+        { status: 400 }
+      );
+    }
+
+    if (milestone !== undefined && (typeof milestone !== "object" || milestone === null || Array.isArray(milestone))) {
+      return NextResponse.json(
+        { error: "Milestone must be an object." },
+        { status: 400 }
+      );
+    }
 
     // Explicit deterministic artifact verification path
     const isArtifact =
@@ -177,7 +219,7 @@ Provide your structured mentor evaluation in JSON matching the schema.`;
         };
         break;
       } catch (err: any) {
-        console.warn(`[Review Route] Model ${model} failed:`, err?.message);
+        console.warn(`[Review Route] Model ${model} failed:`, sanitizeLogMessage(err));
       }
     }
 
@@ -190,7 +232,7 @@ Provide your structured mentor evaluation in JSON matching the schema.`;
       review: reviewResult,
     });
   } catch (err: any) {
-    console.error("[Review Route] Unexpected error:", err);
+    console.error("[Review Route] Unexpected error:", sanitizeLogMessage(err));
     return NextResponse.json(
       { error: "Failed to evaluate step submission." },
       { status: 500 }

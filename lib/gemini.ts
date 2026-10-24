@@ -3,6 +3,7 @@ import { retrieveKnowledge } from "@/lib/knowledgeBank";
 import { validateAndRepairBlueprint, validateAndRepairArchitecture } from "@/lib/validateBlueprint";
 import { generateFallbackArchitecture } from "@/lib/fallbackGenerator";
 import { FOUNDATIONS_BANK } from "@/lib/foundationsBank";
+import { sanitizeLogMessage } from "@/lib/redact";
 
 const GEMINI_MODELS = [
   "gemini-3.5-flash-lite",
@@ -167,7 +168,7 @@ Analyze this idea and return the validated JSON architectural decomposition adhe
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         const errMsg = errorData.error?.message || `HTTP ${res.status}`;
-        console.warn(`[Architecture API] Model ${model} failed: ${errMsg}`);
+        console.warn(`[Architecture API] Model ${model} failed:`, sanitizeLogMessage(errMsg));
         continue;
       }
 
@@ -192,7 +193,7 @@ Analyze this idea and return the validated JSON architectural decomposition adhe
       if (err?.name === "AbortError" || signal?.aborted) {
         throw err;
       }
-      console.warn(`[Architecture API] Attempt with ${model} error:`, err?.message);
+      console.warn(`[Architecture API] Attempt with ${model} error:`, sanitizeLogMessage(err));
     }
   }
 
@@ -392,7 +393,7 @@ export async function generateGeminiBlueprint(
       if (err?.name === "AbortError" || options?.signal?.aborted) {
         throw err;
       }
-      console.warn("[Gemini API] Architecture call failed, falling back to local heuristic:", err?.message);
+      console.warn("[Gemini API] Architecture call failed, falling back to local heuristic:", sanitizeLogMessage(err));
       return {
         architecture: generateFallbackArchitecture(ideaText, userChoices),
         source: "fallback" as const,
@@ -570,7 +571,7 @@ Produce a beginner-friendly blueprint adhering strictly to the JSON schema.`;
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         const errMsg = errorData.error?.message || `HTTP ${res.status}`;
-        console.warn(`[Gemini API] Model ${model} failed: ${errMsg}`);
+        console.warn(`[Gemini API] Model ${model} failed:`, sanitizeLogMessage(errMsg));
         lastError = new Error(errMsg);
         continue;
       }
@@ -614,7 +615,7 @@ Produce a beginner-friendly blueprint adhering strictly to the JSON schema.`;
         }
         throw abortErr;
       }
-      console.warn(`[Gemini API] Model ${model} network error:`, err?.message);
+      console.warn(`[Gemini API] Model ${model} network error:`, sanitizeLogMessage(err));
       lastError = err;
     }
   }
