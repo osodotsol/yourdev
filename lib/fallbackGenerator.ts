@@ -7,8 +7,17 @@ import {
   PitfallItem,
   ClarifyingQuestion,
   RoadmapNode,
+  ProjectArchitecture,
+  ProjectType,
+  ProjectPart,
+  RecommendedStack,
 } from "@/types/blueprint";
 import { retrieveKnowledge, buildRoadmapNodes } from "@/lib/knowledgeBank";
+import {
+  validateAndRepairBlueprint,
+  validateAndRepairArchitecture,
+} from "@/lib/validateBlueprint";
+import { createExtensionStarterArtifacts } from "@/lib/artifactVerifier";
 
 export type ProjectCategory =
   | "extension"
@@ -21,6 +30,7 @@ export type ProjectCategory =
   | "habit"
   | "ai_tool"
   | "ecommerce"
+  | "agriculture"
   | "general_web";
 
 export function detectCategory(text: string): ProjectCategory {
@@ -75,7 +85,8 @@ export function detectCategory(text: string): ProjectCategory {
     lower.includes("terminal") ||
     lower.includes("console tool") ||
     lower.includes("bash") ||
-    lower.includes("npm package")
+    lower.includes("npm package") ||
+    lower.includes("csv")
   ) {
     return "cli";
   }
@@ -135,6 +146,22 @@ export function detectCategory(text: string): ProjectCategory {
     return "ecommerce";
   }
 
+  if (
+    lower.includes("farm") ||
+    lower.includes("crop") ||
+    lower.includes("plant") ||
+    lower.includes("rainfall") ||
+    lower.includes("rain ") ||
+    lower.includes("weather") ||
+    lower.includes("soil") ||
+    lower.includes("irrigation") ||
+    lower.includes("harvest") ||
+    lower.includes("agriculture") ||
+    lower.includes("agritech")
+  ) {
+    return "agriculture";
+  }
+
   return "general_web";
 }
 
@@ -144,319 +171,128 @@ export function detectCategory(text: string): ProjectCategory {
 export function getClarifyingQuestions(ideaText: string): ClarifyingQuestion[] {
   const category = detectCategory(ideaText);
 
-  switch (category) {
-    case "scraper":
-      return [
+  const baseQuestions: ClarifyingQuestion[] = [
+    {
+      id: "coding_style",
+      title: "Will you write code yourself, or build mainly by directing an AI coding agent (vibe coding)?",
+      helper: "Drives whether your curriculum is an agile 'vibe-coder' minimum or a deeper code-along.",
+      options: [
         {
-          id: "data_source",
-          title: "What is the primary target page structure?",
-          helper: "Determines whether you need a lightweight HTML parser or a full headless browser.",
-          options: [
-            {
-              id: "static_html",
-              label: "Static HTML pages (Cheerio / Fast & Lightweight)",
-              recommendation: true,
-            },
-            {
-              id: "dynamic_js",
-              label: "Dynamic JavaScript-rendered single-page app (Playwright)",
-            },
-            {
-              id: "public_api",
-              label: "Semi-public JSON endpoints or RSS feeds",
-            },
-          ],
+          id: "vibe",
+          label: "Mostly AI agent (Vibe coding)",
+          recommendation: true,
         },
         {
-          id: "storage_mode",
-          title: "Where should collected records be persisted?",
-          helper: "Balances instant demo reliability against persistent multi-user storage.",
-          options: [
-            {
-              id: "sqlite_local",
-              label: "Zero-setup SQLite / Local JSON file (Guaranteed demo)",
-              recommendation: true,
-            },
-            {
-              id: "supabase_cloud",
-              label: "Cloud PostgreSQL (Supabase / Neon)",
-            },
-          ],
+          id: "mix",
+          label: "Mix (directing AI with manual coding)",
         },
         {
-          id: "trigger_mode",
-          title: "How should the scraper be executed?",
-          helper: "Prevents unintended rate limits during local testing.",
-          options: [
-            {
-              id: "manual_button",
-              label: "On-demand 'Fetch & Refresh Now' button in the UI",
-              recommendation: true,
-            },
-            {
-              id: "cron_schedule",
-              label: "Automated recurring background cron job",
-            },
-          ],
+          id: "myself",
+          label: "Mostly myself (learn deep mechanics)",
         },
-      ];
+      ],
+    },
+    {
+      id: "experience_level",
+      title: "What is your programming experience level?",
+      helper: "Calibrates how simple our explanations and analogies are so you never feel lost.",
+      options: [
+        {
+          id: "none",
+          label: "Never coded",
+          recommendation: true,
+        },
+        {
+          id: "beginner",
+          label: "Know a little",
+        },
+        {
+          id: "intermediate",
+          label: "Build already",
+        },
+      ],
+    },
+    {
+      id: "time_budget",
+      title: "How much time do you have available?",
+      helper: "Sizes your milestone cutline and foundations so you finish comfortably before demo day.",
+      options: [
+        {
+          id: "standard",
+          label: "2 hours / day for 7 days (~14 hours total)",
+          recommendation: true,
+        },
+        {
+          id: "weekend",
+          label: "Weekend hackathon sprint (12–16 hours over 2 days)",
+        },
+        {
+          id: "light",
+          label: "1 hour / day for 5 days (~5 hours total)",
+        },
+      ],
+    },
+  ];
 
-    case "extension":
-      return [
+  let projectQuestion: ClarifyingQuestion;
+  if (category === "cli") {
+    projectQuestion = {
+      id: "cli_input",
+      title: "How will users supply input to your CLI tool?",
+      helper: "Focuses the Phase 1 MVP parsing requirements.",
+      options: [
         {
-          id: "interaction_style",
-          title: "How will users interact with the extension?",
-          helper: "Defines the core Chrome Manifest entrypoint.",
-          options: [
-            {
-              id: "popup_window",
-              label: "Toolbar icon click opens clean popup window (360x480px)",
-              recommendation: true,
-            },
-            {
-              id: "floating_overlay",
-              label: "Injected floating badge/sidebar directly inside web pages",
-            },
-            {
-              id: "right_click",
-              label: "Right-click context menu action on selected text",
-            },
-          ],
+          id: "interactive_flags",
+          label: "Terminal flags or interactive prompts",
+          recommendation: true,
         },
         {
-          id: "data_persistence",
-          title: "How should user data and settings be preserved?",
-          helper: "Avoids permission warnings on extension install.",
-          options: [
-            {
-              id: "chrome_storage",
-              label: "chrome.storage.local (100% offline, zero server required)",
-              recommendation: true,
-            },
-            {
-              id: "sync_storage",
-              label: "chrome.storage.sync (syncs automatically across Google accounts)",
-            },
-          ],
+          id: "piped_input",
+          label: "Piping raw text streams directly from standard input",
         },
-      ];
-
-    case "mobile":
-      return [
+      ],
+    };
+  } else if (category === "extension") {
+    projectQuestion = {
+      id: "extension_mode",
+      title: "How will users interact with the extension?",
+      helper: "Defines the core Chrome Manifest entrypoint.",
+      options: [
         {
-          id: "preview_workflow",
-          title: "How will you demo and test the application?",
-          helper: "Prevents getting stalled by native Xcode or Android SDK build tools.",
-          options: [
-            {
-              id: "expo_go",
-              label: "Expo Go app on physical phone via QR code scan",
-              recommendation: true,
-            },
-            {
-              id: "web_simulator",
-              label: "Local browser view with React Native Web responsive frame",
-            },
-          ],
+          id: "popup",
+          label: "Toolbar icon click opens clean popup window (360x480px)",
+          recommendation: true,
         },
         {
-          id: "offline_priority",
-          title: "What is the network dependency for Phase 1?",
-          helper: "Keeps the proof of concept resilient during presentations.",
-          options: [
-            {
-              id: "offline_first",
-              label: "100% offline-first with device AsyncStorage",
-              recommendation: true,
-            },
-            {
-              id: "rest_api",
-              label: "Live REST API / Cloud backend integration",
-            },
-          ],
+          id: "floating_overlay",
+          label: "Injected floating badge/sidebar directly inside web pages",
         },
-      ];
-
-    case "habit":
-      return [
+      ],
+    };
+  } else {
+    projectQuestion = {
+      id: "mvp_storage",
+      title: "Where should your MVP store user data during testing?",
+      helper: "Zero-database local storage eliminates setup friction for demo day.",
+      options: [
         {
-          id: "streak_policy",
-          title: "How should habit momentum & streaks be calculated?",
-          helper: "A critical UX decision: punitive vs adaptive tracking.",
-          options: [
-            {
-              id: "adaptive_momentum",
-              label: "Adaptive pacing (leniency buffer for missed days, no punitive resets)",
-              recommendation: true,
-            },
-            {
-              id: "strict_daily",
-              label: "Strict daily streaks (resets to 0 if missed by midnight)",
-            },
-          ],
+          id: "local_storage",
+          label: "Browser LocalStorage (Zero backend setup required)",
+          recommendation: true,
         },
         {
-          id: "storage_scope",
-          title: "What storage strategy fits your proof of concept?",
-          helper: "Ensures testers can try it instantly with zero sign-up friction.",
-          options: [
-            {
-              id: "local_storage",
-              label: "Browser LocalStorage (Zero login, instant tactile demo)",
-              recommendation: true,
-            },
-            {
-              id: "account_auth",
-              label: "User accounts & cloud synchronization",
-            },
-          ],
-        },
-      ];
-
-    case "flashcards":
-      return [
-        {
-          id: "scheduling_system",
-          title: "Which spaced repetition model should govern card reviews?",
-          helper: "Calibrates the algorithm complexity to a hackathon timeframe.",
-          options: [
-            {
-              id: "leitner_3box",
-              label: "3-Box Leitner system (Intuitive, visual, zero setup)",
-              recommendation: true,
-            },
-            {
-              id: "sm2_algorithm",
-              label: "SuperMemo SM-2 algorithm (ease factors and interval math)",
-            },
-          ],
+          id: "local_json_file",
+          label: "A simple local JSON file on disk",
         },
         {
-          id: "content_source",
-          title: "How will test cards be provided to first-time users?",
-          helper: "Eliminates empty-state friction during judges' evaluation.",
-          options: [
-            {
-              id: "starter_deck",
-              label: "Pre-loaded starter deck (5 curated cards) + custom editor",
-              recommendation: true,
-            },
-            {
-              id: "ai_deck_gen",
-              label: "AI prompt generates flashcard deck from any topic",
-            },
-          ],
+          id: "cloud_database",
+          label: "Cloud database with user accounts (Deferred to Level Up Later)",
         },
-      ];
-
-    case "finance":
-      return [
-        {
-          id: "privacy_boundary",
-          title: "How should sensitive financial transactions be handled?",
-          helper: "Crucial for user trust and zero-server security.",
-          options: [
-            {
-              id: "client_only",
-              label: "100% Client-side privacy (No financial data touches a server)",
-              recommendation: true,
-            },
-            {
-              id: "cloud_db",
-              label: "Authenticated cloud database with encrypted fields",
-            },
-          ],
-        },
-        {
-          id: "input_method",
-          title: "Primary method for adding financial entries?",
-          helper: "Defines the Phase 1 core interaction loop.",
-          options: [
-            {
-              id: "quick_tap",
-              label: "Quick manual tap form with preset category chips ($ / tag / note)",
-              recommendation: true,
-            },
-            {
-              id: "csv_import",
-              label: "Bank statement CSV file drag-and-drop parser",
-            },
-          ],
-        },
-      ];
-
-    case "ai_tool":
-      return [
-        {
-          id: "reliability_strategy",
-          title: "What happens if the AI API is rate-limited or offline during a demo?",
-          helper: "The #1 hackathon failure mode.",
-          options: [
-            {
-              id: "hybrid_fallback",
-              label: "Graceful heuristic smart fallback (Never displays a blank error card)",
-              recommendation: true,
-            },
-            {
-              id: "strict_api",
-              label: "Strict API-only with visual error toast on network drop",
-            },
-          ],
-        },
-        {
-          id: "response_rendering",
-          title: "How should the AI generated content be presented?",
-          helper: "Determines UI component complexity.",
-          options: [
-            {
-              id: "structured_cards",
-              label: "Structured categorical cards with 1-click clipboard copy",
-              recommendation: true,
-            },
-            {
-              id: "chat_thread",
-              label: "Conversational continuous chat stream",
-            },
-          ],
-        },
-      ];
-
-    default:
-      return [
-        {
-          id: "storage_scope",
-          title: "What is the data persistence strategy for Demo Day?",
-          helper: "Avoids burning 50% of your build time configuring cloud auth and databases.",
-          options: [
-            {
-              id: "local_first",
-              label: "Zero-database LocalStorage / IndexedDB (Instant review, zero setup)",
-              recommendation: true,
-            },
-            {
-              id: "cloud_backend",
-              label: "Cloud PostgreSQL / Supabase with user authentication",
-            },
-          ],
-        },
-        {
-          id: "scope_cutline",
-          title: "What is the single make-or-break feature for Phase 1?",
-          helper: "Forces a clean MVP boundary before pair-programming with your agent.",
-          options: [
-            {
-              id: "core_loop",
-              label: "One flawless user action loop with instant visual feedback",
-              recommendation: true,
-            },
-            {
-              id: "multi_feature",
-              label: "Multi-page dashboard with reporting and user settings",
-            },
-          ],
-        },
-      ];
+      ],
+    };
   }
+
+  return [...baseQuestions, projectQuestion];
 }
 
 /**
@@ -597,6 +433,25 @@ function getPitfallsForCategory(category: ProjectCategory, userChoices: Record<s
         },
       ];
 
+    case "agriculture":
+      return [
+        {
+          trap: "Assuming simple rainfall amounts equate to soil moisture without soil type context",
+          whyItHappens: "Sandy soils drain quickly while clay retains moisture; raw rainfall figures alone can mislead planting dates.",
+          howToAvoid: "Clearly display an explicit disclaimer in the UI that advice is advisory and requires local agronomic validation.",
+        },
+        {
+          trap: "Relying strictly on real-time internet weather APIs in rural farming areas with spotty connectivity",
+          whyItHappens: "Live API requests fail or time out when tested in rural field conditions.",
+          howToAvoid: "Seed baseline local historical averages and provide manual rainfall logging that persists 100% offline in LocalStorage.",
+        },
+        {
+          trap: "Recommending uniform planting dates across diverse microclimates within Rivers State",
+          whyItHappens: "Coastal riverine LGAs have different precipitation patterns than upland zones.",
+          howToAvoid: "Structure the zone selector by LGA / agricultural zone so thresholds are localized rather than state-wide generalizations.",
+        },
+      ];
+
     default:
       return [
         {
@@ -619,11 +474,1023 @@ function getPitfallsForCategory(category: ProjectCategory, userChoices: Record<s
 }
 
 /**
+ * Fallback architecture generator producing 3-7 domain-tailored parts,
+ * sensible recommended stack with plain English rationale & alternatives,
+ * and clear front-end vs back-end explanation for ANY idea.
+ */
+export function generateFallbackArchitecture(
+  ideaText: string,
+  userChoices: Record<string, string> = {}
+): ProjectArchitecture {
+  const category = detectCategory(ideaText);
+  const lower = ideaText.toLowerCase();
+
+  if (category === "bot") {
+    return {
+      project_type: "bot",
+      front_back_explained_simply:
+        "For a bot, the FRONT END is what users see and interact with in the chat app (Discord, Slack, or Telegram)—slash commands, autocomplete options, and rich card embeds. The BACK END is the bot script running behind the scenes on your computer or cloud server that connects to the Discord gateway API, calculates dates/reminders, and saves data to disk.",
+      recommended_stack: {
+        language: "JavaScript / TypeScript (Node.js)",
+        framework_or_tools: ["discord.js", "node-cron", "dotenv"],
+        why_in_plain_english:
+          "Node.js with discord.js has the largest beginner documentation, active community help, and handles live event streams asynchronously without server crashes.",
+        alternatives: [
+          {
+            name: "Python with discord.py",
+            pick_this_if: "You already know Python or want to run data/math scripts",
+          },
+          {
+            name: "Grammy / Telegraf",
+            pick_this_if: "You prefer building for Telegram instead of Discord",
+          },
+        ],
+      },
+      parts: [
+        {
+          id: "bot-gateway-client",
+          name: "Bot Connection & Environment Config",
+          one_line_purpose:
+            "Authenticates with Discord's API gateway using a secret bot token and keeps the bot online.",
+          side: "back end (works behind the scenes)",
+          depends_on: [],
+          example_look_feel_function:
+            "When started, your terminal logs 'Logged in as DeadlineBot#1001' and the bot turns green (online) in your Discord server member list.",
+          steps: [
+            "Create application in Discord Developer Portal and copy token",
+            "Create .env file with DISCORD_TOKEN",
+            "Run client.login() listener to verify connection",
+          ],
+          resources: [
+            {
+              title: "Discord.js Official Guide",
+              url: "https://discordjs.guide/",
+              why: "Step-by-step beginner walk-through from bot creation to first message.",
+            },
+          ],
+        },
+        {
+          id: "slash-commands",
+          name: "Interactive Slash Commands & Embeds",
+          one_line_purpose:
+            "Registers chat commands like /remind that show popup inputs and styled message cards.",
+          side: "front end (what the user sees)",
+          depends_on: ["bot-gateway-client"],
+          example_look_feel_function:
+            "A student types '/deadline add subject:Physics due:tomorrow' in chat; the bot replies with a vibrant blue embed card with a calendar badge.",
+          steps: [
+            "Define SlashCommandBuilder schema",
+            "Register slash commands with Discord REST API",
+            "Handle client.on('interactionCreate')",
+          ],
+          resources: [
+            {
+              title: "Discord Slash Commands Guide",
+              url: "https://discordjs.guide/slash-commands/response-methods.html",
+              why: "Clear examples of rich embed styling and ephemeral messages.",
+            },
+          ],
+        },
+        {
+          id: "reminder-scheduler",
+          name: "Cron Scheduler & Notification Dispatcher",
+          one_line_purpose:
+            "Monitors upcoming deadlines every minute and posts automated alert pings when assignments are due.",
+          side: "back end (works behind the scenes)",
+          depends_on: ["slash-commands"],
+          example_look_feel_function:
+            "At 9:00 AM, the bot pings @student: '⚠️ Heads up: Physics Problem Set 3 is due in 3 hours!' in their channel.",
+          steps: [
+            "Install node-cron",
+            "Create a 1-minute interval checker loop",
+            "Send alert message to specified channel ID",
+          ],
+          resources: [
+            {
+              title: "node-cron Documentation",
+              url: "https://www.npmjs.com/package/node-cron",
+              why: "Simple syntax for recurring schedules (every minute, daily at 9am).",
+            },
+          ],
+        },
+        {
+          id: "local-storage-json",
+          name: "Local JSON File Persistence",
+          one_line_purpose:
+            "Saves deadlines to a local deadlines.json file so alerts survive bot restarts.",
+          side: "back end (works behind the scenes)",
+          depends_on: ["bot-gateway-client"],
+          example_look_feel_function:
+            "A clean deadlines.json file on your disk holding arrays of deadline objects with user IDs, timestamps, and course titles.",
+          steps: [
+            "Write saveDeadlines(items) helper using fs.writeFileSync",
+            "Write loadDeadlines() with try/catch fallback",
+            "Test saving and reloading an item",
+          ],
+          resources: [
+            {
+              title: "Node.js File System (fs) Guide",
+              url: "https://nodejs.org/api/fs.html",
+              why: "Shows how to read and write local files with zero database setup.",
+            },
+          ],
+        },
+      ],
+      finished_product_preview:
+        "A living Discord bot in your study server. Students type '/deadline add' to track assignments, '/deadline list' to see a countdown table, and receive timely direct alerts before things are due.",
+    };
+  }
+
+  if (category === "cli") {
+    return {
+      project_type: "CLI",
+      front_back_explained_simply:
+        "For a command-line tool, the FRONT END is what you see in the terminal: colored status text, interactive arrow-key selection menus, and formatted ASCII tables. The BACK END is the script logic running behind the scenes: reading raw files from your disk, validating data, performing math calculations, and writing outputs.",
+      recommended_stack: {
+        language: "Node.js (JavaScript) or Python",
+        framework_or_tools: ["commander", "csv-parser", "picocolors", "cli-table3"],
+        why_in_plain_english:
+          "Commander parses terminal flags effortlessly, csv-parser processes megabytes of data in milliseconds, and picocolors adds vibrant terminal colors with zero runtime overhead.",
+        alternatives: [
+          {
+            name: "Python with Typer & Pandas",
+            pick_this_if: "You already know Python or need heavy mathematical/statistical analysis",
+          },
+          {
+            name: "Go with Cobra",
+            pick_this_if: "You want a single compiled binary executable to distribute without runtime dependencies",
+          },
+        ],
+      },
+      parts: [
+        {
+          id: "csv-stream-reader",
+          name: "Bank CSV Ingestion & Header Normalizer",
+          one_line_purpose:
+            "Reads raw bank export files from your computer and standardizes inconsistent date, currency, and description formats.",
+          side: "back end (works behind the scenes)",
+          depends_on: [],
+          example_look_feel_function:
+            "Reads 'statement.csv' containing messy columns and extracts clean rows with amountInCents, date, and description.",
+          steps: [
+            "Install csv-parser",
+            "Create readable stream with fs.createReadStream",
+            "Normalize dates to YYYY-MM-DD and money to integer cents",
+          ],
+          resources: [
+            {
+              title: "csv-parser GitHub Guide",
+              url: "https://www.npmjs.com/package/csv-parser",
+              why: "Blazing fast CSV parsing examples for Node.js.",
+            },
+          ],
+        },
+        {
+          id: "budget-aggregator",
+          name: "Category Aggregator & Budget Calculator",
+          one_line_purpose:
+            "Categorizes transactions (Groceries, Utilities, Subscriptions) and calculates spending vs budget.",
+          side: "back end (works behind the scenes)",
+          depends_on: ["csv-stream-reader"],
+          example_look_feel_function:
+            "Calculates total spending ($1,240.50), identifies your largest recurring charges, and calculates remaining budget.",
+          steps: [
+            "Create category keyword mapping dictionary",
+            "Aggregate total spend per category",
+            "Compare totals against monthly target limits",
+          ],
+          resources: [
+            {
+              title: "JavaScript Array Reducer Patterns",
+              url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce",
+              why: "The cleanest way to group and sum transactions without third-party libraries.",
+            },
+          ],
+        },
+        {
+          id: "terminal-cli-interface",
+          name: "Command Flags & Interactive Prompts",
+          one_line_purpose:
+            "Provides friendly commands like 'finance import <file>' and interactive arrow-key selection menus.",
+          side: "front end (what the user sees)",
+          depends_on: [],
+          example_look_feel_function:
+            "Running `finance` displays: '? Select report: › Monthly Spending / Category Breakdown / Set Budget'",
+          steps: [
+            "Configure Commander CLI options",
+            "Add interactive prompt using Inquirer or prompts",
+            "Add helpful --help manual page",
+          ],
+          resources: [
+            {
+              title: "Commander.js Guide",
+              url: "https://www.npmjs.com/package/commander",
+              why: "The standard tool for building modern Node.js command-line interfaces.",
+            },
+          ],
+        },
+        {
+          id: "ascii-report-table",
+          name: "Colorized ASCII Summary Table & Charts",
+          one_line_purpose:
+            "Prints clear, beautifully formatted tables and text-based progress bars directly in the terminal.",
+          side: "front end (what the user sees)",
+          depends_on: ["budget-aggregator", "terminal-cli-interface"],
+          example_look_feel_function:
+            "Prints a box-drawn border table: '┌ Groceries │ $340 / $400 │ [████████░░] 85% ┐' with green/red status colors.",
+          steps: [
+            "Install cli-table3 and picocolors",
+            "Format rows with colored currency strings",
+            "Render progress bar string",
+          ],
+          resources: [
+            {
+              title: "cli-table3 Examples",
+              url: "https://www.npmjs.com/package/cli-table3",
+              why: "Makes clean Unicode/ASCII tables in terminal stdout.",
+            },
+          ],
+        },
+      ],
+      finished_product_preview:
+        "A fast local terminal utility you run with 'finance check'. It parses your downloaded bank CSVs locally with 100% privacy, highlights where your money went, and shows budget health in formatted ASCII tables.",
+    };
+  }
+
+  if (category === "mobile") {
+    return {
+      project_type: "mobile app",
+      front_back_explained_simply:
+        "For a mobile app, the FRONT END is the touch interface displayed on your smartphone screen (buttons, lists, modals, and gestures) built with React Native. The BACK END is the local offline storage (AsyncStorage) that saves your data on the device without requiring cloud databases.",
+      recommended_stack: {
+        language: "TypeScript / JavaScript",
+        framework_or_tools: ["React Native", "Expo", "Expo Router", "AsyncStorage"],
+        why_in_plain_english:
+          "Expo allows you to test your mobile app on your actual phone in seconds via QR code, bypassing Xcode and Android Studio setup entirely.",
+        alternatives: [
+          {
+            name: "Flutter",
+            pick_this_if: "You prefer Dart or want pixel-perfect custom canvas rendering across platforms",
+          },
+          {
+            name: "PWA (Mobile Web)",
+            pick_this_if: "You want a web URL that users can add to their phone home screen without native apps",
+          },
+        ],
+      },
+      parts: [
+        {
+          id: "mobile-screen-view",
+          name: "Touch-First Screen Layout & Navigation",
+          one_line_purpose: "Displays the primary mobile view with finger-friendly buttons and screen headers.",
+          side: "front end (what the user sees)",
+          depends_on: [],
+          example_look_feel_function: "A smooth mobile screen with pull-to-refresh and large touch cards.",
+          steps: ["Scaffold screen in app/index.tsx", "Use <View> and <Text> primitives", "Add <Pressable> feedback"],
+        },
+        {
+          id: "mobile-storage",
+          name: "Offline Device Storage Layer",
+          one_line_purpose: "Saves user data securely on the phone using AsyncStorage.",
+          side: "back end (works behind the scenes)",
+          depends_on: ["mobile-screen-view"],
+          example_look_feel_function: "Closing the mobile app and reopening it restores all your saved entries immediately.",
+          steps: ["Install @react-native-async-storage/async-storage", "Write get/set helpers", "Handle JSON parsing safely"],
+        },
+        {
+          id: "gesture-haptics",
+          name: "Touch Interactions & Haptic Feedback",
+          one_line_purpose: "Triggers gentle vibrations and swipe gestures when completing actions.",
+          side: "front end (what the user sees)",
+          depends_on: ["mobile-screen-view"],
+          example_look_feel_function: "Swiping an item right triggers a gentle phone buzz and marks it complete.",
+          steps: ["Install expo-haptics", "Add Haptics.impactAsync on button press", "Add swipe gesture handler"],
+        },
+      ],
+      finished_product_preview:
+        "A snappy mobile app installed on your smartphone via Expo Go. You interact with tactile touch controls, swipe to mark progress, and enjoy 100% offline reliability.",
+    };
+  }
+
+  if (category === "scraper") {
+    return {
+      project_type: "data/script",
+      front_back_explained_simply:
+        "For a data script or scraper, the FRONT END is the user output—either a clean terminal status feed, an exported CSV/JSON spreadsheet, or a minimal web digest table. The BACK END is the extraction engine that fetches pages, parses HTML tags, cleans text, and removes duplicate records.",
+      recommended_stack: {
+        language: "JavaScript (Node.js) or Python",
+        framework_or_tools: ["Cheerio", "Node Fetch", "SQLite / JSON"],
+        why_in_plain_english:
+          "Cheerio parses HTML like jQuery in milliseconds without needing to launch heavy, slow browser engines.",
+        alternatives: [
+          {
+            name: "Playwright",
+            pick_this_if: "Target websites require heavy JavaScript execution or clicking before data appears",
+          },
+          {
+            name: "Python with BeautifulSoup",
+            pick_this_if: "You are building a Python data science or pandas workflow",
+          },
+        ],
+      },
+      parts: [
+        {
+          id: "html-parser-engine",
+          name: "HTML Fetcher & DOM Extraction Engine",
+          one_line_purpose: "Requests target pages and uses CSS selectors to extract title, date, and link fields.",
+          side: "back end (works behind the scenes)",
+          depends_on: [],
+          example_look_feel_function: "Extracts 25 upcoming tech meetups from a city calendar with zero duplicate records.",
+          steps: ["Fetch page HTML via fetch()", "Load Cheerio instance with $.load(html)", "Query target elements and map to array"],
+        },
+        {
+          id: "dedup-storage",
+          name: "Deduplication & Local Store",
+          one_line_purpose: "Hashes records to prevent recording the same event multiple times.",
+          side: "back end (works behind the scenes)",
+          depends_on: ["html-parser-engine"],
+          example_look_feel_function: "Generates an events.json file on disk containing clean, normalized records.",
+          steps: ["Generate unique hash per record", "Filter existing hashes", "Write new items to disk"],
+        },
+        {
+          id: "output-digest",
+          name: "Digest Presentation & CSV Export",
+          one_line_purpose: "Presents extracted records in a readable terminal summary and exports clean CSVs.",
+          side: "front end (what the user sees)",
+          depends_on: ["dedup-storage"],
+          example_look_feel_function: "Outputs a clean terminal digest with clickable links and creates a download ready events.csv.",
+          steps: ["Format summary console log", "Write exportToCsv helper", "Add manual refresh trigger"],
+        },
+      ],
+      finished_product_preview:
+        "A reliable automated data collector you run on demand. It aggregates target events or listings, cleans up duplicates, and outputs an organized digest with direct links.",
+    };
+  }
+
+  if (category === "agriculture") {
+    return {
+      project_type: "web app",
+      front_back_explained_simply:
+        "For an agricultural advisory app, the FRONT END is what the farmer or extension worker sees—zone and crop selection controls, rainfall history cards, and color-coded planting readiness badges. The BACK END is the rule calculation engine that compares cumulative rainfall against crop moisture requirements, plus local offline storage so advisory data remains accessible in rural areas with spotty internet.",
+      recommended_stack: {
+        language: "TypeScript / JavaScript",
+        framework_or_tools: ["Next.js (React)", "Tailwind CSS", "Lucide Icons"],
+        why_in_plain_english:
+          "Next.js gives you a fast responsive dashboard, React handles instant planting calculation updates when rainfall numbers change, and Tailwind keeps weather cards readable in direct sunlight.",
+        alternatives: [
+          {
+            name: "Python (Streamlit / Flask)",
+            pick_this_if: "You want to process large historical rainfall datasets or run agronomic Python models",
+          },
+          {
+            name: "React Native (Expo Mobile)",
+            pick_this_if: "You want a dedicated mobile app that farmers can carry into fields offline",
+          },
+        ],
+      },
+      parts: [
+        {
+          id: "rainfall-data-input",
+          name: "Rainfall Observation & Zone Selector",
+          one_line_purpose:
+            "Allows the user to select their local agricultural zone (e.g. Rivers State LGA) and record recent rainfall levels or weather forecasts.",
+          side: "front end (what the user sees)",
+          depends_on: [],
+          example_look_feel_function:
+            "A clean dropdown to pick LGA / district and a slider or number input to enter weekly rainfall in millimeters, with preset historical defaults.",
+          steps: [
+            "Create location selector component with Rivers State agricultural zones",
+            "Build numeric rainfall measurement input with millimeters unit badge",
+            "Provide sample baseline rainfall presets for testing without live APIs",
+          ],
+          resources: [
+            {
+              title: "Open-Meteo Weather & Rainfall API",
+              url: "https://open-meteo.com/en/docs",
+              why: "Free open-source weather and precipitation data without API key requirements.",
+            },
+          ],
+        },
+        {
+          id: "crop-calendar-engine",
+          name: "Crop Water Rules & Planting Advisory Logic",
+          one_line_purpose:
+            "Evaluates cumulative rainfall against crop-specific moisture thresholds (e.g. cassava, maize, yam) to calculate planting readiness.",
+          side: "back end (works behind the scenes)",
+          depends_on: ["rainfall-data-input"],
+          example_look_feel_function:
+            "A rule evaluator that checks if cumulative 14-day rainfall exceeds 60mm before recommending maize sowing, or flags waterlogging risks.",
+          steps: [
+            "Define crop water requirement matrix (e.g., cassava, maize, vegetables)",
+            "Write pure evaluatePlantingWindow(rainfallMm, cropType) decision function",
+            "Add safety caveat banners emphasizing that advisory rules require validated agronomic verification",
+          ],
+          resources: [
+            {
+              title: "FAO Crop Water Information",
+              url: "https://www.fao.org/land-water/databases-and-software/crop-information/en/",
+              why: "Authoritative United Nations Food and Agriculture Organization agronomic guidelines.",
+            },
+          ],
+        },
+        {
+          id: "advisory-dashboard-view",
+          name: "Planting Readiness & Visual Advisory Cards",
+          one_line_purpose:
+            "Displays clear planting status badges ('Optimal to Plant', 'Wait for Rain', 'Excess Water Risk') and practical seasonal tips.",
+          side: "front end (what the user sees)",
+          depends_on: ["crop-calendar-engine"],
+          example_look_feel_function:
+            "A high-contrast card showing 'Maize: Favorable Planting Window' in emerald green, with next 7-day soil moisture forecast tips.",
+          steps: [
+            "Build recommendation status card with high-contrast indicator badges",
+            "Add plain-language explanation of why the recommendation was generated",
+            "Display transparent disclaimer stating that local agronomic validation is required",
+          ],
+          resources: [
+            {
+              title: "Tailwind CSS Alert & Card Styling",
+              url: "https://tailwindcss.com/docs/alerts",
+              why: "Quick layout patterns for high-visibility field status indicators.",
+            },
+          ],
+        },
+        {
+          id: "offline-field-storage",
+          name: "Offline Rainfall Log & Farm Profile Cache",
+          one_line_purpose:
+            "Caches entered rainfall logs and crop selections locally so farmers can access advice offline in rural areas with spotty connectivity.",
+          side: "back end (works behind the scenes)",
+          depends_on: ["advisory-dashboard-view"],
+          example_look_feel_function:
+            "Saves entered rainfall logs into browser storage; reopening the app in the field instantly loads the latest advisory without internet.",
+          steps: [
+            "Create LocalStorage farmProfile cache helper with JSON serialization",
+            "Add offline sync indicator showing 'Saved on this device'",
+            "Include sample fixture data for Rivers State planting seasons",
+          ],
+          resources: [
+            {
+              title: "MDN Web Storage API",
+              url: "https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API",
+              why: "Simple guide to browser-based offline data persistence.",
+            },
+          ],
+        },
+      ],
+      finished_product_preview:
+        "A field-ready advisory dashboard where farmers select their zone in Rivers State and crop, review local rainfall measurements, and receive actionable planting readiness advice with clear agronomic assumptions.",
+    };
+  }
+
+  if (category === "extension") {
+    const isSummarizer = lower.includes("summariz") || lower.includes("article");
+
+    return {
+      project_type: "web app",
+      front_back_explained_simply:
+        "For a Chrome extension, the FRONT END is what you see and interact with—the extension popup window (popup.html) when clicking the toolbar icon, plus content scripts injected into the webpage to read article text. The BACK END is the background service worker running behind the scenes to handle browser events and chrome.storage.local which saves your summaries offline.",
+      recommended_stack: {
+        language: "JavaScript / TypeScript (Chrome Extension MV3)",
+        framework_or_tools: [
+          "Chrome Manifest V3",
+          "chrome.storage.local",
+          "activeTab API",
+          "Vanilla HTML/CSS",
+        ],
+        why_in_plain_english:
+          "Manifest V3 is the modern Chrome extension standard with service worker background scripts and zero-build overhead for rapid local loading in developer mode.",
+        alternatives: [
+          {
+            name: "Vite + CRXJS",
+            pick_this_if: "You want React with hot module reload in your popup",
+          },
+          {
+            name: "WebExtensions Polyfill",
+            pick_this_if: "You plan to cross-publish to Firefox",
+          },
+        ],
+      },
+      parts: isSummarizer
+        ? [
+            {
+              id: "manifest-config",
+              name: "Manifest V3 Configuration & Permissions",
+              one_line_purpose:
+                "Declares activeTab and storage permissions, popup entrypoint, and background service worker registration.",
+              side: "both",
+              depends_on: [],
+              example_look_feel_function:
+                "A valid manifest.json file loaded into chrome://extensions with activeTab and storage permissions and zero syntax errors.",
+              steps: [
+                "Define manifest_version: 3 and extension metadata",
+                "Declare 'activeTab' and 'storage' in permissions array",
+                "Register default_popup in action object and background.service_worker",
+              ],
+              resources: [
+                {
+                  title: "Chrome Extension Manifest V3 Guide",
+                  url: "https://developer.chrome.com/docs/extensions/mv3/getstarted/",
+                  why: "Official beginner guide to Manifest V3 structure and permissions.",
+                },
+              ],
+            },
+            {
+              id: "content-extractor",
+              name: "Webpage Article Text Extractor (Content Script)",
+              one_line_purpose:
+                "Injects into the active webpage tab to extract readable article headline and body text from DOM elements.",
+              side: "front end (what the user sees)",
+              depends_on: ["manifest-config"],
+              example_look_feel_function:
+                "Runs in the context of the active article tab, grabs readable text from <article> or paragraph tags, and replies to extraction messages.",
+              steps: [
+                "Locate main article/content container elements in document DOM",
+                "Extract and sanitize text content into clean paragraphs",
+                "Listen for extraction requests from popup using chrome.runtime.onMessage",
+              ],
+              resources: [
+                {
+                  title: "Chrome Content Scripts Guide",
+                  url: "https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts",
+                  why: "Explains how content scripts run in isolated webpage contexts.",
+                },
+              ],
+            },
+            {
+              id: "popup-ui",
+              name: "Popup Summary Viewer & Action Trigger",
+              one_line_purpose:
+                "Provides a clean popup interface to trigger article summarization, view bullet-point highlights, and save summaries.",
+              side: "front end (what the user sees)",
+              depends_on: ["manifest-config", "content-extractor"],
+              example_look_feel_function:
+                "Clicking the toolbar icon displays a 360x480px popup with a 'Summarize Article' button, bulleted summary cards, and a 'Save for Later' button.",
+              steps: [
+                "Build popup.html structure with trigger button and summary output container",
+                "Integrate summarization service helper (calling local Gemini Nano / window.ai or API) with fallback extractive bullet points",
+                "Render concise bullet points with copy and save action buttons",
+              ],
+              resources: [
+                {
+                  title: "Design Extension Popups",
+                  url: "https://developer.chrome.com/docs/extensions/develop/ui/action-popup",
+                  why: "Guidance on popup layout, CSS styling, and responsive sizing.",
+                },
+              ],
+            },
+            {
+              id: "storage-service-worker",
+              name: "Service Worker & Saved Summaries Storage",
+              one_line_purpose:
+                "Coordinates background extension events and persists saved article summaries to chrome.storage.local for offline reading.",
+              side: "back end (works behind the scenes)",
+              depends_on: ["popup-ui"],
+              example_look_feel_function:
+                "Saved article summaries persist across browser sessions in chrome.storage.local, browseable in a 'Saved Summaries' tab with timestamps and delete buttons.",
+              steps: [
+                "Register background service worker in manifest.json",
+                "Implement chrome.storage.local helper to save and load summary objects",
+                "Display saved summaries list in popup with removal action",
+              ],
+              resources: [
+                {
+                  title: "Chrome Storage API Reference",
+                  url: "https://developer.chrome.com/docs/extensions/reference/storage/",
+                  why: "How to store and retrieve data asynchronously using chrome.storage.local.",
+                },
+              ],
+            },
+          ]
+        : [
+            {
+              id: "manifest-config",
+              name: "Manifest V3 Configuration & Permissions",
+              one_line_purpose:
+                "Declares extension permissions, toolbar action popup entrypoint, and background service worker.",
+              side: "both",
+              depends_on: [],
+              example_look_feel_function:
+                "A valid manifest.json file loaded into chrome://extensions with Developer mode enabled and zero configuration errors.",
+              steps: [
+                "Define manifest_version: 3 and extension metadata",
+                "Declare required permissions in manifest.json",
+                "Register action popup and background service worker",
+              ],
+              resources: [
+                {
+                  title: "Chrome Extension Manifest V3 Guide",
+                  url: "https://developer.chrome.com/docs/extensions/mv3/getstarted/",
+                  why: "Official beginner guide to Manifest V3 structure and permissions.",
+                },
+              ],
+            },
+            {
+              id: "content-script",
+              name: "Webpage DOM Content Script",
+              one_line_purpose:
+                "Interacts directly with the webpage DOM on the active browser tab.",
+              side: "front end (what the user sees)",
+              depends_on: ["manifest-config"],
+              example_look_feel_function:
+                "Injects into matching webpages to inspect or modify DOM elements in response to user actions.",
+              steps: [
+                "Query target DOM elements on the active page",
+                "Execute page-level modifications or data extraction",
+                "Listen for extension messages via chrome.runtime.onMessage",
+              ],
+              resources: [
+                {
+                  title: "Chrome Content Scripts Guide",
+                  url: "https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts",
+                  why: "Explains how content scripts run in isolated webpage contexts.",
+                },
+              ],
+            },
+            {
+              id: "popup-ui",
+              name: "Toolbar Action & Popup Controls",
+              one_line_purpose:
+                "Renders a compact toolbar popup window for toggles, user settings, and instant status triggers.",
+              side: "front end (what the user sees)",
+              depends_on: ["manifest-config"],
+              example_look_feel_function:
+                "Clicking the toolbar icon opens a clean 360x480px popup with interactive control toggles and status badges.",
+              steps: [
+                "Build popup.html structure with controls and status indicator",
+                "Style with clean typography and high-contrast buttons",
+                "Send user commands to content script and storage",
+              ],
+              resources: [
+                {
+                  title: "Design Extension Popups",
+                  url: "https://developer.chrome.com/docs/extensions/develop/ui/action-popup",
+                  why: "Guidance on popup layout, CSS styling, and responsive sizing.",
+                },
+              ],
+            },
+            {
+              id: "storage-service-worker",
+              name: "Background Service Worker & Local Storage",
+              one_line_purpose:
+                "Coordinates browser events and persists user preferences offline via chrome.storage.local.",
+              side: "back end (works behind the scenes)",
+              depends_on: ["popup-ui"],
+              example_look_feel_function:
+                "Extension settings and saved records persist across browser restarts without needing external databases.",
+              steps: [
+                "Register background service worker in manifest.json",
+                "Implement chrome.storage.local get and set helpers",
+                "Handle extension lifecycle events",
+              ],
+              resources: [
+                {
+                  title: "Chrome Storage API Reference",
+                  url: "https://developer.chrome.com/docs/extensions/reference/storage/",
+                  why: "How to store and retrieve data asynchronously using chrome.storage.local.",
+                },
+              ],
+            },
+          ],
+      finished_product_preview: isSummarizer
+        ? "A responsive Chrome extension installed in your browser toolbar. When reading any long article, click the extension icon to generate concise bullet-point summaries and save them to your local offline reading list."
+        : "A responsive browser extension with toolbar popup, webpage DOM content script, and offline persistence via chrome.storage.local.",
+    };
+  }
+
+  // Default Web App (Habit tracker, flashcards, ecommerce, general web)
+  return {
+    project_type: "web app",
+    front_back_explained_simply:
+      "For a web application, the FRONT END is the visual user interface in your browser—the interactive cards, buttons, progress bars, and animations built with HTML, CSS, and React. The BACK END is where your data is stored and calculated. For your MVP, browser LocalStorage acts as your offline back end so data persists across reloads without needing cloud servers.",
+    recommended_stack: {
+      language: "TypeScript / JavaScript",
+      framework_or_tools: ["Next.js (React)", "Tailwind CSS", "Lucide Icons"],
+      why_in_plain_english:
+        "Next.js provides an instant local development server, React gives you responsive interactive state, and Tailwind makes styling clean without writing raw CSS.",
+      alternatives: [
+        {
+          name: "Vite + React",
+          pick_this_if: "You want a simpler single-page bundle without server-rendering concepts",
+        },
+        {
+          name: "Vanilla HTML/CSS/JS",
+          pick_this_if: "You want to learn core browser fundamentals before touching any framework",
+        },
+      ],
+    },
+    parts: [
+      {
+        id: "primary-interactive-view",
+        name: "Interactive Cards & Action Controls",
+        one_line_purpose:
+          "Renders the main list of items with tactile toggle buttons and immediate visual feedback.",
+        side: "front end (what the user sees)",
+        depends_on: [],
+        example_look_feel_function:
+          "A clean card showing an item with a satisfying toggle circle that bounces and changes color when clicked.",
+        steps: [
+          "Scaffold ItemCard component",
+          "Add onClick toggle handler",
+          "Render list using array.map",
+        ],
+        resources: [
+          {
+            title: "React Component State Guide",
+            url: "https://react.dev/learn/state-a-components-memory",
+            why: "Explains how components remember and update user clicks.",
+          },
+        ],
+      },
+      {
+        id: "state-calculation-engine",
+        name: "Core Calculation & Progress Math Engine",
+        one_line_purpose:
+          "Performs the core domain calculations, progress percentages, and streak metrics.",
+        side: "back end (works behind the scenes)",
+        depends_on: ["primary-interactive-view"],
+        example_look_feel_function:
+          "Calculates that checking 4 out of 5 daily items equals 80% completion and updates the progress indicator.",
+        steps: [
+          "Write pure calculation helper function",
+          "Add unit validation test",
+          "Hook calculation into component state",
+        ],
+        resources: [
+          {
+            title: "JavaScript Array Methods (MDN)",
+            url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+            why: "Filter, map, and reduce fundamentals for fast state math.",
+          },
+        ],
+      },
+      {
+        id: "local-storage-sync",
+        name: "Browser LocalStorage Persistence Layer",
+        one_line_purpose:
+          "Saves state to browser memory so data survives page refreshes without needing a server.",
+        side: "back end (works behind the scenes)",
+        depends_on: ["primary-interactive-view"],
+        example_look_feel_function:
+          "When you reload or close the tab, all of your entries and progress stay exactly where you left them.",
+        steps: [
+          "Write custom useLocalStorage hook",
+          "Load initial items on component mount",
+          "Save serialized JSON when state updates",
+        ],
+        resources: [
+          {
+            title: "Window.localStorage Guide (MDN)",
+            url: "https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage",
+            why: "Explains local browser key-value storage with zero server needed.",
+          },
+        ],
+      },
+      {
+        id: "micro-feedback-polish",
+        name: "Tactile Feedback, Badges & Celebration Polish",
+        one_line_purpose:
+          "Adds rewarding animations, sound/toast feedback, and milestone celebration badges.",
+        side: "front end (what the user sees)",
+        depends_on: ["state-calculation-engine"],
+        example_look_feel_function:
+          "Completing your target triggers a toast notification with confetti animation and updates an achievement pill.",
+        steps: [
+          "Define milestone celebration triggers",
+          "Add CSS micro-interaction animations",
+          "Add clear empty state welcoming guidance",
+        ],
+        resources: [
+          {
+            title: "CSS Keyframe Animations Guide",
+            url: "https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_animations/Using_CSS_animations",
+            why: "How to add rewarding tactile animations to web elements.",
+          },
+        ],
+      },
+    ],
+    finished_product_preview:
+      "A responsive web application that opens in your browser. You can add items, click tactile controls to mark progress, watch live counters update, and have your data persist locally without logging in.",
+  };
+}
+
+/**
+ * Generate a complete, tailor-made IdeaBlueprint from raw user input and user choices.
+ */
+/**
+ * Extracts a clean, authentic, domain-relevant project title from user input,
+ * preventing generic container nouns like "app" from wiping out the user's topic.
+ */
+export function extractProjectTitle(ideaText: string, category: ProjectCategory): string {
+  if (!ideaText || typeof ideaText !== "string") return getFallbackTitle(category);
+
+  // 1. Strip common conversational intros
+  let clean = ideaText
+    .replace(/^i want to build (an? )?/i, "")
+    .replace(/^i want (an? )?/i, "")
+    .replace(/^i need (an? )?/i, "")
+    .replace(/^build (an? )?/i, "")
+    .replace(/^create (an? )?/i, "")
+    .replace(/^a simple /i, "")
+    .replace(/^a minimal /i, "")
+    .replace(/^an? /i, "")
+    .trim();
+
+  // 2. Check if clean starts with a generic container noun + relative connector (e.g. "app that tells...")
+  const genericPrefixRegex = /^(?:app|application|tool|system|platform|website|web app|mobile app|script|program)\s+(?:that|which|to|for)\s+(.+)/i;
+  const genericMatch = clean.match(genericPrefixRegex);
+
+  let candidateText = clean;
+  if (genericMatch && genericMatch[1]) {
+    candidateText = genericMatch[1].trim();
+    // Strip common leading action verbs
+    candidateText = candidateText.replace(/^(?:tells?|helps?|reminds?|allows?|enables?|guides?|teaches?|tracks?)\s+/i, "");
+  }
+
+  // 3. Extract the primary clause before sentence ends or secondary clauses
+  let clause = candidateText.split(/[.,;\n]|(?:\s+(?:featuring|where)\s+)/i)[0].trim();
+
+  // If clause still has " that " or " with " or " for ", see if the prefix is descriptive
+  const splitSub = clause.split(/\s+(?:that|with|for)\s+/i);
+  const firstSub = splitSub[0].trim();
+  const genericStopWords = new Set(["app", "bot", "tool", "system", "platform", "script", "website", "project", "program"]);
+
+  if (firstSub.length >= 5 && !genericStopWords.has(firstSub.toLowerCase())) {
+    clause = firstSub;
+  } else if (splitSub.length > 1 && splitSub[1].trim().length >= 5) {
+    clause = splitSub[1].trim();
+    clause = clause.replace(/^(?:tells?|helps?|reminds?|allows?|enables?|guides?|teaches?|tracks?)\s+/i, "");
+  }
+
+  // If clause has " when to ", extract domain subject and action
+  if (clause.toLowerCase().includes(" when to ")) {
+    const parts = clause.split(/\s+when to\s+/i);
+    const subject = parts[0].trim();
+    let action = parts[1].split(/\s+based on\s+/i)[0].trim();
+    if (action.toLowerCase() === "plant") action = "Planting";
+    clause = `${subject} ${action} Adviser`;
+  }
+
+  // Fallback to category title if clause is too short or empty
+  if (clause.length < 5) {
+    return getFallbackTitle(category);
+  }
+
+  // Truncate to reasonable max length
+  if (clause.length > 55) {
+    clause = clause.slice(0, 52).trim() + "...";
+  }
+
+  // Format with title casing while preserving uppercase acronyms
+  const titled = clause
+    .split(/\s+/)
+    .map((word) => {
+      if (/^(CSV|API|CLI|AI|SMS|LGA|GPS|UI|UX|JSON|REST)$/i.test(word)) {
+        return word.toUpperCase();
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
+
+  return titled;
+}
+
+function toSafeSlug(idOrName: string): string {
+  return (
+    idOrName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 32) || "module"
+  );
+}
+
+function toSafeSnake(idOrName: string): string {
+  return toSafeSlug(idOrName).replace(/-/g, "_");
+}
+
+function toPascalCase(slug: string): string {
+  return slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join("");
+}
+
+function deriveMilestoneFiles(
+  p: ProjectPart,
+  stepNum: number,
+  fallbackArchitecture: ProjectArchitecture,
+  category: ProjectCategory
+): string[] {
+  if (
+    category === "agriculture" &&
+    fallbackArchitecture.project_type === "web app" &&
+    (!p.id || p.id.includes("rainfall") || p.id.includes("crop") || p.id.includes("zone") || p.id.includes("advisory"))
+  ) {
+    if (stepNum === 1) return ["components/RainfallInput.tsx", "data/riversZones.json"];
+    if (stepNum === 2) return ["lib/cropCalendar.ts", "lib/rainfallRules.ts"];
+    if (stepNum === 3) return ["components/AdvisoryDashboard.tsx", "components/StatusBadge.tsx"];
+    return ["lib/farmStorage.ts", "data/sampleRainfall.json"];
+  }
+
+  const isExtension =
+    category === "extension" ||
+    (fallbackArchitecture.recommended_stack?.framework_or_tools || []).some((t) =>
+      t.toLowerCase().includes("manifest v3")
+    ) ||
+    (fallbackArchitecture.recommended_stack?.language || "").toLowerCase().includes("extension");
+
+  if (isExtension) {
+    const partBase = p.id && !p.id.startsWith("part-") ? p.id : p.name;
+    const safeSlug = toSafeSlug(partBase);
+    const lowerName = (p.name || "").toLowerCase();
+    const lowerId = (p.id || "").toLowerCase();
+
+    if (lowerId.includes("manifest") || lowerName.includes("manifest") || stepNum === 1) {
+      return ["manifest.json", "popup.html"];
+    }
+    if (lowerId.includes("content") || lowerName.includes("content script") || lowerName.includes("extractor")) {
+      return ["scripts/content.js"];
+    }
+    if (lowerId.includes("popup") || lowerName.includes("popup")) {
+      return ["popup/popup.html", "popup/popup.js", "popup/popup.css"];
+    }
+    if (
+      lowerId.includes("storage") ||
+      lowerId.includes("service-worker") ||
+      lowerId.includes("background") ||
+      lowerName.includes("storage") ||
+      lowerName.includes("service worker")
+    ) {
+      return ["scripts/background.js", "lib/storage.js"];
+    }
+
+    if (stepNum === 2) return ["scripts/content.js"];
+    if (stepNum === 3) return ["popup/popup.html", "popup/popup.js", "popup/popup.css"];
+    if (stepNum === 4) return ["scripts/background.js", "lib/storage.js"];
+
+    if (p.side.includes("back end")) {
+      return [`scripts/${safeSlug}.js`];
+    }
+    return [`popup/${safeSlug}.js`];
+  }
+
+  const lang = (fallbackArchitecture.recommended_stack?.language || "").toLowerCase();
+  const isPython = lang.includes("python");
+  const projectType = fallbackArchitecture.project_type;
+  const isBot = projectType === "bot" || category === "bot";
+  const isCli = projectType === "CLI" || category === "cli";
+
+  const partBase = p.id && !p.id.startsWith("part-") ? p.id : p.name;
+  const safeSlug = toSafeSlug(partBase);
+  const safeSnake = toSafeSnake(partBase);
+
+  if (isPython) {
+    if (isBot) {
+      if (stepNum === 1) return ["bot.py", "requirements.txt", ".env.example"];
+      if (p.side.includes("front end") || safeSnake.includes("command") || safeSnake.includes("handler")) {
+        return [`commands/${safeSnake}.py`];
+      }
+      return [`${safeSnake}.py`];
+    }
+    if (isCli) {
+      if (stepNum === 1) return ["cli.py", "requirements.txt"];
+      return [`${safeSnake}.py`];
+    }
+    if (stepNum === 1) return ["main.py", "requirements.txt"];
+    return [`${safeSnake}.py`];
+  }
+
+  if (isBot) {
+    if (stepNum === 1) return ["src/bot.ts", "package.json", ".env.example"];
+    if (p.side.includes("front end") || safeSlug.includes("command") || safeSlug.includes("handler")) {
+      return [`src/commands/${safeSlug}.ts`];
+    }
+    return [`src/${safeSlug}.ts`];
+  }
+
+  if (isCli) {
+    if (stepNum === 1) return ["src/cli.ts", "package.json"];
+    return [`src/${safeSlug}.ts`];
+  }
+
+  const compName = toPascalCase(safeSlug);
+  if (p.side === "front end (what the user sees)") {
+    return [`components/${compName}.tsx`];
+  }
+  if (p.side === "back end (works behind the scenes)") {
+    return [`lib/${safeSlug}.ts`];
+  }
+  return [`components/${compName}.tsx`, `lib/${safeSlug}.ts`];
+}
+
+/**
  * Generate a complete, tailor-made IdeaBlueprint from raw user input and user choices.
  */
 export function generateBlueprint(
   ideaText: string,
-  userChoices: Record<string, string> = {}
+  userChoices: Record<string, string> = {},
+  retainedArchitecture?: ProjectArchitecture
 ): IdeaBlueprint {
   const category = detectCategory(ideaText);
   const questions = getClarifyingQuestions(ideaText);
@@ -637,23 +1504,29 @@ export function generateBlueprint(
     }
   });
 
-  // Extract clean project title
-  let clean = ideaText
-    .replace(/^i want to build (an? )?/i, "")
-    .replace(/^i need (an? )?/i, "")
-    .replace(/^a simple /i, "")
-    .replace(/^a minimal /i, "")
-    .replace(/^an? /i, "")
-    .trim();
+  // Extract clean, authentic project title preserving domain context
+  const projectTitle = extractProjectTitle(ideaText, category);
 
-  const clause = clean.split(/[.,;\n]| with | that | for | featuring | where /i)[0].trim();
-  const projectTitle =
-    clause.length >= 5 && clause.length <= 48
-      ? clause
-          .split(" ")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(" ")
-      : getFallbackTitle(category);
+  // Architecture Decomposition: validate retained architecture before trusting it
+  let fallbackArchitecture: ProjectArchitecture;
+  let archSource: "model" | "fallback" = "fallback";
+
+  if (retainedArchitecture && typeof retainedArchitecture === "object") {
+    const archVal = validateAndRepairArchitecture(retainedArchitecture, ideaText);
+    if (archVal.isModel && archVal.architecture.parts && archVal.architecture.parts.length >= 3) {
+      fallbackArchitecture = archVal.architecture;
+      archSource = "model";
+    } else {
+      console.warn(
+        `[FallbackGenerator] Retained architecture failed validation (${archVal.warnings.join("; ")}). Safely reverting to domain heuristic.`
+      );
+      fallbackArchitecture = generateFallbackArchitecture(ideaText, activeChoices);
+      archSource = "fallback";
+    }
+  } else {
+    fallbackArchitecture = generateFallbackArchitecture(ideaText, activeChoices);
+    archSource = "fallback";
+  }
 
   // Construct Strategy Decision sentence
   const strategyDecision = buildStrategySummary(category, activeChoices);
@@ -665,10 +1538,20 @@ export function generateBlueprint(
   const pitfalls = getPitfallsForCategory(category, activeChoices);
 
   // Calibrated Tech Stack
-  const techStack = buildTechStack(category, activeChoices);
+  const techStack =
+    archSource === "model"
+      ? buildTechStackFromArchitecture(fallbackArchitecture)
+      : buildTechStack(category, activeChoices);
 
-  // Phased Roadmap
-  const roadmap = buildRoadmap(category, activeChoices, projectTitle);
+  // Phased Roadmap: derive directly from architecture parts when available
+  const roadmap =
+    archSource === "model" && fallbackArchitecture.parts.length >= 3
+      ? fallbackArchitecture.parts.slice(0, 4).map((p, idx) => ({
+          phase: `Phase ${idx + 1}`,
+          title: p.name,
+          description: p.one_line_purpose,
+        }))
+      : buildRoadmap(category, activeChoices, projectTitle);
 
   // Next Actions
   const nextActions = buildNextActions(category, activeChoices);
@@ -680,12 +1563,56 @@ export function generateBlueprint(
   const agentGuide = buildAgentGuide(category, activeChoices, projectTitle, summary, roadmap, nextActions);
 
   const matchedSkills = retrieveKnowledge(ideaText, activeChoices);
-  const nodes: RoadmapNode[] = buildRoadmapNodes(matchedSkills[0], projectTitle, summary);
 
-  return {
+  // Derive build milestones directly from the domain-tailored architecture parts
+  const isPython = (fallbackArchitecture.recommended_stack?.language || "").toLowerCase().includes("python");
+  const isBot = fallbackArchitecture.project_type === "bot" || category === "bot";
+  const isCli = fallbackArchitecture.project_type === "CLI" || category === "cli";
+
+  const nodes: RoadmapNode[] = fallbackArchitecture.parts.slice(0, 4).map((p, idx) => {
+    const stepNum = idx + 1;
+    const files = deriveMilestoneFiles(p, stepNum, fallbackArchitecture, category);
+
+    const isExtensionProject =
+      category === "extension" ||
+      (fallbackArchitecture.recommended_stack?.language || "").toLowerCase().includes("extension") ||
+      (fallbackArchitecture.recommended_stack?.framework_or_tools || []).some((t) =>
+        t.toLowerCase().includes("manifest v3")
+      );
+
+    const starterArtifacts =
+      isExtensionProject && stepNum === 1
+        ? createExtensionStarterArtifacts(projectTitle)
+        : undefined;
+
+    return {
+      id: `node-${stepNum}`,
+      step: stepNum,
+      title: p.name,
+      subtitle: `${p.side.split(" ")[0]} milestone`,
+      badge: stepNum <= 2 ? "CORE MVP" : stepNum === 3 ? "RECOMMENDED" : "POLISH",
+      goal: p.one_line_purpose,
+      definitionOfDone: [
+        `File(s) ${files.join(", ")} exist and compile without syntax errors.`,
+        p.example_look_feel_function || `The core behavior in "${p.name}" functions as expected.`,
+      ],
+      conceptToLearn: p.name,
+      estimatedMinutes: 45 + stepNum * 10,
+      filesToCreate: files.slice(0, 3),
+      keyPackages: fallbackArchitecture.recommended_stack.framework_or_tools.slice(0, 3),
+      stepPrompt: `I am building ${projectTitle}.\nPROJECT GOAL: ${summary}\n\nWe are executing Step ${stepNum}: ${p.name}.\nPurpose: ${p.one_line_purpose}.\nFiles to create: ${files.join(", ")}.\n\nRULES: Explain your technical choices in plain language before writing code. Build ONLY this single milestone and STOP after this step so I can verify the changes.`,
+      resources: p.resources?.map((r) => ({ title: r.title, url: r.url })) || [
+        { title: "MDN Web Docs", url: "https://developer.mozilla.org" },
+      ],
+      starterArtifacts,
+    };
+  });
+
+  const rawFallback = {
     projectTitle,
     summary,
     strategyDecision,
+    architecture: fallbackArchitecture,
     pitfalls,
     roadmap,
     nextActions,
@@ -693,10 +1620,35 @@ export function generateBlueprint(
     resources,
     agentGuide,
     nodes,
-    isFallback: true,
-    userChoices: activeChoices,
   };
+
+  const profile = {
+    codingStyle: (activeChoices["coding_style"] === "myself" ? "myself" : activeChoices["coding_style"] === "mix" ? "mix" : "vibe") as "vibe" | "mix" | "myself",
+    experienceLevel: (activeChoices["experience_level"] === "intermediate" ? "intermediate" : activeChoices["experience_level"] === "beginner" ? "beginner" : "none") as "none" | "beginner" | "intermediate",
+    hoursPerDay: activeChoices["time_budget"] === "light" ? 1 : activeChoices["time_budget"] === "weekend" ? 8 : 2,
+    daysAvailable: activeChoices["time_budget"] === "light" ? 5 : activeChoices["time_budget"] === "weekend" ? 2 : 7,
+    customAnswers: activeChoices,
+  };
+
+  const validation = validateAndRepairBlueprint(rawFallback, matchedSkills[0], ideaText, profile);
+  const result = validation.blueprint;
+  result.isFallback = true;
+  result.userChoices = activeChoices;
+  result.learnerProfile = profile;
+  result.sourceBadges = {
+    architecture: archSource,
+    startHere: "fallback",
+    foundations: "curated",
+    productMap: "fallback",
+    milestones: "fallback",
+    techStack: "fallback",
+    levelUp: "fallback",
+    agentGuide: "fallback",
+  };
+
+  return result;
 }
+
 
 function getFallbackTitle(category: ProjectCategory): string {
   const titles: Record<ProjectCategory, string> = {
@@ -710,6 +1662,7 @@ function getFallbackTitle(category: ProjectCategory): string {
     habit: "Adaptive Daily Streak Tracker",
     ai_tool: "AI-Powered Productivity Assistant",
     ecommerce: "Curated Storefront & Checkout",
+    agriculture: "Local Rainfall & Crop Planting Advisory Guide",
     general_web: "Modern Single-Page Application",
   };
   return titles[category];
@@ -743,6 +1696,9 @@ function buildStrategySummary(category: ProjectCategory, choices: Record<string,
   if (category === "ai_tool") {
     return `Strategy calibrated with an automatic heuristic fallback to guarantee zero demo failures if API quotas run out, paired with structured response cards.`;
   }
+  if (category === "agriculture") {
+    return `Strategy calibrated for local rainfall threshold monitoring, verified crop water demand rules, and 100% offline-first storage so farmers and field workers can access planting guidance without internet.`;
+  }
   return `Strategy calibrated for a lightweight single-page architecture with local state, fast hydration, and zero backend infrastructure overhead for Phase 1.`;
 }
 
@@ -761,6 +1717,7 @@ function buildSummaryDetail(category: ProjectCategory, choices: Record<string, s
     habit: "A friction-free habit tracker featuring streak momentum metrics, tactile checkmarks, and offline-first local storage.",
     ai_tool: "A clean AI companion tool combining structured prompt presets, fast responses, and reliable offline fallbacks.",
     ecommerce: "A modern storefront prototype with instant category filtering, responsive cart drawer, and frictionless checkout.",
+    agriculture: "An agricultural advisory guide that evaluates local rainfall patterns and crop water demands to recommend planting readiness with transparent agronomic assumptions.",
     general_web: "A single-page web application featuring responsive design, tactile interactions, and zero-database local persistence.",
   };
   return desc[category];
@@ -845,6 +1802,81 @@ function buildTechStack(category: ProjectCategory, choices: Record<string, strin
     ];
   }
 
+  if (category === "agriculture") {
+    return [
+      {
+        category: "Frontend Framework",
+        name: "Next.js 14 (App Router) + React",
+        reason: "Fast responsive interface with clear weather cards and crop selection controls.",
+      },
+      {
+        category: "Weather & Rainfall Data",
+        name: "Open-Meteo API / Local Fixtures",
+        reason: "Free open precipitation data without complex API keys, paired with offline sample data.",
+      },
+      {
+        category: "Styling & Accessibility",
+        name: "Tailwind CSS",
+        reason: "High-contrast status indicators ('Optimal', 'Wait', 'Risk') easily readable outdoors.",
+      },
+      {
+        category: "Offline Cache",
+        name: "Browser LocalStorage",
+        reason: "Preserves farm zone and recent rainfall observations for rural areas with spotty connectivity.",
+      },
+    ];
+  }
+
+  if (category === "bot") {
+    return [
+      {
+        category: "Bot Framework",
+        name: "discord.js (or python-telegram-bot)",
+        reason: "Active beginner documentation, event-driven gateway support, and easy slash command setup.",
+      },
+      {
+        category: "Runtime",
+        name: "Node.js (or Python)",
+        reason: "Asynchronous I/O handles incoming chat events without blocking user interactions.",
+      },
+      {
+        category: "Scheduler",
+        name: "node-cron (or APScheduler)",
+        reason: "Lightweight background timer loop for sending scheduled deadline alerts.",
+      },
+      {
+        category: "Persistence",
+        name: "Local JSON File Storage",
+        reason: "Saves bot state directly to disk without requiring external database hosting.",
+      },
+    ];
+  }
+
+  if (category === "cli") {
+    return [
+      {
+        category: "CLI Engine",
+        name: "Commander.js (or Python Typer)",
+        reason: "Parses command-line arguments, options, and help text cleanly with zero boilerplate.",
+      },
+      {
+        category: "Terminal Styling",
+        name: "picocolors & cli-table3 (or Rich)",
+        reason: "Adds colored output, progress indicators, and clean ASCII tables to terminal stdout.",
+      },
+      {
+        category: "File Parser",
+        name: "csv-parser / fast-csv",
+        reason: "Streams and processes file data efficiently with low memory footprint.",
+      },
+      {
+        category: "Data Storage",
+        name: "Local File System",
+        reason: "Reads directly from input files and saves processed exports locally.",
+      },
+    ];
+  }
+
   // Default Web App / Habit / Flashcards
   return [
     {
@@ -870,7 +1902,74 @@ function buildTechStack(category: ProjectCategory, choices: Record<string, strin
   ];
 }
 
+function buildTechStackFromArchitecture(arch: ProjectArchitecture): StackItem[] {
+  const stack = arch.recommended_stack;
+  const items: StackItem[] = [
+    {
+      category: "Language / Runtime",
+      name: stack.language,
+      reason: stack.why_in_plain_english || `Core programming environment for this ${arch.project_type}.`,
+    },
+  ];
+
+  if (Array.isArray(stack.framework_or_tools) && stack.framework_or_tools.length > 0) {
+    items.push({
+      category: "Core Engine / Tool",
+      name: stack.framework_or_tools[0],
+      reason: `Primary library recommended for building this ${arch.project_type}.`,
+    });
+
+    for (let i = 1; i < Math.min(stack.framework_or_tools.length, 3); i++) {
+      items.push({
+        category: "Supporting Utility",
+        name: stack.framework_or_tools[i],
+        reason: `Utility package providing specialized functionality for ${arch.project_type}.`,
+      });
+    }
+  }
+
+  const isNonWeb =
+    arch.project_type === "bot" ||
+    arch.project_type === "CLI" ||
+    arch.project_type === "data/script";
+
+  items.push({
+    category: "Persistence / Storage",
+    name: isNonWeb ? "Local JSON / Text Files" : "Browser LocalStorage",
+    reason: isNonWeb
+      ? "Zero-server, local disk persistence preserving your state across executions."
+      : "100% offline-first client storage for instant judge evaluation without database setup.",
+  });
+
+  return items;
+}
+
 function buildRoadmap(category: ProjectCategory, choices: Record<string, string>, title: string): BlueprintPhase[] {
+  if (category === "agriculture") {
+    return [
+      {
+        phase: "Phase 1",
+        title: "Rainfall Input & Local Zone Selection",
+        description: "Build zone selector (Rivers State LGA) and rainfall measurement input with baseline preset data.",
+      },
+      {
+        phase: "Phase 2",
+        title: "Crop Water Rules & Advisory Engine",
+        description: "Write rule evaluator comparing cumulative precipitation against crop moisture requirements with clear caveats.",
+      },
+      {
+        phase: "Phase 3",
+        title: "Planting Calendar & Visual Recommendation Cards",
+        description: "Render high-contrast status cards with plain-language explanations of readiness and safety disclaimers.",
+      },
+      {
+        phase: "Phase 4",
+        title: "Offline Storage & Field Data Export",
+        description: "Persist farm profile and rainfall log locally so guidance remains accessible without internet connection.",
+      },
+    ];
+  }
+
   if (category === "scraper") {
     return [
       {
@@ -946,6 +2045,31 @@ function buildRoadmap(category: ProjectCategory, choices: Record<string, string>
 }
 
 function buildNextActions(category: ProjectCategory, choices: Record<string, string>): NextAction[] {
+  if (category === "agriculture") {
+    return [
+      {
+        step: 1,
+        action: "Define Rivers State agricultural zones and crop requirements in data/zones.ts",
+        detail: "Create baseline rainfall thresholds for staple crops (cassava, maize, yam) across zones.",
+      },
+      {
+        step: 2,
+        action: "Build rainfall input component with millimeter sliders and historical presets",
+        detail: "Allow farmers to enter rainfall observations manually or choose standard baseline seasons.",
+      },
+      {
+        step: 3,
+        action: "Implement evaluatePlantingWindow pure calculation function",
+        detail: "Compare 14-day cumulative rainfall against crop moisture minimums and return clear status codes.",
+      },
+      {
+        step: 4,
+        action: "Render high-visibility advisory cards with agronomic safety disclaimer",
+        detail: "Display color-coded guidance ('Optimal to Plant', 'Wait for Rain') with explicit rule explanations.",
+      },
+    ];
+  }
+
   if (category === "scraper") {
     return [
       {
@@ -1057,6 +2181,26 @@ function buildResources(category: ProjectCategory, choices: Record<string, strin
         type: "Tutorial",
         title: "MDN Building a Cross-Browser Extension",
         url: "https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions",
+      },
+    ];
+  }
+
+  if (category === "agriculture") {
+    return [
+      {
+        type: "Weather API",
+        title: "Open-Meteo Weather & Rainfall Documentation",
+        url: "https://open-meteo.com/en/docs",
+      },
+      {
+        type: "Agronomic Guide",
+        title: "FAO Crop Water Requirements & Irrigation Standards",
+        url: "https://www.fao.org/land-water/databases-and-software/crop-information/en/",
+      },
+      {
+        type: "Offline Storage",
+        title: "MDN Web Storage API Documentation",
+        url: "https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API",
       },
     ];
   }

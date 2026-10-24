@@ -1,4 +1,5 @@
 import { RoadmapNode, PitfallItem } from "@/types/blueprint";
+import { createExtensionStarterArtifacts } from "@/lib/artifactVerifier";
 
 export interface SkillModule {
   id: string;
@@ -334,8 +335,15 @@ export function buildRoadmapNodes(
     subtitle: node.subtitle,
     badge: node.badge,
     goal: node.goal,
-    filesToCreate: node.filesToCreate,
+    filesToCreate: node.filesToCreate.slice(0, 3),
     keyPackages: skill.recommendedPackages.slice(0, 3),
+    definitionOfDone: [
+      `All target files exist and compile without syntax errors.`,
+      `The core action in "${node.title}" executes as intended.`,
+    ],
+    conceptToLearn: `Core architectural boundaries and file separation for ${node.subtitle.toLowerCase()}.`,
+    estimatedMinutes: Math.min(45 + node.step * 15, 90),
+    requiredFoundations: [`foundation-${Math.min(node.step, 6)}`],
     stepPrompt: `I am building ${projectTitle}.
 PROJECT GOAL: ${summary}
 
@@ -344,12 +352,20 @@ We are executing Step ${node.step}: ${node.title} (${node.subtitle}).
 GOAL:
 ${node.goal}
 
-FILES TO CREATE/EDIT:
-${node.filesToCreate.map((f) => `- ${f}`).join("\n")}
+TARGET FILES TO CREATE/EDIT (Max 3):
+${node.filesToCreate.slice(0, 3).map((f) => `- ${f}`).join("\n")}
 
 INSTRUCTIONS:
 ${node.promptSnippet}
-Please write complete, production-ready code with no placeholders. Start by creating the required files.`,
+
+RULES FOR THIS STEP:
+1. Explain your technical choices in plain language without jargon.
+2. Keep edits scoped strictly to the target files above. Write complete code with no placeholders.
+3. STOP after completing this step so I can verify and test it before proceeding.`,
     resources: skill.docs,
+    starterArtifacts:
+      skill.id === "chrome_extension_mv3" && node.step === 1
+        ? createExtensionStarterArtifacts(projectTitle)
+        : undefined,
   }));
 }

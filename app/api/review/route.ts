@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RoadmapNode, StepReviewResult } from "@/types/blueprint";
+import { verifyArtifact } from "@/lib/artifactVerifier";
 
 const GEMINI_MODELS = [
   "gemini-3.5-flash-lite",
@@ -64,7 +65,37 @@ function buildFallbackReview(milestone: RoadmapNode, submission: string): StepRe
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const { idea, milestone, submission, submissionType } = body;
+    const { idea, milestone, submission, submissionType, filename } = body;
+
+    // Explicit deterministic artifact verification path
+    const isArtifact =
+      submissionType === "artifact" ||
+      (typeof filename === "string" && filename.trim().length > 0);
+
+    if (isArtifact) {
+      if (!milestone || !milestone.id) {
+        return NextResponse.json(
+          { error: "Milestone is required for artifact verification." },
+          { status: 400 }
+        );
+      }
+      const targetFilename =
+        typeof filename === "string" && filename.trim()
+          ? filename.trim()
+          : "manifest.json";
+      const targetContent = typeof submission === "string" ? submission : "";
+      const reviewResult = verifyArtifact(
+        targetFilename,
+        targetContent,
+        milestone.id
+      );
+
+      return NextResponse.json({
+        success: true,
+        source: "deterministic",
+        review: reviewResult,
+      });
+    }
 
     if (!milestone || !submission || typeof submission !== "string" || submission.trim().length < 5) {
       return NextResponse.json(

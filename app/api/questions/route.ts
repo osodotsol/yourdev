@@ -1,128 +1,149 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ClarifyingQuestion } from "@/types/blueprint";
-import { getClarifyingQuestions } from "@/lib/fallbackGenerator";
 
-const GEMINI_MODELS = [
-  "gemini-3.5-flash-lite",
-  "gemini-3.8-flash",
-  "gemini-3.5-flash",
-];
-
-const QUESTIONS_SYSTEM_PROMPT = `You are a Principal Software Engineering Mentor.
-A hackathon beginner has entered their project idea.
-To help them build a rock-solid Phase 1 proof-of-concept without getting overwhelmed by infrastructure, generate exactly 2 adaptive clarifying questions with 2-3 concrete multiple-choice options each.
-
-Questions must focus on critical Phase 1 architectural trade-offs:
-1. Interaction mode or demo workflow
-2. Data storage or zero-infrastructure persistence policy
-Make sure one option in each question has "recommendation": true for the beginner-friendly MVP path.
-
-Output MUST be 100% valid JSON matching this schema:
-[
+const INTAKE_FOUNDATION_QUESTIONS: ClarifyingQuestion[] = [
   {
-    "id": "string (slug like 'storage_strategy')",
-    "title": "string (question title)",
-    "helper": "string (1 sentence explaining why this choice matters for Phase 1)",
-    "options": [
+    id: "coding_style",
+    title: "How do you plan to build this project?",
+    helper: "Drives whether your curriculum is an agile 'vibe-coder' minimum or a deeper code-along.",
+    options: [
       {
-        "id": "string",
-        "label": "string",
-        "recommendation": boolean
-      }
-    ]
-  }
-]`;
+        id: "vibe",
+        label: "Directing an AI coding agent (Vibe Coding)",
+        recommendation: true,
+      },
+      {
+        id: "mix",
+        label: "A balanced mix of writing code and AI pairing",
+      },
+      {
+        id: "myself",
+        label: "Writing mostly all code myself to learn deeply",
+      },
+    ],
+  },
+  {
+    id: "experience_level",
+    title: "What is your programming experience level?",
+    helper: "Calibrates how simple our explanations and analogies are so you never feel lost.",
+    options: [
+      {
+        id: "none",
+        label: "Never coded before (first-time beginner)",
+        recommendation: true,
+      },
+      {
+        id: "beginner",
+        label: "Know a little (familiar with basic HTML or variables)",
+      },
+      {
+        id: "intermediate",
+        label: "Build already (comfortable with syntax and Git)",
+      },
+    ],
+  },
+  {
+    id: "time_budget",
+    title: "How much time can you dedicate to this MVP?",
+    helper: "Sizes your milestone cutline and foundations so you finish comfortably before demo day.",
+    options: [
+      {
+        id: "standard",
+        label: "2 hours / day for 7 days (~14 hours total)",
+        recommendation: true,
+      },
+      {
+        id: "weekend",
+        label: "Weekend hackathon sprint (12–16 hours over 2 days)",
+      },
+      {
+        id: "light",
+        label: "1 hour / day for 5 days (~5 hours total)",
+      },
+    ],
+  },
+];
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
     const { idea } = body;
 
-    if (!idea || typeof idea !== "string" || idea.trim().length < 8) {
-      return NextResponse.json(
-        { error: "Idea of at least 8 characters is required." },
-        { status: 400 }
-      );
+    const lower = (idea || "").toLowerCase();
+
+    // Contextual project question tailored to idea
+    let projectSpecificQuestion: ClarifyingQuestion;
+
+    if (lower.includes("cli") || lower.includes("terminal")) {
+      projectSpecificQuestion = {
+        id: "cli_input",
+        title: "How will users supply input to your CLI tool?",
+        helper: "Focuses the Phase 1 MVP parsing requirements.",
+        options: [
+          {
+            id: "interactive_flags",
+            label: "Terminal flags or interactive prompts (e.g. node app.js --file=data.txt)",
+            recommendation: true,
+          },
+          {
+            id: "piped_input",
+            label: "Piping raw text streams directly from standard input",
+          },
+        ],
+      };
+    } else if (lower.includes("extension") || lower.includes("chrome")) {
+      projectSpecificQuestion = {
+        id: "extension_mode",
+        title: "How should users trigger the browser extension?",
+        helper: "Determines the Chrome Manifest entrypoint for your MVP.",
+        options: [
+          {
+            id: "popup",
+            label: "Clicking the extension icon opens a clean 360px popup window",
+            recommendation: true,
+          },
+          {
+            id: "page_overlay",
+            label: "Injecting a floating button directly into the active webpage",
+          },
+        ],
+      };
+    } else {
+      projectSpecificQuestion = {
+        id: "mvp_storage",
+        title: "Where should your MVP store user data during testing?",
+        helper: "Zero-database local storage eliminates setup friction for demo day.",
+        options: [
+          {
+            id: "local_storage",
+            label: "Browser LocalStorage (100% offline, zero server or login required)",
+            recommendation: true,
+          },
+          {
+            id: "local_json_file",
+            label: "A simple local JSON file on your machine",
+          },
+          {
+            id: "cloud_database",
+            label: "Cloud database with user accounts (Deferred to Level Up Later)",
+          },
+        ],
+      };
     }
 
-    const key = process.env.GEMINI_API_KEY;
-
-    if (!key) {
-      const fallbackQuestions = getClarifyingQuestions(idea);
-      return NextResponse.json({ success: true, questions: fallbackQuestions });
-    }
-
-    let adaptiveQuestions: ClarifyingQuestion[] | null = null;
-
-    for (const model of GEMINI_MODELS) {
-      try {
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [{ text: `${QUESTIONS_SYSTEM_PROMPT}\n\nPROJECT IDEA:\n"${idea.trim()}"` }],
-              },
-            ],
-            generationConfig: {
-              responseMimeType: "application/json",
-              temperature: 0.2,
-            },
-          }),
-          signal: AbortSignal.timeout(10000),
-        });
-
-        if (!res.ok) continue;
-
-        const data = await res.json();
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!rawText) continue;
-
-        const cleaned = rawText
-          .replace(/^```json\s*/i, "")
-          .replace(/^```\s*/i, "")
-          .replace(/```\s*$/i, "")
-          .trim();
-
-        const parsed = JSON.parse(cleaned);
-        if (Array.isArray(parsed) && parsed.length >= 2) {
-          adaptiveQuestions = parsed.map((q: any, i: number) => ({
-            id: q.id || `q_${i + 1}`,
-            title: q.title || `Architectural Decision ${i + 1}`,
-            helper: q.helper || "Calibrates your Phase 1 cutline.",
-            options: Array.isArray(q.options)
-              ? q.options.map((opt: any) => ({
-                  id: opt.id || `opt_${Math.random().toString(36).substring(2, 6)}`,
-                  label: opt.label || "Standard implementation",
-                  recommendation: Boolean(opt.recommendation),
-                }))
-              : [
-                  { id: "opt_standard", label: "Zero-database offline local storage", recommendation: true },
-                  { id: "opt_cloud", label: "Cloud database setup" },
-                ],
-          }));
-          break;
-        }
-      } catch (err: any) {
-        console.warn(`[Questions Route] Model ${model} failed:`, err?.message);
-      }
-    }
-
-    if (!adaptiveQuestions || adaptiveQuestions.length === 0) {
-      adaptiveQuestions = getClarifyingQuestions(idea);
-    }
+    const allQuestions: ClarifyingQuestion[] = [
+      ...INTAKE_FOUNDATION_QUESTIONS,
+      projectSpecificQuestion,
+    ];
 
     return NextResponse.json({
       success: true,
-      questions: adaptiveQuestions,
+      questions: allQuestions,
     });
   } catch (err: any) {
-    console.error("[Questions Route] Unexpected error:", err);
+    console.error("[Questions Route] Error:", err);
     return NextResponse.json(
-      { error: "Failed to generate adaptive questions." },
+      { error: "Failed to generate intake questions." },
       { status: 500 }
     );
   }
