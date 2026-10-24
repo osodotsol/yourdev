@@ -12,3 +12,5 @@ node_modules/
 dist/
 *.tsbuildinfo
 scratch-test.js
+test-css-compatibility.js
+smoke-test-prod.js

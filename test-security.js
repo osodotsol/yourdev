@@ -256,9 +256,31 @@ async function runSecurityTestSuite() {
 
   // --- 3. FRAMEWORK HARDENING & SECURITY HEADERS ---
 
-  await testCase("Framework: Next.js Image Optimization API /_next/image returns 404 (Unoptimized)", async () => {
-    const res = await fetch(`${BASE_URL}/_next/image?url=%2Ftest.svg&w=64&q=75`);
-    assert.strictEqual(res.status, 404, `Expected 404 for disabled /_next/image, got ${res.status}`);
+  await testCase("Framework: Next.js Image Optimization API /_next/image handler is completely unmounted", async () => {
+    // 1. Source configuration verification
+    const nextConfig = require("./next.config.js");
+    assert.strictEqual(
+      nextConfig.images?.unoptimized,
+      true,
+      "next.config.js must explicitly configure images.unoptimized: true"
+    );
+
+    // 2. Production server handler unmounted verification
+    // When the image optimizer is mounted, requesting /_next/image without params yields 400 ('"url" parameter is required').
+    // When disabled via images.unoptimized: true, NextNodeServer short-circuits to render404 directly without inspecting params.
+    const resNoParams = await fetch(`${BASE_URL}/_next/image`);
+    assert.strictEqual(
+      resNoParams.status,
+      404,
+      `Expected 404 for unmounted /_next/image handler without query params, got ${resNoParams.status}`
+    );
+
+    const resWithParams = await fetch(`${BASE_URL}/_next/image?url=%2Ftest.svg&w=64&q=75`);
+    assert.strictEqual(
+      resWithParams.status,
+      404,
+      `Expected 404 for unmounted /_next/image handler with parameters, got ${resWithParams.status}`
+    );
   });
 
   await testCase("Security Headers: Response includes nosniff, DENY, and strict-origin-when-cross-origin", async () => {
@@ -274,14 +296,29 @@ async function runSecurityTestSuite() {
     assert.strictEqual(referrerPolicy, "strict-origin-when-cross-origin", "referrer-policy must be strict-origin-when-cross-origin");
   });
 
-  await testCase("Framework: sharp package is confirmed absent from node_modules", () => {
-    let installed = true;
+  await testCase("Framework: Patched Next.js 15.5.28+ and sharp 0.35.5+ controls active", () => {
+    const nextPkg = require("next/package.json");
+    const [nextMajor, nextMinor, nextPatch] = nextPkg.version.split("-")[0].split(".").map(Number);
+    assert.strictEqual(nextMajor, 15, `Next.js major version must be 15, got ${nextPkg.version}`);
+    assert.ok(
+      nextMinor > 5 || (nextMinor === 5 && nextPatch >= 28),
+      `Next.js version must be at least 15.5.28 on 15.x line (patched for GHSA-2464-fhr4-w9xw), got ${nextPkg.version}`
+    );
+
+    let sharpPkg = null;
     try {
-      require("sharp");
+      sharpPkg = require("sharp/package.json");
     } catch {
-      installed = false;
+      sharpPkg = null;
     }
-    assert.strictEqual(installed, false, "sharp package must NOT be installed in this project");
+    if (sharpPkg) {
+      const [sMajor, sMinor, sPatch] = sharpPkg.version.split("-")[0].split(".").map(Number);
+      const isAtLeast0355 = sMajor > 0 || (sMajor === 0 && (sMinor > 35 || (sMinor === 35 && sPatch >= 5)));
+      assert.ok(
+        isAtLeast0355,
+        `If sharp is present, version must be at least 0.35.5, got ${sharpPkg.version}`
+      );
+    }
   });
 
   // --- 4. PRODUCTION TEST-HOOK SECURITY INVARIANTS ---
