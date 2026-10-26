@@ -25,9 +25,9 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "yourdev — The to-do list that builds your vision.",
+  title: "YourDev — Build it. Understand it. Verify it.",
   description:
-    "yourdev transforms messy brainstorms into structured, agent-ready execution blueprints. Built for Devpost Build With AI Basics 2026.",
+    "YourDev transforms messy brainstorms into structured, agent-ready execution blueprints. Build it. Understand it. Verify it.",
 };
 
 export default function RootLayout({

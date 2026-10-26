@@ -15,7 +15,7 @@ export function FileMapSection() {
             </h2>
             <p className="editorial-text">
               Zero boilerplate debt. Every file serves a single clear purpose,
-              strictly calibrated to the Devpost Build With AI Basics specification.
+              strictly calibrated to the YourDev architectural specification.
             </p>
           </div>
         </div>

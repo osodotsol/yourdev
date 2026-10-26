@@ -55,7 +55,7 @@ const INTAKE_FOUNDATION_QUESTIONS: ClarifyingQuestion[] = [
       },
       {
         id: "weekend",
-        label: "Weekend hackathon sprint (12–16 hours over 2 days)",
+        label: "Weekend focused sprint (12–16 hours over 2 days)",
       },
       {
         id: "light",

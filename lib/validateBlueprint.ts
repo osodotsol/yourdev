@@ -743,7 +743,7 @@ export function validateAndRepairBlueprint(
         whatToDo: [
           `Create a clean folder on your computer named "${slug}".`,
           "Open the folder inside VS Code or Cursor.",
-          "Open the built-in terminal (Ctrl+` or Cmd+`).",
+          "Open the built-in terminal (shortcut: `Ctrl+~` or `Cmd+~`).",
           "Run `git init` to turn on save checkpoints.",
         ],
         whatDoneLooksLike: `You see a hidden .git folder and running 'git status' outputs 'On branch master (or main)' with zero errors.`,
@@ -829,7 +829,7 @@ export function validateAndRepairBlueprint(
             reason: String(p?.reason || "Adds unnecessary setup complexity to Day 1."),
           }))
         : [
-            { part: "User login & passwords", reason: "A hackathon judge wants to test your app in 10 seconds without making an account." },
+            { part: "User login & passwords", reason: "First-time users need instant access to test your app without making an account." },
             { part: "Cloud SQL database", reason: "Adds migration headaches; local storage solves 100% of Phase 1." },
             { part: "Payment gateways & subscriptions", reason: "Validate that users actually want the product before building checkout." },
           ],
@@ -846,7 +846,7 @@ export function validateAndRepairBlueprint(
         outOfScopeWithReasons: Array.isArray(rawMap.mvpVsLater?.outOfScopeWithReasons)
           ? rawMap.mvpVsLater.outOfScopeWithReasons
           : [
-              { feature: "Multi-user team collaboration", reason: "Requires WebSocket servers and complex permissions; out of scope for hackathon PoC." },
+              { feature: "Multi-user team collaboration", reason: "Requires WebSocket servers and complex permissions; out of scope for Phase 1 prototype." },
               { feature: "Native iOS / Android app store build", reason: "Desktop / web execution works immediately with zero compile friction." },
             ],
       },
@@ -947,9 +947,9 @@ export function validateAndRepairBlueprint(
       },
       partsYouNeedNow: architecture.parts.map((p) => ({ part: p.name, reason: p.one_line_purpose })),
       partsYouCanIgnoreForNow: [
-        { part: "User Accounts & Authentication", reason: "Judges need instant access with zero sign-up friction." },
+        { part: "User Accounts & Authentication", reason: "First-time testers need instant access with zero sign-up friction." },
         { part: "Cloud Databases & Servers", reason: "Eliminates infrastructure cost and Day 1 configuration stalls." },
-        { part: "Analytics & Tracking SDKs", reason: "Does not contribute to the core hackathon proof of concept." },
+        { part: "Analytics & Tracking SDKs", reason: "Does not contribute to the core proof of concept." },
       ],
       mvpVsLater: {
         v1DemoReady: architecture.parts.map((p) => p.name),
@@ -985,7 +985,7 @@ export function validateAndRepairBlueprint(
       if (!alreadyInV1 && !alreadyOut) {
         productMap.mvpVsLater.outOfScopeWithReasons.push({
           feature: item.name,
-          reason: `Excluded from Phase 1 MVP to guarantee a reliable, zero-auth hackathon proof of concept.`,
+          reason: `Excluded from Phase 1 MVP to guarantee a reliable, zero-auth proof of concept.`,
         });
         warnings.push(`Coverage validator: moved '${item.name}' from summary to outOfScopeWithReasons.`);
       }

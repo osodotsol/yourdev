@@ -23,20 +23,15 @@ export function HeroSection() {
     <section className="craft-hero" id="hero">
       {/* Left Column */}
       <div className="craft-hero-copy">
-        <div className="hero-pill-tag">
-          <span className="pill-status-dot"></span>
-          <span>YOURDEV · AI AGENT WORKFLOWS</span>
-        </div>
-
         <h1>
-          Messy ideas in.<br />
-          <em>The to-do list that builds it.</em>
+          Build real software.<br />
+          <em>From idea to verified code.</em>
         </h1>
 
         <p className="craft-hero-desc">
-          yourdev is a precision pair-programming coach for beginner developers overwhelmed by blank IDEs.
-          Turn chaotic brainstorms into an actionable, verifiable 5-part blueprint — with the exact
-          first prompt for your AI coding agent.
+          YourDev is a guided software-building and learning environment for beginner developers.
+          Transform raw ideas into phased architecture, actionable milestones, and verified code
+          alongside AI coding agents.
         </p>
 
         <div className="craft-hero-actions">
@@ -45,7 +40,7 @@ export function HeroSection() {
             <span>→</span>
           </a>
           <a href="#output" className="btn-craft-secondary">
-            Inspect the 5 outputs
+            Inspect output blueprint
           </a>
         </div>
       </div>

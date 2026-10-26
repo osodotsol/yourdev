@@ -9,8 +9,8 @@ const GEMINI_MODELS = [
   "gemini-3.5-flash",
 ];
 
-const MENTOR_SYSTEM_PROMPT = `You are a Principal Software Engineering Mentor and Hackathon Pair-Programming Coach.
-Your student is building a hackathon proof-of-concept project.
+const MENTOR_SYSTEM_PROMPT = `You are a Principal Software Engineering Mentor and Pair-Programming Coach.
+Your student is building a working proof-of-concept project.
 They are working on a specific architectural milestone and have submitted their work (code snippet, terminal output, or question) for verification.
 
 Evaluate their submission thoroughly against the milestone's Goal, Target Files, and Key Packages.

@@ -224,7 +224,7 @@ export function getClarifyingQuestions(ideaText: string): ClarifyingQuestion[] {
         },
         {
           id: "weekend",
-          label: "Weekend hackathon sprint (12–16 hours over 2 days)",
+          label: "Weekend focused sprint (12–16 hours over 2 days)",
         },
         {
           id: "light",
@@ -385,7 +385,7 @@ function getPitfallsForCategory(category: ProjectCategory, userChoices: Record<s
         },
         {
           trap: "Empty state upon first load leaves testers with nothing to click",
-          whyItHappens: "Expecting judges or testers to manually type in 10 questions before testing.",
+          whyItHappens: "Expecting new testers to manually type in 10 questions before testing.",
           howToAvoid: "Pre-seed the initial state with 5 interesting starter cards so the study session works on second zero.",
         },
         {
@@ -1685,7 +1685,7 @@ function buildStrategySummary(category: ProjectCategory, choices: Record<string,
     const isAdaptive = choices["streak_policy"] !== "strict_daily";
     return `Strategy calibrated for ${
       isAdaptive ? "adaptive momentum tracking with forgiving grace periods" : "strict daily streak logging"
-    }, paired with zero-auth browser LocalStorage for instant judge evaluation.`;
+    }, paired with zero-auth browser LocalStorage for instant, frictionless evaluation.`;
   }
   if (category === "flashcards") {
     return `Strategy calibrated for a tactile 3-Box Leitner spaced repetition engine, 3D CSS card flip transforms, and pre-seeded starter decks to ensure instant engagement.`;
@@ -1786,7 +1786,7 @@ function buildTechStack(category: ProjectCategory, choices: Record<string, strin
       },
       {
         category: "Dashboard UI",
-        name: "Next.js 14 App Router",
+        name: "Next.js 15 App Router",
         reason: "Houses API endpoints and modern client presentation in a single unified repository.",
       },
       {
@@ -1806,7 +1806,7 @@ function buildTechStack(category: ProjectCategory, choices: Record<string, strin
     return [
       {
         category: "Frontend Framework",
-        name: "Next.js 14 (App Router) + React",
+        name: "Next.js 15 (App Router) + React",
         reason: "Fast responsive interface with clear weather cards and crop selection controls.",
       },
       {
@@ -1881,7 +1881,7 @@ function buildTechStack(category: ProjectCategory, choices: Record<string, strin
   return [
     {
       category: "Frontend Framework",
-      name: "Next.js 14 (App Router)",
+      name: "Next.js 15 (App Router)",
       reason: "Fast client hydration, strict TypeScript contracts, and one-click Vercel deployment.",
     },
     {
@@ -1938,7 +1938,7 @@ function buildTechStackFromArchitecture(arch: ProjectArchitecture): StackItem[] 
     name: isNonWeb ? "Local JSON / Text Files" : "Browser LocalStorage",
     reason: isNonWeb
       ? "Zero-server, local disk persistence preserving your state across executions."
-      : "100% offline-first client storage for instant judge evaluation without database setup.",
+      : "100% offline-first client storage for instant, frictionless evaluation without database setup.",
   });
 
   return items;
@@ -2217,9 +2217,9 @@ function buildResources(category: ProjectCategory, choices: Record<string, strin
       url: "https://tailwindcss.com/docs",
     },
     {
-      type: "Hackathon Guide",
-      title: "Devpost AI Basics: Coding Agent Pair Programming",
-      url: "https://devpost.com",
+      type: "Pair Programming Guide",
+      title: "AI Coding Agents: Effective Pair Programming Guide",
+      url: "https://docs.github.com/en/copilot",
     },
   ];
 }

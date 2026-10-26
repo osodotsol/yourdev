@@ -225,3 +225,4 @@ export interface IdeaBlueprint {
   sourceBadges?: Record<string, SectionSource>;
 }
 
+export * from "./chat";

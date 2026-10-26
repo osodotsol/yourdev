@@ -1,6 +1,7 @@
 {
-  "name": "idea-breakdown-coach",
+  "name": "yourdev-studio",
   "version": "0.1.0",
+  "description": "YourDev — Build it. Understand it. Verify it.",
   "private": true,
   "scripts": {
     "dev": "next dev",

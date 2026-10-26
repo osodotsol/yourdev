@@ -30,6 +30,8 @@ import {
   calculateDailyProgress,
   runStudioVerification,
 } from "@/lib/studioDemoVerification";
+import { MarkdownContent } from "@/components/MarkdownRenderer";
+import { AskYourDevDrawer } from "@/components/AskYourDevDrawer";
 
 const DEFAULT_HABITS: HabitItem[] = [
   {
@@ -82,6 +84,7 @@ export default function StudioDemoPage() {
   );
   const [mentorAnswer, setMentorAnswer] = useState<string | null>(null);
   const [isAskingMentor, setIsAskingMentor] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Load persisted demo habits on client mount
   useEffect(() => {
@@ -251,20 +254,30 @@ export default function StudioDemoPage() {
             className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#66635c] hover:text-[#1c1a17] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>yourdev Hub</span>
+            <span>YourDev Hub</span>
           </Link>
           <span className="text-[#8a867c]">/</span>
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm tracking-tight text-[#1c1a17]">
-              Habit Tracker Build Studio
+              YourDev Studio · Habit Tracker
             </span>
             <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
-              Prototype
+              Build Studio Prototype
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            id="studio-ask-mentor-btn"
+            onClick={() => setIsDrawerOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#18191a] hover:bg-black rounded-md transition-colors shadow-xs"
+            title="Open Ask YourDev mentor chat drawer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Ask YourDev</span>
+          </button>
+
           <button
             onClick={handleResetDefaults}
             className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#66635c] hover:text-[#1c1a17] bg-[#efece5] hover:bg-[#eae6dc] rounded-md transition-colors"
@@ -519,7 +532,7 @@ export default function StudioDemoPage() {
                             <span
                               id="studio-completion-badge"
                               data-testid="studio-completion-badge"
-                              className="text-[10px] font-mono font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full animate-bounce"
+                              className="text-[10px] font-mono font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full"
                             >
                               100% Done
                             </span>
@@ -1070,13 +1083,59 @@ export default function StudioDemoPage() {
                   <span className="font-semibold block text-[11px] font-mono uppercase tracking-wider text-emerald-800 mb-1">
                     Mentor Insight
                   </span>
-                  {mentorAnswer}
+                  <MarkdownContent content={mentorAnswer} />
                 </div>
               )}
+
+              <button
+                type="button"
+                onClick={() => setIsDrawerOpen(true)}
+                className="w-full mt-3 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-[#18191a] hover:bg-black text-white rounded-lg text-xs font-semibold transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Open Full Mentor Chat Drawer</span>
+              </button>
             </div>
           </aside>
         </div>
       </main>
+
+      {/* Ask YourDev Mentor Drawer */}
+      <AskYourDevDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        context={{
+          projectId: "studio-demo-habit-tracker",
+          projectTitle: "Habit Tracker (Build Studio)",
+          projectIdea: "Minimalist offline-first habit tracker web application with streak momentum metrics and real-time derived progress calculation",
+          projectType: "web app",
+          techStack: ["React 19", "Next.js 15 App Router", "Tailwind CSS", "TypeScript"],
+          activeMilestone: {
+            step: 2,
+            title: "Daily Completion Indicator",
+            goal: "Derive completed habit ratio and display a real-time progress bar",
+            filesToCreate: ["components/DailyProgress.tsx"],
+            definitionOfDone: [
+              "Derive completion count directly from habits state during render",
+              "Guard against empty habits list to prevent NaN progress",
+              "Display animated progress bar and accessible text fraction",
+            ],
+          },
+          recentVerification: verificationReport
+            ? {
+                passed: verificationReport.overallPassed,
+                failedChecks: verificationReport.checks.filter((c) => !c.passed).map((c) => c.title),
+                summary: `${verificationReport.passedChecks} of ${verificationReport.totalChecks} checks passed. ${verificationReport.nextRecommendedAction}`,
+              }
+            : undefined,
+          userErrorMessage:
+            verificationReport && !verificationReport.overallPassed
+              ? `Verification check failed: ${verificationReport.checks.find((c) => !c.passed)?.diagnostic || "State synchronization mismatch"}`
+              : undefined,
+          userCodeExcerpt:
+            "const completedCount = habits.filter(h => h.completed).length;\nconst total = habits.length;\nconst progress = total === 0 ? 0 : Math.round((completedCount / total) * 100);",
+        }}
+      />
     </div>
   );
 }

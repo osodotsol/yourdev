@@ -118,8 +118,8 @@ export const FOUNDATIONS_BANK: Record<string, FoundationModule> = {
     tier: "core",
     prerequisites: ["git_basics"],
     officialResource: {
-      title: "Devpost AI Basics: Coding Agent Pair Programming (Official Docs)",
-      url: "https://devpost.com",
+      title: "AI Coding Agents: Effective Pair Programming Guide",
+      url: "https://docs.github.com/en/copilot",
     },
     youreDoneWhen: [
       "You write prompts that ask for only ONE file or slice at a time.",
@@ -191,7 +191,7 @@ export const FOUNDATIONS_BANK: Record<string, FoundationModule> = {
       "You can run `localStorage.setItem('test', '123')` in the browser console, refresh, and get it back with `localStorage.getItem('test')`.",
     ],
     vibeMinimumNote:
-      "For your hackathon MVP, 100% of your persistence should be LocalStorage or a local file. Zero databases, zero auth, zero sign-up friction.",
+      "For your Phase 1 MVP, 100% of your persistence should be LocalStorage or a local file. Zero databases, zero auth, zero sign-up friction.",
     deeperNote:
       "Learn JSON serialization (`JSON.stringify` and `JSON.parse`) and handling storage size limits safely with try/catch.",
   },
@@ -212,7 +212,7 @@ export const FOUNDATIONS_BANK: Record<string, FoundationModule> = {
       "You have a public live URL (e.g. `your-app.vercel.app`) that loads your app on your mobile phone.",
     ],
     vibeMinimumNote:
-      "Deploy only AFTER the local prototype is working. A 1-click Vercel or GitHub Pages deploy is all you need for hackathon submission.",
+      "Deploy only AFTER the local prototype is working. A 1-click Vercel or GitHub Pages deploy is all you need for an initial public release.",
     deeperNote:
       "Learn how environment variables are set in production dashboards versus your local `.env.local` file.",
   },
@@ -303,7 +303,7 @@ export function buildTailoredFoundations(
     } else if (id === "storing_data") {
       whyNeeded = `Lets your users save their data locally with zero database setup overhead.`;
     } else if (id === "deploying_first_app") {
-      whyNeeded = `Generates a live public link so hackathon judges can test your proof of concept.`;
+      whyNeeded = `Generates a live public link so users and stakeholders can test your working prototype.`;
     }
 
     return {

@@ -24,7 +24,7 @@ export interface SkillModule {
 export const KNOWLEDGE_BANK: Record<string, SkillModule> = {
   nextjs_app_router: {
     id: "nextjs_app_router",
-    name: "Next.js 14 App Router & React Server Components",
+    name: "Next.js 15 App Router & React Server Components",
     category: "Framework",
     summary: "Production standard full-stack React framework with server/client component boundaries, file-based routing, and built-in API handlers.",
     architectureRules: [

@@ -12,8 +12,8 @@ export function ArchitectureSection() {
       </h2>
 
       <p className="craft-hero-desc" style={{ marginBottom: "24px" }}>
-        Live hackathon demos often break due to API rate limits or network issues.
-        Idea Breakdown Coach uses a dual-mode engine: Google Gemini free tier when available,
+        Live software demos often break due to API rate limits or network issues.
+        YourDev uses a dual-mode engine: Google Gemini free tier when available,
         and a client-side template generator as an automatic fallback.
       </p>
 

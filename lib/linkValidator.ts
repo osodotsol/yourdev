@@ -10,7 +10,6 @@ const TRUSTED_DOMAINS = [
   "developer.chrome.com",
   "developer.mozilla.org",
   "github.com",
-  "devpost.com",
   "nodejs.org",
   "expressjs.com",
   "expo.dev",

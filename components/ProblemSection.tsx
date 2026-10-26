@@ -27,7 +27,7 @@ export function ProblemSection() {
 
         <div className="problem-prose">
           <p>
-            <strong>yourdev</strong> bridges that gap. It transforms raw, unformatted brainstorms
+            <strong>YourDev</strong> bridges that gap. It transforms raw, unformatted brainstorms
             into a clean, structured blueprint that AI coding agents understand instantly —
             phased milestones, a recommended stack, and the exact first prompt to type.
           </p>

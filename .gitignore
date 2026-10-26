@@ -14,3 +14,9 @@ dist/
 scratch-test.js
 test-css-compatibility.js
 smoke-test-prod.js
+
+# Agent metadata and skills config
+.agents/
+.claude/
+agent/
+skills-lock.json

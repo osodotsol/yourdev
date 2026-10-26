@@ -54,7 +54,7 @@ export function InputConsole({
         </div>
         <div className="flex items-center gap-2 self-start sm:self-auto px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-xs font-mono text-zinc-400">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Devpost BWA 2026</span>
+          <span>YourDev Studio</span>
         </div>
       </div>
 

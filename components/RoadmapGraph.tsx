@@ -27,6 +27,7 @@ import {
   computeContentHash,
   isMilestoneCompletionAllowed,
 } from "@/lib/milestoneCompletion";
+import { MarkdownContent, InlineMarkdown } from "@/components/MarkdownRenderer";
 
 interface RoadmapGraphProps {
   nodes: RoadmapNode[];
@@ -379,7 +380,7 @@ export function RoadmapGraph({
       <div className="roadmap-studio-head">
         <div>
           <div className="card-kicker">
-            ✦ INTERACTIVE ARCHITECTURE ROADMAP // BUILD & VERIFY STUDIO
+            Milestone Execution & Verification Studio
           </div>
           <h3 className="roadmap-studio-title">
             Visual Execution Tree & Verification Queue
@@ -511,7 +512,7 @@ export function RoadmapGraph({
 
                     <ChevronRight
                       className={`w-4 h-4 transition-transform ${
-                        isSelected ? "rotate-90 text-amber-500" : "text-gray-400"
+                        isSelected ? "rotate-90 text-slate-900" : "text-slate-400"
                       }`}
                     />
                   </div>
@@ -591,26 +592,28 @@ export function RoadmapGraph({
 
             <div className="inspector-section">
               <div className="inspector-sec-label">Milestone Objective:</div>
-              <p className="inspector-goal">{selectedNode.goal}</p>
+              <p className="inspector-goal">
+                <InlineMarkdown text={selectedNode.goal} />
+              </p>
             </div>
 
             {/* Concept to Learn & Time Budget */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "12px", marginBottom: "12px" }}>
               {selectedNode.conceptToLearn && (
-                <div style={{ background: "var(--surface-alt)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border)" }}>
-                  <div style={{ fontSize: "10.5px", fontFamily: "var(--mono)", color: "var(--text-soft)", textTransform: "uppercase", marginBottom: "4px" }}>
-                    💡 Concept to Learn
+                <div style={{ background: "#ffffff", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--border)" }}>
+                  <div style={{ fontSize: "10.5px", fontFamily: "var(--mono)", color: "var(--text-soft)", textTransform: "uppercase", marginBottom: "4px", fontWeight: 700, letterSpacing: "0.06em" }}>
+                    Core Architectural Concept
                   </div>
-                  <div style={{ fontSize: "12px", fontWeight: 500, color: "var(--text)" }}>
-                    {selectedNode.conceptToLearn}
+                  <div style={{ fontSize: "12.5px", fontWeight: 500, color: "var(--text)", lineHeight: "1.45" }}>
+                    <InlineMarkdown text={selectedNode.conceptToLearn} />
                   </div>
                 </div>
               )}
-              <div style={{ background: "var(--surface-alt)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border)" }}>
-                <div style={{ fontSize: "10.5px", fontFamily: "var(--mono)", color: "var(--text-soft)", textTransform: "uppercase", marginBottom: "4px" }}>
-                  ⏱️ Estimated Time
+              <div style={{ background: "#ffffff", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--border)" }}>
+                <div style={{ fontSize: "10.5px", fontFamily: "var(--mono)", color: "var(--text-soft)", textTransform: "uppercase", marginBottom: "4px", fontWeight: 700, letterSpacing: "0.06em" }}>
+                  Estimated Time Allocation
                 </div>
-                <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text)" }}>
+                <div style={{ fontSize: "12.5px", fontWeight: 600, color: "#0f172a" }}>
                   {Math.min(selectedNode.estimatedMinutes || 60, 90)} minutes (Capped size)
                 </div>
               </div>
@@ -618,20 +621,22 @@ export function RoadmapGraph({
 
             {/* Definition of Done */}
             {selectedNode.definitionOfDone && (
-              <div className="inspector-section" style={{ background: "#f8fafc", padding: "10px 12px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
-                <div className="inspector-sec-label" style={{ color: "#0f172a", marginBottom: "4px" }}>
-                  ✓ Definition of Done:
+              <div className="inspector-section" style={{ background: "#ffffff", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--border-strong)" }}>
+                <div className="inspector-sec-label" style={{ color: "#0f172a", marginBottom: "6px" }}>
+                  Definition of Done Checklist
                 </div>
                 {Array.isArray(selectedNode.definitionOfDone) ? (
-                  <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "12.5px", color: "#334155", lineHeight: "1.5" }}>
+                  <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "12.5px", color: "var(--text)", lineHeight: "1.55" }}>
                     {selectedNode.definitionOfDone.map((item, idx) => (
-                      <li key={idx}>{item}</li>
+                      <li key={idx}>
+                        <InlineMarkdown text={item} />
+                      </li>
                     ))}
                   </ul>
                 ) : (
-                  <p style={{ fontSize: "12.5px", margin: 0, color: "#334155", lineHeight: "1.5" }}>
-                    {selectedNode.definitionOfDone}
-                  </p>
+                  <div style={{ fontSize: "12.5px", margin: 0, color: "var(--text)", lineHeight: "1.55" }}>
+                    <InlineMarkdown text={selectedNode.definitionOfDone} />
+                  </div>
                 )}
               </div>
             )}
@@ -897,21 +902,22 @@ export function RoadmapGraph({
                     {/* Beginner Working Shell Callout */}
                     <div
                       style={{
-                        background: "#f0fdf4",
-                        border: "1px solid #bbf7d0",
+                        background: "#ffffff",
+                        border: "1px solid var(--border)",
+                        borderLeft: "3px solid #0f172a",
                         borderRadius: "8px",
-                        padding: "10px 12px",
-                        fontSize: "12px",
-                        lineHeight: "1.5",
-                        color: "#166534",
-                        marginBottom: "12px",
+                        padding: "12px 14px",
+                        fontSize: "12.5px",
+                        lineHeight: "1.55",
+                        color: "var(--text)",
+                        marginBottom: "14px",
                       }}
                     >
-                      <strong>Initial Working Shell:</strong> This file provides the minimal Manifest V3
+                      <strong style={{ color: "#0f172a" }}>Initial Working Shell:</strong> This file provides the minimal Manifest V3
                       skeleton required to load successfully in Chrome via <code>chrome://extensions</code> (&ldquo;Load unpacked&rdquo;).
                       It establishes a functional foundation without premature background processing or persistent storage.
-                      <div style={{ marginTop: "4px", color: "#15803d", fontSize: "11.5px" }}>
-                        ➜ <em>Next Step:</em> Milestone 02 connects local storage or background scripts.
+                      <div style={{ marginTop: "6px", color: "var(--text-muted)", fontSize: "11.5px" }}>
+                        <strong style={{ color: "#0f172a" }}>Subsequent Scope:</strong> Milestone 02 connects local storage or background scripts.
                       </div>
                     </div>
 
@@ -1067,30 +1073,31 @@ export function RoadmapGraph({
                     {/* Overall Milestone Completion Status Banner */}
                     <div
                       style={{
-                        background: allArtifactsPassed ? "#ecfdf5" : "#fffbeb",
-                        border: `1.5px solid ${allArtifactsPassed ? "#86efac" : "#fde68a"}`,
+                        background: allArtifactsPassed ? "#f0fdf4" : "#ffffff",
+                        border: `1px solid ${allArtifactsPassed ? "#86efac" : "var(--border-strong)"}`,
                         borderRadius: "10px",
-                        padding: "12px",
+                        padding: "14px 16px",
                         marginBottom: "14px",
+                        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
                       }}
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                           {allArtifactsPassed ? (
                             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                           ) : (
-                            <AlertCircle className="w-4 h-4 text-amber-600" />
+                            <AlertCircle className="w-4 h-4 text-slate-500" />
                           )}
                           <strong
                             style={{
-                              fontSize: "12px",
-                              color: allArtifactsPassed ? "#166534" : "#92400e",
+                              fontSize: "12.5px",
+                              color: allArtifactsPassed ? "#166534" : "#0f172a",
                               fontFamily: "var(--mono)",
                             }}
                           >
                             {allArtifactsPassed
-                              ? `✓ MILESTONE 0${selectedNode.step} VERIFIED: All ${starterArtifacts.length} artifacts passed!`
-                              : `⏳ Milestone Incomplete (${passedArtifactCount} of ${starterArtifacts.length} files verified)`}
+                              ? `MILESTONE 0${selectedNode.step} VERIFIED: All ${starterArtifacts.length} artifacts passed`
+                              : `Milestone Verification in Progress (${passedArtifactCount} of ${starterArtifacts.length} files verified)`}
                           </strong>
                         </div>
 
@@ -1226,9 +1233,13 @@ export function RoadmapGraph({
                                 background: "#fffbeb",
                                 color: "#b45309",
                                 border: "1px solid #fde68a",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
                               }}
                             >
-                              ⚠️ Modified since verification
+                              <AlertCircle className="w-3 h-3 text-amber-600" />
+                              <span>Modified since verification</span>
                             </span>
                           )}
                         </div>
@@ -1361,9 +1372,9 @@ export function RoadmapGraph({
                           )}
                         </div>
 
-                        <p style={{ fontSize: "12.5px", lineHeight: "1.5", color: "var(--text)", marginBottom: "12px" }}>
-                          {currentArtifactReview.feedback}
-                        </p>
+                        <div style={{ fontSize: "12.5px", lineHeight: "1.55", color: "var(--text)", marginBottom: "12px" }}>
+                          <MarkdownContent content={currentArtifactReview.feedback} />
+                        </div>
 
                         {/* Itemized Structured Checks List */}
                         {currentArtifactReview.checks && currentArtifactReview.checks.length > 0 && (
@@ -1478,9 +1489,9 @@ export function RoadmapGraph({
                           </span>
                         </div>
 
-                        <p style={{ fontSize: "13px", lineHeight: "1.5", color: "var(--text)", marginBottom: "10px" }}>
-                          {currentMentorReview.feedback}
-                        </p>
+                        <div style={{ fontSize: "13px", lineHeight: "1.55", color: "var(--text)", marginBottom: "10px" }}>
+                          <MarkdownContent content={currentMentorReview.feedback} />
+                        </div>
 
                         {currentMentorReview.positivePoints && currentMentorReview.positivePoints.length > 0 && (
                           <div style={{ marginBottom: "8px" }}>
@@ -1489,7 +1500,9 @@ export function RoadmapGraph({
                             </div>
                             <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "12px", color: "var(--text-muted)" }}>
                               {currentMentorReview.positivePoints.map((p, idx) => (
-                                <li key={idx}>{p}</li>
+                                <li key={idx}>
+                                  <InlineMarkdown text={p} />
+                                </li>
                               ))}
                             </ul>
                           </div>
@@ -1502,14 +1515,16 @@ export function RoadmapGraph({
                             </div>
                             <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "12px", color: "var(--text-muted)" }}>
                               {currentMentorReview.suggestedFixes.map((f, idx) => (
-                                <li key={idx}>{f}</li>
+                                <li key={idx}>
+                                  <InlineMarkdown text={f} />
+                                </li>
                               ))}
                             </ul>
                           </div>
                         )}
 
                         <div style={{ fontSize: "11.5px", background: "rgba(255,255,255,0.7)", padding: "6px 10px", borderRadius: "6px", color: "var(--text)" }}>
-                          <strong>Next Tip:</strong> {currentMentorReview.nextTip}
+                          <strong>Next Tip:</strong> <InlineMarkdown text={currentMentorReview.nextTip} />
                         </div>
                       </div>
                     )}

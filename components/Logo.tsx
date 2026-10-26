@@ -7,6 +7,7 @@ interface LogoProps {
   className?: string;
   showWordmark?: boolean;
   color?: string;
+  wordmarkColor?: string;
 }
 
 export function Logo({
@@ -14,7 +15,11 @@ export function Logo({
   className = "",
   showWordmark = true,
   color = "#18191a",
+  wordmarkColor,
 }: LogoProps) {
+  const resolvedWordmarkColor =
+    wordmarkColor || (color !== "#18191a" ? color : "var(--text)");
+
   return (
     <div className={`inline-flex items-center gap-2.5 ${className}`}>
       {/* Precision Geometric Monoline Logo */}
@@ -25,7 +30,7 @@ export function Logo({
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className="shrink-0 transition-transform duration-200 hover:scale-105"
-        aria-label="yourdev logo"
+        aria-label="YourDev logo"
       >
         {/* Continuous rounded triangular ribbon with inner hook */}
         <path
@@ -59,11 +64,11 @@ export function Logo({
             fontWeight: 800,
             fontSize: `${Math.round(size * 0.62)}px`,
             letterSpacing: "-0.04em",
-            color: "var(--text)",
+            color: resolvedWordmarkColor,
             lineHeight: 1,
           }}
         >
-          yourdev
+          YourDev
         </span>
       )}
     </div>

@@ -19,7 +19,7 @@ export function BeginnersSection() {
               the build breaks, and the beginner gives up.
             </p>
             <p className="editorial-text" style={{ marginTop: "1rem" }}>
-              Idea Breakdown Coach enforces the foundational rule of software development:
+              YourDev enforces the foundational rule of software development:
               slice complex goals into small, verifiable working increments.
             </p>
           </div>

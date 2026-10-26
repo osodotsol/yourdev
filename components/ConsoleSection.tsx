@@ -30,11 +30,13 @@ import {
   PlayCircle,
   ExternalLink,
   GraduationCap,
-  Video,
+  Square,
+  CheckSquare,
   Github,
   CheckCircle2,
 } from "lucide-react";
 import { RoadmapGraph } from "@/components/RoadmapGraph";
+import { MarkdownContent, InlineMarkdown } from "@/components/MarkdownRenderer";
 import {
   isMilestoneCompletionAllowed,
   sanitizeCompletedNodeIds,
@@ -124,6 +126,16 @@ export function ConsoleSection({
   const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [expandedLevelUpItems, setExpandedLevelUpItems] = useState<Record<string, boolean>>({});
+  const [exportView, setExportView] = useState<"formatted" | "raw">("formatted");
+  const [copiedExport, setCopiedExport] = useState(false);
+  const [checkedGuidelines, setCheckedGuidelines] = useState<Record<number, boolean>>({});
+
+  const toggleGuideline = (index: number) => {
+    setCheckedGuidelines((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
 
   useEffect(() => {
     const saved = loadSession();
@@ -402,8 +414,8 @@ export function ConsoleSection({
 
       <div className={`craft-console-box ${isLoading ? "is-loading" : ""}`}>
         <div className="console-meta-strip">
-          <span>⚡ AI ARCHITECT & MENTOR ENGINE // yourdev</span>
-          <span>BEGINNER-FIRST SPECIFICATION STUDIO</span>
+          <span>⚡ YOURDEV STUDIO // BUILD IT. UNDERSTAND IT. VERIFY IT.</span>
+          <span>YOURDEV ARCHITECTURE & VERIFICATION STUDIO</span>
         </div>
 
         {/* ALWAYS VISIBLE INPUT TEXTAREA */}
@@ -768,7 +780,7 @@ export function ConsoleSection({
                   />
                 </div>
                 <h3 style={{ margin: "6px 0 8px" }}>{blueprint.projectTitle}</h3>
-                <p
+                <div
                   style={{
                     fontSize: "14.5px",
                     lineHeight: "1.55",
@@ -776,8 +788,8 @@ export function ConsoleSection({
                     maxWidth: "700px",
                   }}
                 >
-                  {blueprint.summary}
-                </p>
+                  <MarkdownContent content={blueprint.summary} />
+                </div>
               </div>
 
               <div
@@ -809,100 +821,120 @@ export function ConsoleSection({
               </div>
             </div>
 
-            {/* "HOW YOUR ANSWERS SHAPED THIS PLAN" CALLOUT */}
+            {/* PLAN CALIBRATION CONTEXT */}
             <div
               style={{
-                marginTop: "16px",
-                background: "#f8fafc",
-                border: "1.5px solid #e2e8f0",
-                borderRadius: "12px",
-                padding: "14px 16px",
+                marginTop: "18px",
+                background: "#ffffff",
+                border: "1px solid var(--border)",
+                borderRadius: "14px",
+                padding: "16px 20px",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
               }}
             >
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "8px",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                  marginBottom: "12px",
+                  paddingBottom: "10px",
+                  borderBottom: "1px solid var(--border)",
                 }}
               >
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <span
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span
+                    style={{
+                      fontFamily: "var(--mono)",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                      color: "var(--text)",
+                    }}
+                  >
+                    Strategy Calibration
+                  </span>
+                </div>
+
+                <div
                   style={{
-                    fontFamily: "var(--mono)",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    color: "#0f172a",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    gap: "6px",
                   }}
                 >
-                  How Your Answers Shaped This Plan
-                </span>
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      fontFamily: "var(--mono)",
+                      background: "var(--surface-alt)",
+                      color: "var(--text-muted)",
+                      padding: "3px 9px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--border)",
+                    }}
+                  >
+                    <strong style={{ color: "var(--text)", fontWeight: 600 }}>Style:</strong>{" "}
+                    {userChoices["coding_style"] === "myself"
+                      ? "Mostly Myself"
+                      : userChoices["coding_style"] === "mix"
+                      ? "Balanced Mix"
+                      : "Vibe Coding"}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      fontFamily: "var(--mono)",
+                      background: "var(--surface-alt)",
+                      color: "var(--text-muted)",
+                      padding: "3px 9px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--border)",
+                    }}
+                  >
+                    <strong style={{ color: "var(--text)", fontWeight: 600 }}>Level:</strong>{" "}
+                    {userChoices["experience_level"] === "intermediate"
+                      ? "Build Already"
+                      : userChoices["experience_level"] === "beginner"
+                      ? "Know A Little"
+                      : "Beginner-First"}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      fontFamily: "var(--mono)",
+                      background: "var(--surface-alt)",
+                      color: "var(--text-muted)",
+                      padding: "3px 9px",
+                      borderRadius: "6px",
+                      border: "1px solid var(--border)",
+                    }}
+                  >
+                    <strong style={{ color: "var(--text)", fontWeight: 600 }}>Dedication:</strong>{" "}
+                    ~8.5h required
+                  </span>
+                </div>
               </div>
+
               <div
                 style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "8px",
-                  marginBottom: "8px",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontFamily: "var(--mono)",
-                    background: "#ecfdf5",
-                    color: "#065f46",
-                    padding: "3px 8px",
-                    borderRadius: "4px",
-                    border: "1px solid #a7f3d0",
-                  }}
-                >
-                  Style: {userChoices["coding_style"] === "myself" ? "Mostly Myself" : userChoices["coding_style"] === "mix" ? "Balanced Mix" : "Vibe Coding (AI-Directing)"}
-                </span>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontFamily: "var(--mono)",
-                    background: "#eff6ff",
-                    color: "#1e40af",
-                    padding: "3px 8px",
-                    borderRadius: "4px",
-                    border: "1px solid #bfdbfe",
-                  }}
-                >
-                  Level: {userChoices["experience_level"] === "intermediate" ? "Build Already" : userChoices["experience_level"] === "beginner" ? "Know A Little" : "Never Coded (Beginner-First)"}
-                </span>
-                <span
-                  style={{
-                    fontSize: "11px",
-                    fontFamily: "var(--mono)",
-                    background: "#fffbeb",
-                    color: "#92400e",
-                    padding: "3px 8px",
-                    borderRadius: "4px",
-                    border: "1px solid #fde68a",
-                  }}
-                >
-                  Fits your time: ~8.5h required within your dedicated budget
-                </span>
-              </div>
-              <p
-                style={{
-                  fontSize: "12.5px",
-                  lineHeight: "1.5",
-                  color: "#475569",
+                  fontSize: "13px",
+                  lineHeight: "1.6",
+                  color: "var(--text)",
                   margin: 0,
                 }}
               >
-                {blueprint.strategyDecision}
-              </p>
+                <MarkdownContent content={blueprint.strategyDecision} />
+              </div>
             </div>
 
-            {/* TASK 5: REORDERED STUDIO NAVIGATION TABS WITH DEV SOURCE BADGES */}
-            <div className="output-tabs-bar" role="tablist" style={{ marginTop: "24px" }}>
+            {/* STUDIO NAVIGATION TABS */}
+            <div className="output-tabs-bar" role="tablist" style={{ marginTop: "20px" }}>
               <button
                 type="button"
                 role="tab"
@@ -912,9 +944,7 @@ export function ConsoleSection({
                 }`}
                 onClick={() => setActiveTab("start_here")}
               >
-                <PlayCircle className="w-4 h-4 text-amber-500" />
                 <span>1. Start Here</span>
-                <DevSourceBadge source={blueprint.sourceBadges?.startHere} />
               </button>
 
               <button
@@ -926,18 +956,10 @@ export function ConsoleSection({
                 }`}
                 onClick={() => setActiveTab("learn_first")}
               >
-                <BookOpen className="w-4 h-4 text-emerald-600" />
                 <span>2. Learn First</span>
-                <DevSourceBadge source={blueprint.sourceBadges?.foundations || "curated"} />
                 {allFoundations.length > 0 && (
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      opacity: 0.8,
-                      fontFamily: "var(--mono)",
-                    }}
-                  >
-                    ({visibleFoundations.length} Modules)
+                  <span className="output-tab-count">
+                    {visibleFoundations.length} Modules
                   </span>
                 )}
               </button>
@@ -951,15 +973,7 @@ export function ConsoleSection({
                 }`}
                 onClick={() => setActiveTab("product_map")}
               >
-                <Compass className="w-4 h-4 text-blue-600" />
                 <span>3. Project Map & Parts</span>
-                <DevSourceBadge
-                  source={
-                    blueprint.sourceBadges?.architecture ||
-                    blueprint.sourceBadges?.productMap ||
-                    (blueprint.isFallback ? "fallback" : "model")
-                  }
-                />
               </button>
 
               <button
@@ -971,18 +985,10 @@ export function ConsoleSection({
                 }`}
                 onClick={() => setActiveTab("milestones")}
               >
-                <Map className="w-4 h-4 text-indigo-600" />
                 <span>4. Build Milestones</span>
-                <DevSourceBadge source={blueprint.sourceBadges?.milestones} />
                 {blueprint.nodes && (
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      opacity: 0.8,
-                      fontFamily: "var(--mono)",
-                    }}
-                  >
-                    ({blueprint.nodes.length} Steps)
+                  <span className="output-tab-count">
+                    {blueprint.nodes.length} Steps
                   </span>
                 )}
               </button>
@@ -996,9 +1002,7 @@ export function ConsoleSection({
                 }`}
                 onClick={() => setActiveTab("level_up")}
               >
-                <Layers className="w-4 h-4 text-slate-600" />
                 <span>5. Level Up Later</span>
-                <DevSourceBadge source={blueprint.sourceBadges?.levelUp || "fallback"} />
               </button>
 
               <button
@@ -1010,17 +1014,9 @@ export function ConsoleSection({
                 }`}
                 onClick={() => setActiveTab("ship_it")}
               >
-                <Rocket className="w-4 h-4 text-rose-500" />
-                <span>6. Ship It</span>
-                <DevSourceBadge
-                  source={
-                    blueprint.sourceBadges?.shipIt ||
-                    (blueprint.isFallback ? "fallback" : "curated")
-                  }
-                />
+                <span>6. Launch & Export</span>
               </button>
             </div>
-
 
             {/* TAB 1: START HERE ("YOUR FIRST 20 MINUTES") */}
             {activeTab === "start_here" && (
@@ -1029,110 +1025,293 @@ export function ConsoleSection({
                   <div
                     style={{
                       background: "#ffffff",
-                      border: "2px solid #fed7aa",
-                      borderRadius: "14px",
-                      padding: "24px",
-                      boxShadow: "0 4px 16px rgba(245, 158, 11, 0.08)",
+                      border: "1px solid var(--border-strong)",
+                      borderRadius: "16px",
+                      padding: "24px 26px",
+                      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(0, 0, 0, 0.04)",
                       marginBottom: "20px",
                     }}
                   >
+                    {/* Header Pill */}
                     <div
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "8px",
-                        marginBottom: "12px",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: "10px",
+                        marginBottom: "14px",
                       }}
                     >
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span
+                          style={{
+                            background: "#0f172a",
+                            color: "#ffffff",
+                            padding: "3px 8px",
+                            borderRadius: "5px",
+                            fontFamily: "var(--mono)",
+                            fontSize: "10.5px",
+                            fontWeight: 700,
+                            letterSpacing: "0.06em",
+                          }}
+                        >
+                          STEP 01
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: "var(--mono)",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            color: "#64748b",
+                            letterSpacing: "0.06em",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          Immediate Action · First 20 Minutes
+                        </span>
+                      </div>
                       <span
                         style={{
-                          background: "#fffbeb",
-                          color: "#b45309",
-                          border: "1px solid #fde68a",
-                          padding: "4px 10px",
-                          borderRadius: "6px",
-                          fontFamily: "var(--mono)",
                           fontSize: "11px",
-                          fontWeight: 700,
-                          letterSpacing: "0.06em",
+                          fontFamily: "var(--mono)",
+                          color: "#64748b",
+                          background: "#f1f5f9",
+                          padding: "3px 8px",
+                          borderRadius: "4px",
                         }}
                       >
-                        ⏱️ TOP PRIORITY // YOUR FIRST 20 MINUTES
+                        ⏱ Est. 20 min setup
                       </span>
                     </div>
 
+                    {/* Headline */}
                     <h3
                       style={{
                         fontSize: "20px",
                         fontWeight: 700,
-                        margin: "0 0 8px",
+                        margin: "0 0 10px",
                         color: "#0f172a",
+                        lineHeight: "1.35",
                       }}
                     >
                       {blueprint.first20Minutes.action}
                     </h3>
 
-                    <p
-                      style={{
-                        fontSize: "14px",
-                        color: "#475569",
-                        lineHeight: "1.6",
-                        marginBottom: "18px",
-                      }}
-                    >
-                      <strong>Why this comes first:</strong> {blueprint.first20Minutes.why}
-                    </p>
-
+                    {/* Why this comes first */}
                     <div
                       style={{
-                        background: "#f8fafc",
+                        fontSize: "13.5px",
+                        color: "#475569",
+                        lineHeight: "1.6",
+                        marginBottom: "20px",
+                        borderLeft: "3px solid #0f172a",
+                        paddingLeft: "14px",
+                        background: "rgba(15, 23, 42, 0.02)",
+                        paddingBlock: "8px",
+                        borderRadius: "0 6px 6px 0",
+                      }}
+                    >
+                      <strong style={{ color: "#0f172a" }}>Why this comes first:</strong>{" "}
+                      <InlineMarkdown text={blueprint.first20Minutes.why} />
+                    </div>
+
+                    {/* Structured Execution Sequence */}
+                    <div
+                      style={{
                         border: "1px solid #e2e8f0",
-                        borderRadius: "10px",
-                        padding: "16px",
-                        marginBottom: "18px",
+                        borderRadius: "12px",
+                        overflow: "hidden",
+                        marginBottom: "20px",
+                        background: "#fafafa",
                       }}
                     >
                       <div
                         style={{
-                          fontFamily: "var(--mono)",
-                          fontSize: "11px",
-                          fontWeight: 700,
-                          color: "#334155",
-                          textTransform: "uppercase",
-                          marginBottom: "10px",
+                          background: "#f8fafc",
+                          borderBottom: "1px solid #e2e8f0",
+                          padding: "10px 16px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
                         }}
                       >
-                        ✦ What To Do Right Now:
+                        <span
+                          style={{
+                            fontFamily: "var(--mono)",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            color: "#334155",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                          }}
+                        >
+                          Action Steps
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            fontFamily: "var(--mono)",
+                            color: "#94a3b8",
+                          }}
+                        >
+                          {blueprint.first20Minutes.whatToDo.length} sequential tasks
+                        </span>
                       </div>
-                      <ol
-                        style={{
-                          margin: 0,
-                          paddingLeft: "20px",
-                          fontSize: "13.5px",
-                          lineHeight: "1.7",
-                          color: "#1e293b",
-                        }}
-                      >
+
+                      <div style={{ padding: "6px 16px" }}>
                         {blueprint.first20Minutes.whatToDo.map((step, idx) => (
-                          <li key={idx}>{step}</li>
+                          <div
+                            key={idx}
+                            style={{
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: "12px",
+                              paddingBlock: "10px",
+                              borderBottom:
+                                idx < blueprint.first20Minutes!.whatToDo.length - 1
+                                  ? "1px solid #f1f5f9"
+                                  : "none",
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: "22px",
+                                height: "22px",
+                                borderRadius: "50%",
+                                background: "#0f172a",
+                                color: "#ffffff",
+                                fontSize: "11px",
+                                fontWeight: 700,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                                marginTop: "1px",
+                              }}
+                            >
+                              {idx + 1}
+                            </span>
+                            <div
+                              style={{
+                                fontSize: "13.5px",
+                                lineHeight: "1.6",
+                                color: "#1e293b",
+                                flex: 1,
+                              }}
+                            >
+                              <InlineMarkdown text={step} />
+                            </div>
+                          </div>
                         ))}
-                      </ol>
+                      </div>
+
+                      {/* Optional Starter Command Bar */}
+                      {blueprint.first20Minutes.starterTerminalCommand && (
+                        <div
+                          style={{
+                            background: "#0f172a",
+                            borderTop: "1px solid #334155",
+                            padding: "10px 16px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: "12px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <span
+                              style={{
+                                color: "#10b981",
+                                fontFamily: "var(--mono)",
+                                fontSize: "12px",
+                                fontWeight: 700,
+                              }}
+                            >
+                              $
+                            </span>
+                            <code
+                              style={{
+                                fontFamily: "var(--mono)",
+                                fontSize: "12px",
+                                color: "#f8fafc",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
+                              {blueprint.first20Minutes.starterTerminalCommand}
+                            </code>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(
+                                blueprint.first20Minutes!.starterTerminalCommand!
+                              );
+                              onShowToast("Terminal command copied!");
+                            }}
+                            style={{
+                              background: "rgba(255, 255, 255, 0.1)",
+                              color: "#f8fafc",
+                              border: "1px solid rgba(255, 255, 255, 0.2)",
+                              borderRadius: "6px",
+                              padding: "4px 10px",
+                              fontSize: "11px",
+                              fontFamily: "var(--mono)",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              flexShrink: 0,
+                              transition: "background 0.15s ease",
+                            }}
+                            title="Copy command to clipboard"
+                          >
+                            <Copy className="w-3 h-3" />
+                            <span>Copy</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
 
+                    {/* Definition of Done Checkpoint */}
                     <div
                       style={{
-                        background: "#ecfdf5",
-                        border: "1px solid #a7f3d0",
-                        borderRadius: "8px",
-                        padding: "12px 16px",
+                        background: "#f0fdf4",
+                        border: "1px solid #bbf7d0",
+                        borderRadius: "10px",
+                        padding: "14px 18px",
                         display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
+                        alignItems: "flex-start",
+                        gap: "12px",
                       }}
                     >
-                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                      <div style={{ fontSize: "13px", color: "#065f46" }}>
-                        <strong>Done when:</strong> {blueprint.first20Minutes.whatDoneLooksLike}
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "11px",
+                            fontFamily: "var(--mono)",
+                            fontWeight: 700,
+                            color: "#166534",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                            marginBottom: "3px",
+                          }}
+                        >
+                          Definition of Done
+                        </div>
+                        <div style={{ fontSize: "13px", color: "#14532d", lineHeight: "1.5" }}>
+                          <InlineMarkdown text={blueprint.first20Minutes.whatDoneLooksLike} />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1182,31 +1361,33 @@ export function ConsoleSection({
             {/* TAB 2: LEARN FIRST (FOUNDATIONS PATH) */}
             {activeTab === "learn_first" && (
               <div style={{ marginTop: "16px" }}>
-                {/* Header with Vibe Coder vs Go Deeper Toggle */}
+                {/* Header with Quick Path vs Full Curriculum Toggle */}
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
                     flexWrap: "wrap",
-                    gap: "12px",
+                    gap: "14px",
                     background: "#ffffff",
-                    border: "1.5px solid var(--border)",
-                    borderRadius: "12px",
-                    padding: "14px 18px",
+                    border: "1px solid var(--border-strong)",
+                    borderRadius: "14px",
+                    padding: "18px 22px",
                     marginBottom: "18px",
+                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
                   }}
                 >
                   <div>
-                    <h4 style={{ margin: "0 0 4px", fontSize: "16px" }}>
+                    <div className="card-kicker">Foundations Track</div>
+                    <h4 style={{ margin: "2px 0 4px", fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
                       Curated Foundations Curriculum
                     </h4>
-                    <p style={{ margin: 0, fontSize: "12.5px", color: "var(--text-muted)" }}>
-                      Ground-truth concepts you need <em>first</em> before writing complex logic.
+                    <p style={{ margin: 0, fontSize: "13px", color: "var(--text-muted)" }}>
+                      Core architectural concepts to understand before writing complex business logic.
                     </p>
                   </div>
 
-                  {/* Vibe / Deeper Toggle */}
+                  {/* Mode Toggle */}
                   <div
                     style={{
                       display: "flex",
@@ -1221,33 +1402,37 @@ export function ConsoleSection({
                       type="button"
                       onClick={() => handleToggleVibeMode(true)}
                       style={{
-                        padding: "6px 12px",
-                        fontSize: "11.5px",
+                        padding: "6px 14px",
+                        fontSize: "12px",
                         fontWeight: 600,
+                        fontFamily: "var(--mono)",
                         borderRadius: "6px",
                         border: "none",
                         cursor: "pointer",
-                        background: vibeMode ? "#18191a" : "transparent",
+                        background: vibeMode ? "#0f172a" : "transparent",
                         color: vibeMode ? "#ffffff" : "var(--text-muted)",
+                        transition: "all 0.15s ease",
                       }}
                     >
-                      ⚡ Vibe-Coder Minimum
+                      Core Track (Fast)
                     </button>
                     <button
                       type="button"
                       onClick={() => handleToggleVibeMode(false)}
                       style={{
-                        padding: "6px 12px",
-                        fontSize: "11.5px",
+                        padding: "6px 14px",
+                        fontSize: "12px",
                         fontWeight: 600,
+                        fontFamily: "var(--mono)",
                         borderRadius: "6px",
                         border: "none",
                         cursor: "pointer",
-                        background: !vibeMode ? "#18191a" : "transparent",
+                        background: !vibeMode ? "#0f172a" : "transparent",
                         color: !vibeMode ? "#ffffff" : "var(--text-muted)",
+                        transition: "all 0.15s ease",
                       }}
                     >
-                      📖 Go Deeper (Full Path)
+                      Complete Curriculum
                     </button>
                   </div>
                 </div>
@@ -1255,10 +1440,10 @@ export function ConsoleSection({
                 {/* Foundations Progress Bar */}
                 <div
                   style={{
-                    background: "#f8fafc",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "10px",
-                    padding: "12px 16px",
+                    background: "#fafafa",
+                    border: "1px solid var(--border)",
+                    borderRadius: "12px",
+                    padding: "14px 18px",
                     marginBottom: "20px",
                   }}
                 >
@@ -1268,21 +1453,21 @@ export function ConsoleSection({
                       justifyContent: "space-between",
                       fontSize: "11px",
                       fontFamily: "var(--mono)",
-                      color: "#475569",
-                      marginBottom: "6px",
+                      color: "#64748b",
+                      marginBottom: "8px",
                     }}
                   >
-                    <span>FOUNDATIONS PROGRESS</span>
-                    <strong>
-                      {foundationsDoneCount}/{visibleFoundations.length} Completed ({foundationsPercent}%)
+                    <span style={{ fontWeight: 700, letterSpacing: "0.05em" }}>CURRICULUM COMPLETION</span>
+                    <strong style={{ color: "#0f172a" }}>
+                      {foundationsDoneCount}/{visibleFoundations.length} Modules ({foundationsPercent}%)
                     </strong>
                   </div>
                   <div
                     style={{
                       width: "100%",
-                      height: "8px",
+                      height: "6px",
                       background: "#e2e8f0",
-                      borderRadius: "4px",
+                      borderRadius: "999px",
                       overflow: "hidden",
                     }}
                   >
@@ -1291,6 +1476,7 @@ export function ConsoleSection({
                         width: `${foundationsPercent}%`,
                         height: "100%",
                         background: "#10b981",
+                        borderRadius: "999px",
                         transition: "width 0.3s ease",
                       }}
                     />
@@ -1306,10 +1492,13 @@ export function ConsoleSection({
                         key={mod.id}
                         style={{
                           background: "#ffffff",
-                          border: isDone ? "1.5px solid #86efac" : "1.5px solid var(--border)",
-                          borderRadius: "12px",
-                          padding: "18px",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+                          border: isDone ? "1.5px solid #86efac" : "1px solid var(--border)",
+                          borderRadius: "14px",
+                          padding: "20px 22px",
+                          boxShadow: isDone
+                            ? "0 2px 10px rgba(16, 185, 129, 0.05)"
+                            : "0 1px 3px rgba(0, 0, 0, 0.02)",
+                          transition: "all 0.15s ease",
                         }}
                       >
                         <div
@@ -1318,7 +1507,8 @@ export function ConsoleSection({
                             justifyContent: "space-between",
                             alignItems: "flex-start",
                             gap: "12px",
-                            marginBottom: "8px",
+                            marginBottom: "12px",
+                            flexWrap: "wrap",
                           }}
                         >
                           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -1334,18 +1524,21 @@ export function ConsoleSection({
                             <span
                               style={{
                                 fontFamily: "var(--mono)",
-                                fontSize: "11px",
+                                fontSize: "10.5px",
                                 fontWeight: 700,
-                                color: "#b45309",
-                                background: "#fef3c7",
-                                padding: "2px 8px",
+                                color: "#ffffff",
+                                background: "#0f172a",
+                                padding: "3px 8px",
                                 borderRadius: "4px",
+                                letterSpacing: "0.05em",
                               }}
                             >
-                              Step 0{idx + 1}
+                              MODULE {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
                             </span>
 
-                            <h4 style={{ margin: 0, fontSize: "15.5px" }}>{mod.title}</h4>
+                            <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                              {mod.title}
+                            </h4>
                           </div>
 
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1353,19 +1546,24 @@ export function ConsoleSection({
                               style={{
                                 fontSize: "11px",
                                 fontFamily: "var(--mono)",
-                                color: "var(--text-soft)",
+                                color: "#64748b",
+                                background: "#f1f5f9",
+                                padding: "3px 8px",
+                                borderRadius: "4px",
                               }}
                             >
-                              ⏱️ {mod.minutes} mins
+                              ⏱ ~{mod.minutes}m
                             </span>
                             <span
                               style={{
-                                fontSize: "10px",
+                                fontSize: "10.5px",
                                 fontFamily: "var(--mono)",
-                                padding: "2px 6px",
+                                fontWeight: 600,
+                                padding: "3px 8px",
                                 borderRadius: "4px",
-                                background: mod.tier === "core" ? "#ecfdf5" : "#eff6ff",
-                                color: mod.tier === "core" ? "#065f46" : "#1e40af",
+                                background: "rgba(15, 23, 42, 0.05)",
+                                color: "#334155",
+                                border: "1px solid #e2e8f0",
                               }}
                             >
                               {mod.tier.toUpperCase()}
@@ -1374,66 +1572,80 @@ export function ConsoleSection({
                         </div>
 
                         {/* Plain English Summary with Analogy */}
-                        <p
+                        <div
                           style={{
                             fontSize: "13.5px",
-                            lineHeight: "1.55",
+                            lineHeight: "1.6",
                             color: "var(--text)",
-                            marginBottom: "10px",
+                            marginBottom: "14px",
                           }}
                         >
-                          {mod.plainEnglishSummary}
-                        </p>
+                          <InlineMarkdown text={mod.plainEnglishSummary} />
+                        </div>
 
                         {/* Why for YOUR project */}
                         <div
                           style={{
-                            background: "#f8fafc",
-                            border: "1px solid #e2e8f0",
-                            borderRadius: "8px",
-                            padding: "8px 12px",
-                            fontSize: "12.5px",
+                            borderLeft: "3px solid #0f172a",
+                            paddingLeft: "14px",
+                            background: "rgba(15, 23, 42, 0.02)",
+                            paddingBlock: "8px",
+                            borderRadius: "0 6px 6px 0",
+                            fontSize: "13px",
                             color: "#334155",
-                            marginBottom: "12px",
+                            lineHeight: "1.55",
+                            marginBottom: "14px",
                           }}
                         >
-                          <strong>Why for your project:</strong> {mod.whyNeededForProject || mod.plainEnglishSummary}
+                          <strong style={{ color: "#0f172a" }}>Why for your project:</strong>{" "}
+                          <InlineMarkdown text={mod.whyNeededForProject || mod.plainEnglishSummary} />
                         </div>
 
                         {/* Mode Specific Guidance */}
                         <div
                           style={{
-                            fontSize: "12px",
-                            color: "var(--text-muted)",
-                            lineHeight: "1.5",
-                            marginBottom: "12px",
+                            fontSize: "12.5px",
+                            color: "#475569",
+                            lineHeight: "1.55",
+                            marginBottom: "14px",
+                            padding: "10px 14px",
+                            background: "#fafafa",
+                            borderRadius: "8px",
+                            border: "1px solid #e2e8f0",
                           }}
                         >
-                          {vibeMode ? (
-                            <span>
-                              <strong>⚡ Vibe-Coder Minimum:</strong> {mod.vibeMinimumNote}
-                            </span>
-                          ) : (
-                            <span>
-                              <strong>📖 Deeper Context:</strong> {mod.deeperNote}
-                            </span>
-                          )}
+                          <strong style={{ color: "#0f172a" }}>
+                            {vibeMode ? "Core Path Focus:" : "Architectural Context:"}
+                          </strong>{" "}
+                          <InlineMarkdown text={vibeMode ? mod.vibeMinimumNote : mod.deeperNote} />
                         </div>
 
                         {/* You're done when checks */}
                         <div
                           style={{
                             borderTop: "1px solid var(--border)",
-                            paddingTop: "10px",
+                            paddingTop: "12px",
                             display: "flex",
                             justifyContent: "space-between",
                             alignItems: "center",
                             flexWrap: "wrap",
-                            gap: "8px",
+                            gap: "10px",
                           }}
                         >
-                          <div style={{ fontSize: "12px", color: "#065f46" }}>
-                            <strong>You're done when:</strong> {mod.youreDoneWhen.join(" · ")}
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              fontSize: "12.5px",
+                              color: "#166534",
+                            }}
+                          >
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>
+                              <strong>Done when:</strong>{" "}
+                              <InlineMarkdown text={mod.youreDoneWhen.join(" · ")} />
+                            </span>
                           </div>
 
                           {/* Official Doc Link (Honest Labeling) */}
@@ -1444,14 +1656,19 @@ export function ConsoleSection({
                             style={{
                               fontSize: "11.5px",
                               fontFamily: "var(--mono)",
-                              color: "var(--accent-green)",
+                              color: "var(--text-muted)",
                               display: "inline-flex",
                               alignItems: "center",
                               gap: "4px",
-                              textDecoration: "underline",
+                              textDecoration: "none",
+                              padding: "4px 10px",
+                              borderRadius: "6px",
+                              background: "var(--surface-alt)",
+                              border: "1px solid var(--border)",
+                              transition: "all 0.15s ease",
                             }}
                           >
-                            <span>{mod.officialResource.title} (official docs)</span>
+                            <span>{mod.officialResource.title} (docs)</span>
                             <ExternalLink className="w-3 h-3" />
                           </a>
                         </div>
@@ -1470,11 +1687,11 @@ export function ConsoleSection({
                   <div
                     style={{
                       background: "#ffffff",
-                      border: "2px solid #e2e8f0",
-                      borderRadius: "14px",
-                      padding: "22px",
-                      marginBottom: "18px",
-                      boxShadow: "0 4px 16px rgba(0,0,0,0.03)",
+                      border: "1px solid var(--border-strong)",
+                      borderRadius: "16px",
+                      padding: "24px 26px",
+                      marginBottom: "20px",
+                      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
                     }}
                   >
                     <div
@@ -1482,117 +1699,124 @@ export function ConsoleSection({
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
-                        marginBottom: "14px",
+                        marginBottom: "16px",
                         flexWrap: "wrap",
-                        gap: "8px",
+                        gap: "10px",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <span
                           style={{
                             background: "#0f172a",
-                            color: "#f8fafc",
-                            padding: "4px 12px",
-                            borderRadius: "6px",
+                            color: "#ffffff",
+                            padding: "4px 10px",
+                            borderRadius: "5px",
                             fontFamily: "var(--mono)",
-                            fontSize: "12px",
+                            fontSize: "11px",
                             fontWeight: 700,
                             letterSpacing: "0.06em",
                             textTransform: "uppercase",
                           }}
                         >
-                          {blueprint.architecture.project_type === "bot"
-                            ? "🤖 Bot Architecture"
-                            : blueprint.architecture.project_type === "CLI"
-                            ? "💻 Terminal CLI Tool"
-                            : blueprint.architecture.project_type === "mobile app"
-                            ? "📱 Mobile App"
-                            : blueprint.architecture.project_type === "data/script"
-                            ? "📊 Data Script / Scraper"
-                            : blueprint.architecture.project_type === "game"
-                            ? "🎮 Game Engine"
-                            : "🌐 Web Application"}
+                          PROJECT ARCHITECTURE
                         </span>
-                        <DevSourceBadge
-                          source={
-                            blueprint.sourceBadges?.architecture ||
-                            (blueprint.isFallback ? "fallback" : "model")
-                          }
-                        />
+                        <span
+                          style={{
+                            fontFamily: "var(--mono)",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            color: "#475569",
+                            background: "var(--surface-alt)",
+                            border: "1px solid var(--border)",
+                            padding: "3px 9px",
+                            borderRadius: "5px",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {blueprint.architecture.project_type}
+                        </span>
                       </div>
-                      <span style={{ fontSize: "12.5px", color: "var(--text-muted)" }}>
-                        {blueprint.architecture.parts.length} distinct project components
+                      <span
+                        style={{
+                          fontSize: "11.5px",
+                          fontFamily: "var(--mono)",
+                          color: "#64748b",
+                          background: "#f1f5f9",
+                          padding: "3px 9px",
+                          borderRadius: "4px",
+                        }}
+                      >
+                        {blueprint.architecture.parts.length} distinct system components
                       </span>
                     </div>
 
                     {/* Back End vs Front End Explained Simply */}
                     <div
                       style={{
-                        background: "#f0fdfa",
-                        border: "1.5px solid #99f6e4",
-                        borderRadius: "10px",
-                        padding: "16px",
+                        background: "#ffffff",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "12px",
+                        padding: "16px 20px",
                         marginBottom: "16px",
                       }}
                     >
+                      <div className="card-kicker">Separation of Concerns</div>
                       <h4
                         style={{
-                          margin: "0 0 6px",
+                          margin: "2px 0 8px",
                           fontSize: "15px",
-                          color: "#0f766e",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
+                          fontWeight: 700,
+                          color: "#0f172a",
                         }}
                       >
-                        <span>💡</span> Back End vs Front End (Explained Simply For This Project)
+                        Client vs Server Mechanics
                       </h4>
-                      <p style={{ margin: 0, fontSize: "13.5px", lineHeight: "1.6", color: "#134e4a" }}>
-                        {blueprint.architecture.front_back_explained_simply}
-                      </p>
+                      <div style={{ margin: 0, fontSize: "13.5px", lineHeight: "1.6", color: "var(--text)" }}>
+                        <MarkdownContent content={blueprint.architecture.front_back_explained_simply} />
+                      </div>
                     </div>
 
                     {/* Preview of Finished Product */}
                     {blueprint.architecture.finished_product_preview && (
                       <div
                         style={{
-                          background: "#faf5ff",
-                          border: "1.5px solid #e9d5ff",
-                          borderRadius: "10px",
-                          padding: "16px",
+                          background: "#ffffff",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "12px",
+                          padding: "16px 20px",
                           marginBottom: "16px",
                         }}
                       >
+                        <div className="card-kicker">Product End-State</div>
                         <h4
                           style={{
-                            margin: "0 0 6px",
+                            margin: "2px 0 8px",
                             fontSize: "15px",
-                            color: "#6b21a8",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "6px",
+                            fontWeight: 700,
+                            color: "#0f172a",
                           }}
                         >
-                          <span>✨</span> Preview of Finished Product
+                          Working Prototype Preview
                         </h4>
-                        <p style={{ margin: 0, fontSize: "13.5px", lineHeight: "1.6", color: "#581c87" }}>
-                          {blueprint.architecture.finished_product_preview}
-                        </p>
+                        <div style={{ margin: 0, fontSize: "13.5px", lineHeight: "1.6", color: "var(--text)" }}>
+                          <MarkdownContent content={blueprint.architecture.finished_product_preview} />
+                        </div>
                       </div>
                     )}
 
                     {/* Recommended Stack & Alternatives */}
                     <div
                       style={{
-                        background: "#f8fafc",
-                        border: "1.5px solid #e2e8f0",
-                        borderRadius: "10px",
-                        padding: "16px",
+                        background: "#fafafa",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "12px",
+                        padding: "18px 20px",
                         marginBottom: "20px",
                       }}
                     >
-                      <h4 style={{ margin: "0 0 8px", fontSize: "15px", color: "#1e293b" }}>
-                        🛠️ Recommended Beginner Stack
+                      <div className="card-kicker">Recommended Stack</div>
+                      <h4 style={{ margin: "2px 0 10px", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                        Calibrated Tools & Runtime
                       </h4>
                       <div
                         style={{
@@ -1600,10 +1824,20 @@ export function ConsoleSection({
                           flexWrap: "wrap",
                           gap: "8px",
                           alignItems: "center",
-                          marginBottom: "8px",
+                          marginBottom: "10px",
                         }}
                       >
-                        <span style={{ fontWeight: 700, fontSize: "13.5px", color: "#0f172a" }}>
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            fontSize: "12px",
+                            fontFamily: "var(--mono)",
+                            background: "#0f172a",
+                            color: "#ffffff",
+                            padding: "3px 9px",
+                            borderRadius: "5px",
+                          }}
+                        >
                           {blueprint.architecture.recommended_stack.language}
                         </span>
                         {blueprint.architecture.recommended_stack.framework_or_tools.map((tool, i) => (
@@ -1612,8 +1846,8 @@ export function ConsoleSection({
                             style={{
                               background: "#ffffff",
                               border: "1px solid #cbd5e1",
-                              borderRadius: "4px",
-                              padding: "2px 8px",
+                              borderRadius: "5px",
+                              padding: "3px 9px",
                               fontSize: "12px",
                               fontFamily: "var(--mono)",
                               color: "#334155",
@@ -1624,7 +1858,8 @@ export function ConsoleSection({
                         ))}
                       </div>
                       <p style={{ fontSize: "13px", color: "#475569", lineHeight: "1.55", margin: "0 0 10px" }}>
-                        <strong>Why in plain English:</strong> {blueprint.architecture.recommended_stack.why_in_plain_english}
+                        <strong style={{ color: "#0f172a" }}>Why in plain English:</strong>{" "}
+                        <InlineMarkdown text={blueprint.architecture.recommended_stack.why_in_plain_english} />
                       </p>
                       {blueprint.architecture.recommended_stack.alternatives &&
                         blueprint.architecture.recommended_stack.alternatives.length > 0 && (
@@ -1635,6 +1870,7 @@ export function ConsoleSection({
                                 fontFamily: "var(--mono)",
                                 color: "#64748b",
                                 textTransform: "uppercase",
+                                letterSpacing: "0.05em",
                               }}
                             >
                               Beginner Alternatives:
@@ -1653,20 +1889,20 @@ export function ConsoleSection({
                     {/* The 3-7 Project Parts */}
                     <div>
                       <div className="card-kicker">Component Blueprint // {blueprint.architecture.parts.length} Parts</div>
-                      <h4 style={{ margin: "4px 0 14px", fontSize: "18px" }}>The Parts of Your Project</h4>
+                      <h4 style={{ margin: "4px 0 16px", fontSize: "18px", fontWeight: 700, color: "#0f172a" }}>
+                        System Components
+                      </h4>
 
                       <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                         {blueprint.architecture.parts.map((part, idx) => {
-                          const isFront = part.side.includes("front end");
-                          const isBack = part.side.includes("back end");
                           return (
                             <div
                               key={part.id || idx}
                               style={{
                                 background: "#ffffff",
-                                border: "1.5px solid #e2e8f0",
-                                borderRadius: "10px",
-                                padding: "16px",
+                                border: "1px solid var(--border)",
+                                borderRadius: "12px",
+                                padding: "18px 20px",
                               }}
                             >
                               <div
@@ -1675,11 +1911,11 @@ export function ConsoleSection({
                                   justifyContent: "space-between",
                                   alignItems: "flex-start",
                                   gap: "12px",
-                                  marginBottom: "8px",
+                                  marginBottom: "10px",
                                   flexWrap: "wrap",
                                 }}
                               >
-                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                                   <span
                                     style={{
                                       background: "#0f172a",
@@ -1697,21 +1933,22 @@ export function ConsoleSection({
                                   >
                                     {idx + 1}
                                   </span>
-                                  <h5 style={{ margin: 0, fontSize: "16px", fontWeight: 700 }}>{part.name}</h5>
+                                  <h5 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                                    {part.name}
+                                  </h5>
                                 </div>
 
                                 <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                                   <span
                                     style={{
                                       fontSize: "11px",
+                                      fontFamily: "var(--mono)",
                                       fontWeight: 600,
                                       borderRadius: "4px",
                                       padding: "3px 8px",
-                                      background: isFront ? "#eff6ff" : isBack ? "#fffbeb" : "#f5f3ff",
-                                      color: isFront ? "#1d4ed8" : isBack ? "#b45309" : "#6d28d9",
-                                      border: `1px solid ${
-                                        isFront ? "#bfdbfe" : isBack ? "#fde68a" : "#ddd6fe"
-                                      }`,
+                                      background: "rgba(15, 23, 42, 0.05)",
+                                      color: "#334155",
+                                      border: "1px solid #e2e8f0",
                                     }}
                                   >
                                     {part.side}
@@ -1733,52 +1970,85 @@ export function ConsoleSection({
                                 </div>
                               </div>
 
-                              <p style={{ fontSize: "13.5px", color: "var(--text)", margin: "0 0 10px", lineHeight: "1.5" }}>
+                              <p style={{ fontSize: "13.5px", color: "var(--text)", margin: "0 0 12px", lineHeight: "1.55" }}>
                                 {part.one_line_purpose}
                               </p>
 
                               {part.example_look_feel_function && (
                                 <div
                                   style={{
-                                    background: "#f8fafc",
+                                    background: "#fafafa",
                                     border: "1px solid #e2e8f0",
                                     borderRadius: "8px",
-                                    padding: "10px 12px",
-                                    marginBottom: "10px",
+                                    padding: "10px 14px",
+                                    marginBottom: "12px",
                                     fontSize: "12.5px",
                                     color: "#334155",
-                                    lineHeight: "1.5",
+                                    lineHeight: "1.55",
                                   }}
                                 >
-                                  <strong>👁️ How it looks, feels & functions:</strong> {part.example_look_feel_function}
+                                  <strong style={{ color: "#0f172a" }}>Behavior & Specification:</strong>{" "}
+                                  {part.example_look_feel_function}
                                 </div>
                               )}
 
                               {part.steps && part.steps.length > 0 && (
-                                <div style={{ marginBottom: "10px" }}>
+                                <div style={{ marginBottom: "12px" }}>
                                   <div
                                     style={{
                                       fontSize: "11px",
                                       fontFamily: "var(--mono)",
                                       color: "#64748b",
                                       textTransform: "uppercase",
-                                      marginBottom: "4px",
+                                      letterSpacing: "0.05em",
+                                      marginBottom: "6px",
                                     }}
                                   >
-                                    Individual Build Steps:
+                                    Build Steps:
                                   </div>
-                                  <ol style={{ margin: 0, paddingLeft: "20px", fontSize: "12.5px", color: "#1e293b", lineHeight: "1.6" }}>
+                                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                                     {part.steps.map((s, sIdx) => (
-                                      <li key={sIdx}>{s}</li>
+                                      <div
+                                        key={sIdx}
+                                        style={{
+                                          display: "flex",
+                                          alignItems: "flex-start",
+                                          gap: "8px",
+                                          fontSize: "12.5px",
+                                          color: "#1e293b",
+                                          lineHeight: "1.5",
+                                        }}
+                                      >
+                                        <span
+                                          style={{
+                                            width: "16px",
+                                            height: "16px",
+                                            borderRadius: "50%",
+                                            background: "#f1f5f9",
+                                            color: "#475569",
+                                            fontSize: "10px",
+                                            fontFamily: "var(--mono)",
+                                            fontWeight: 700,
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            flexShrink: 0,
+                                            marginTop: "2px",
+                                          }}
+                                        >
+                                          {sIdx + 1}
+                                        </span>
+                                        <span>{s}</span>
+                                      </div>
                                     ))}
-                                  </ol>
+                                  </div>
                                 </div>
                               )}
 
                               {part.resources && part.resources.length > 0 && (
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
                                   <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "#64748b" }}>
-                                    Beginner Resources:
+                                    Resources:
                                   </span>
                                   {part.resources.map((r, rIdx) => (
                                     <a
@@ -1790,12 +2060,12 @@ export function ConsoleSection({
                                         display: "inline-flex",
                                         alignItems: "center",
                                         gap: "4px",
-                                        background: "#ffffff",
-                                        border: "1px solid #cbd5e1",
-                                        borderRadius: "4px",
+                                        background: "var(--surface-alt)",
+                                        border: "1px solid var(--border)",
+                                        borderRadius: "5px",
                                         padding: "3px 8px",
                                         fontSize: "11.5px",
-                                        color: "#0369a1",
+                                        color: "var(--text)",
                                         textDecoration: "none",
                                       }}
                                       title={r.why}
@@ -1818,32 +2088,35 @@ export function ConsoleSection({
                 <div
                   style={{
                     background: "#ffffff",
-                    border: "1.5px solid var(--border)",
-                    borderRadius: "12px",
-                    padding: "18px",
+                    border: "1px solid var(--border)",
+                    borderRadius: "14px",
+                    padding: "20px 22px",
                     marginBottom: "16px",
                   }}
                 >
                   <div className="card-kicker">01 · Plain English Definition</div>
-
-                  <h4 style={{ margin: "4px 0 8px", fontSize: "17px" }}>What It Does</h4>
-                  <p style={{ fontSize: "14.5px", lineHeight: "1.6", color: "var(--text)", margin: 0 }}>
-                    {blueprint.productMap.whatItDoes}
-                  </p>
+                  <h4 style={{ margin: "4px 0 8px", fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
+                    What It Does
+                  </h4>
+                  <div style={{ fontSize: "14.5px", lineHeight: "1.6", color: "var(--text)", margin: 0 }}>
+                    <MarkdownContent content={blueprint.productMap.whatItDoes} />
+                  </div>
                 </div>
 
                 {/* 2. User Journey */}
                 <div
                   style={{
                     background: "#ffffff",
-                    border: "1.5px solid var(--border)",
-                    borderRadius: "12px",
-                    padding: "18px",
+                    border: "1px solid var(--border)",
+                    borderRadius: "14px",
+                    padding: "20px 22px",
                     marginBottom: "16px",
                   }}
                 >
                   <div className="card-kicker">02 · End-to-End User Experience</div>
-                  <h4 style={{ margin: "4px 0 14px", fontSize: "17px" }}>User Journey</h4>
+                  <h4 style={{ margin: "4px 0 14px", fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
+                    User Journey
+                  </h4>
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     {blueprint.productMap.userJourney.map((stepStr, idx) => (
                       <div
@@ -1861,12 +2134,12 @@ export function ConsoleSection({
                         <span
                           style={{
                             fontFamily: "var(--mono)",
-                            fontSize: "12px",
+                            fontSize: "11px",
                             fontWeight: 700,
-                            background: "#18191a",
-                            color: "#fff",
-                            width: "24px",
-                            height: "24px",
+                            background: "#0f172a",
+                            color: "#ffffff",
+                            width: "22px",
+                            height: "22px",
                             borderRadius: "50%",
                             display: "flex",
                             alignItems: "center",
@@ -1877,7 +2150,7 @@ export function ConsoleSection({
                           {idx + 1}
                         </span>
                         <div style={{ flex: 1, fontSize: "13px", color: "var(--text)" }}>
-                          {stepStr}
+                          <InlineMarkdown text={stepStr} />
                         </div>
                       </div>
                     ))}
@@ -1897,13 +2170,15 @@ export function ConsoleSection({
                   <div
                     style={{
                       background: "#ffffff",
-                      border: "1.5px solid var(--border)",
-                      borderRadius: "12px",
-                      padding: "18px",
+                      border: "1px solid var(--border)",
+                      borderRadius: "14px",
+                      padding: "20px",
                     }}
                   >
                     <div className="card-kicker">03 · UI Boundaries</div>
-                    <h4 style={{ margin: "4px 0 12px", fontSize: "16px" }}>Screens</h4>
+                    <h4 style={{ margin: "4px 0 12px", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                      Screens
+                    </h4>
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {blueprint.productMap.screens.map((screen, idx) => (
                         <div
@@ -1917,7 +2192,9 @@ export function ConsoleSection({
                           }}
                         >
                           <strong style={{ color: "var(--text)" }}>{screen.name}</strong>:{" "}
-                          <span style={{ color: "var(--text-muted)" }}>{screen.userAction}</span>
+                          <span style={{ color: "var(--text-muted)" }}>
+                            <InlineMarkdown text={screen.userAction} />
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -1927,13 +2204,15 @@ export function ConsoleSection({
                   <div
                     style={{
                       background: "#ffffff",
-                      border: "1.5px solid var(--border)",
-                      borderRadius: "12px",
-                      padding: "18px",
+                      border: "1px solid var(--border)",
+                      borderRadius: "14px",
+                      padding: "20px",
                     }}
                   >
                     <div className="card-kicker">04 · Data Storage For MVP</div>
-                    <h4 style={{ margin: "4px 0 12px", fontSize: "16px" }}>Data & Persistence</h4>
+                    <h4 style={{ margin: "4px 0 12px", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                      Data & Persistence
+                    </h4>
                     <div style={{ marginBottom: "12px" }}>
                       <div
                         style={{
@@ -1946,25 +2225,27 @@ export function ConsoleSection({
                       >
                         Core Data Needed:
                       </div>
-                      <p style={{ margin: "0 0 10px", fontSize: "12.5px", color: "var(--text)", lineHeight: "1.5" }}>
-                        {blueprint.productMap.dataItNeeds.description}
-                      </p>
+                      <div style={{ margin: "0 0 10px", fontSize: "12.5px", color: "var(--text)", lineHeight: "1.5" }}>
+                        <InlineMarkdown text={blueprint.productMap.dataItNeeds.description} />
+                      </div>
                     </div>
                     <div
                       style={{
-                        background: "#ecfdf5",
-                        border: "1px solid #a7f3d0",
+                        background: "#f0fdf4",
+                        border: "1px solid #bbf7d0",
                         padding: "8px 12px",
                         borderRadius: "6px",
                         fontSize: "12px",
-                        color: "#065f46",
+                        color: "#166534",
                         marginBottom: "8px",
                       }}
                     >
-                      <strong>Storage for MVP:</strong> {blueprint.productMap.dataItNeeds.storageForMvp}
+                      <strong>Storage for MVP:</strong>{" "}
+                      <InlineMarkdown text={blueprint.productMap.dataItNeeds.storageForMvp} />
                     </div>
                     <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
-                      <strong>Later upgrade options:</strong> {blueprint.productMap.dataItNeeds.laterOptions}
+                      <strong>Later upgrade options:</strong>{" "}
+                      <InlineMarkdown text={blueprint.productMap.dataItNeeds.laterOptions} />
                     </div>
                   </div>
                 </div>
@@ -1981,18 +2262,22 @@ export function ConsoleSection({
                   <div
                     style={{
                       background: "#ffffff",
-                      border: "1.5px solid #86efac",
-                      borderRadius: "12px",
-                      padding: "18px",
+                      border: "1px solid #bbf7d0",
+                      borderRadius: "14px",
+                      padding: "20px",
                     }}
                   >
                     <div className="card-kicker" style={{ color: "#166534" }}>
                       ✓ Build in Phase 1
                     </div>
-                    <h4 style={{ margin: "4px 0 10px", fontSize: "16px" }}>Parts You Need NOW</h4>
+                    <h4 style={{ margin: "4px 0 10px", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                      Parts You Need NOW
+                    </h4>
                     <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "13px", color: "#1e293b", lineHeight: "1.7" }}>
                       {blueprint.productMap.partsYouNeedNow.map((p, idx) => (
-                        <li key={idx}><strong>{p.part}</strong>: {p.reason}</li>
+                        <li key={idx}>
+                          <strong>{p.part}</strong>: <InlineMarkdown text={p.reason} />
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -2000,20 +2285,24 @@ export function ConsoleSection({
                   <div
                     style={{
                       background: "#ffffff",
-                      border: "1.5px solid #fed7aa",
-                      borderRadius: "12px",
-                      padding: "18px",
+                      border: "1px solid var(--border)",
+                      borderRadius: "14px",
+                      padding: "20px",
                     }}
                   >
-                    <div className="card-kicker" style={{ color: "#9a3412" }}>
-                      ⚠️ Scope Protection (Zero MVP Bloat)
+                    <div className="card-kicker" style={{ color: "#64748b" }}>
+                      Scope Protection (Deferred)
                     </div>
-                    <h4 style={{ margin: "4px 0 10px", fontSize: "16px" }}>Parts You Can IGNORE For Now</h4>
+                    <h4 style={{ margin: "4px 0 10px", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                      Parts You Can IGNORE For Now
+                    </h4>
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {blueprint.productMap.partsYouCanIgnoreForNow.map((p, idx) => (
                         <div key={idx} style={{ fontSize: "12.5px" }}>
-                          <strong style={{ color: "#9a3412" }}>✕ {p.part}:</strong>{" "}
-                          <span style={{ color: "var(--text-muted)" }}>{p.reason}</span>
+                          <strong style={{ color: "#64748b" }}>— {p.part}:</strong>{" "}
+                          <span style={{ color: "var(--text-muted)" }}>
+                            <InlineMarkdown text={p.reason} />
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -2024,65 +2313,73 @@ export function ConsoleSection({
                 <div
                   style={{
                     background: "#ffffff",
-                    border: "1.5px solid var(--border)",
-                    borderRadius: "12px",
-                    padding: "18px",
+                    border: "1px solid var(--border)",
+                    borderRadius: "14px",
+                    padding: "20px",
                     marginBottom: "16px",
                   }}
                 >
                   <div className="card-kicker">05 · Phased Scope Boundaries</div>
-                  <h4 style={{ margin: "4px 0 14px", fontSize: "17px" }}>MVP vs Later Versions</h4>
+                  <h4 style={{ margin: "4px 0 14px", fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
+                    MVP vs Later Versions
+                  </h4>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
                     <div
                       style={{
                         background: "#f0fdf4",
                         border: "1px solid #bbf7d0",
-                        padding: "12px",
-                        borderRadius: "8px",
+                        padding: "14px",
+                        borderRadius: "10px",
                       }}
                     >
-                      <strong style={{ fontSize: "12.5px", color: "#166534", textTransform: "uppercase" }}>
+                      <strong style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "#166534", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                         v1 (Demo Ready)
                       </strong>
-                      <ul style={{ margin: "8px 0 0", paddingLeft: "16px", fontSize: "12px", color: "#1e293b" }}>
+                      <ul style={{ margin: "8px 0 0", paddingLeft: "16px", fontSize: "12px", color: "#1e293b", lineHeight: "1.6" }}>
                         {blueprint.productMap.mvpVsLater.v1DemoReady.map((f, i) => (
-                          <li key={i}>{f}</li>
+                          <li key={i}>
+                            <InlineMarkdown text={f} />
+                          </li>
                         ))}
                       </ul>
                     </div>
 
                     <div
                       style={{
-                        background: "#f8fafc",
+                        background: "#fafafa",
                         border: "1px solid #e2e8f0",
-                        padding: "12px",
-                        borderRadius: "8px",
+                        padding: "14px",
+                        borderRadius: "10px",
                       }}
                     >
-                      <strong style={{ fontSize: "12.5px", color: "#334155", textTransform: "uppercase" }}>
+                      <strong style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "#334155", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                         v2 (Fast Follow)
                       </strong>
-                      <ul style={{ margin: "8px 0 0", paddingLeft: "16px", fontSize: "12px", color: "#475569" }}>
+                      <ul style={{ margin: "8px 0 0", paddingLeft: "16px", fontSize: "12px", color: "#475569", lineHeight: "1.6" }}>
                         {blueprint.productMap.mvpVsLater.v2Next.map((f, i) => (
-                          <li key={i}>{f}</li>
+                          <li key={i}>
+                            <InlineMarkdown text={f} />
+                          </li>
                         ))}
                       </ul>
                     </div>
 
                     <div
                       style={{
-                        background: "#f8fafc",
+                        background: "#fafafa",
                         border: "1px solid #e2e8f0",
-                        padding: "12px",
-                        borderRadius: "8px",
+                        padding: "14px",
+                        borderRadius: "10px",
                       }}
                     >
-                      <strong style={{ fontSize: "12.5px", color: "#475569", textTransform: "uppercase" }}>
+                      <strong style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                         v3 (Full Product)
                       </strong>
-                      <ul style={{ margin: "8px 0 0", paddingLeft: "16px", fontSize: "12px", color: "#64748b" }}>
+                      <ul style={{ margin: "8px 0 0", paddingLeft: "16px", fontSize: "12px", color: "#64748b", lineHeight: "1.6" }}>
                         {blueprint.productMap.mvpVsLater.v3Future.map((f, i) => (
-                          <li key={i}>{f}</li>
+                          <li key={i}>
+                            <InlineMarkdown text={f} />
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -2093,27 +2390,34 @@ export function ConsoleSection({
                 <div
                   style={{
                     background: "#ffffff",
-                    border: "1.5px solid var(--border)",
-                    borderRadius: "12px",
-                    padding: "18px",
+                    border: "1px solid var(--border)",
+                    borderRadius: "14px",
+                    padding: "20px",
                   }}
                 >
                   <div className="card-kicker">06 · After The Demo Works</div>
-                  <h4 style={{ margin: "4px 0 12px", fontSize: "17px" }}>Next Implementation Steps</h4>
+                  <h4 style={{ margin: "4px 0 12px", fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
+                    Next Implementation Steps
+                  </h4>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     {blueprint.productMap.nextImplementationSteps.map((step, idx) => (
                       <div
                         key={idx}
                         style={{
                           fontSize: "13px",
-                          padding: "8px 12px",
+                          padding: "10px 14px",
                           background: "var(--surface-alt)",
-                          borderRadius: "6px",
+                          borderRadius: "8px",
                           border: "1px solid var(--border)",
                         }}
                       >
-                        <strong>Step {idx + 1}: {step.step}</strong> —{" "}
-                        <span style={{ color: "var(--text-muted)" }}>{step.reason}</span>
+                        <strong style={{ color: "#0f172a" }}>
+                          Step {idx + 1}: <InlineMarkdown text={step.step} />
+                        </strong>{" "}
+                        —{" "}
+                        <span style={{ color: "var(--text-muted)" }}>
+                          <InlineMarkdown text={step.reason} />
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -2146,17 +2450,18 @@ export function ConsoleSection({
                 <div
                   style={{
                     background: "#ffffff",
-                    border: "1.5px solid var(--border)",
-                    borderRadius: "12px",
-                    padding: "18px",
-                    marginBottom: "16px",
+                    border: "1px solid var(--border-strong)",
+                    borderRadius: "14px",
+                    padding: "20px 24px",
+                    marginBottom: "18px",
+                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
                   }}
                 >
                   <div className="card-kicker">Deferred Complexity</div>
-                  <h4 style={{ margin: "4px 0 8px", fontSize: "17px" }}>
+                  <h4 style={{ margin: "2px 0 6px", fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
                     Advanced Topics Intentionally Kept Out of the MVP
                   </h4>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-muted)", margin: 0 }}>
+                  <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: 0, lineHeight: "1.6" }}>
                     Beginners fail when attempting to configure cloud databases, OAuth logins, and payment SDKs
                     before validating their core product loop. These topics are ready for you once Phase 1 is demoed:
                   </p>
@@ -2168,8 +2473,9 @@ export function ConsoleSection({
                     style={{
                       background: "#ffffff",
                       border: "1px solid var(--border)",
-                      borderRadius: "10px",
+                      borderRadius: "12px",
                       overflow: "hidden",
+                      transition: "border-color 0.15s ease",
                     }}
                   >
                     <button
@@ -2177,7 +2483,7 @@ export function ConsoleSection({
                       onClick={() => toggleLevelUp("database")}
                       style={{
                         width: "100%",
-                        padding: "14px 18px",
+                        padding: "16px 20px",
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
@@ -2188,8 +2494,10 @@ export function ConsoleSection({
                       }}
                     >
                       <div>
-                        <strong style={{ fontSize: "14px" }}>Cloud Databases & Multi-User Persistence</strong>
-                        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>
+                        <strong style={{ fontSize: "14.5px", fontWeight: 700, color: "#0f172a" }}>
+                          Cloud Databases & Multi-User Persistence
+                        </strong>
+                        <div style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "3px" }}>
                           Why deferred: Browser LocalStorage provides 100% reliable zero-server demos.
                         </div>
                       </div>
@@ -2200,8 +2508,17 @@ export function ConsoleSection({
                       />
                     </button>
                     {expandedLevelUpItems["database"] && (
-                      <div style={{ padding: "0 18px 16px", fontSize: "13px", color: "var(--text)", lineHeight: "1.6", borderTop: "1px solid var(--border)" }}>
-                        <p style={{ marginTop: "12px" }}>
+                      <div
+                        style={{
+                          padding: "14px 20px 18px",
+                          fontSize: "13px",
+                          color: "var(--text)",
+                          lineHeight: "1.6",
+                          borderTop: "1px solid var(--border)",
+                          background: "#fafafa",
+                        }}
+                      >
+                        <p style={{ margin: "0 0 10px" }}>
                           When multiple users need to share records or access data across devices, upgrade from
                           LocalStorage to a serverless PostgreSQL database like <strong>Supabase</strong> or <strong>Neon</strong>.
                         </p>
@@ -2209,9 +2526,22 @@ export function ConsoleSection({
                           href="https://supabase.com/docs"
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{ color: "var(--accent-green)", textDecoration: "underline", fontSize: "12px" }}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            padding: "6px 12px",
+                            borderRadius: "6px",
+                            background: "#ffffff",
+                            border: "1px solid var(--border)",
+                            color: "var(--text)",
+                            fontSize: "12px",
+                            textDecoration: "none",
+                            fontFamily: "var(--mono)",
+                          }}
                         >
-                          Supabase Quickstart (official docs)
+                          <span>Supabase Quickstart (docs)</span>
+                          <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
                     )}
@@ -2222,8 +2552,9 @@ export function ConsoleSection({
                     style={{
                       background: "#ffffff",
                       border: "1px solid var(--border)",
-                      borderRadius: "10px",
+                      borderRadius: "12px",
                       overflow: "hidden",
+                      transition: "border-color 0.15s ease",
                     }}
                   >
                     <button
@@ -2231,7 +2562,7 @@ export function ConsoleSection({
                       onClick={() => toggleLevelUp("auth")}
                       style={{
                         width: "100%",
-                        padding: "14px 18px",
+                        padding: "16px 20px",
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
@@ -2242,9 +2573,11 @@ export function ConsoleSection({
                       }}
                     >
                       <div>
-                        <strong style={{ fontSize: "14px" }}>User Accounts & OAuth Logins</strong>
-                        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>
-                          Why deferred: Authentication forms add friction for hackathon judges evaluating your tool.
+                        <strong style={{ fontSize: "14.5px", fontWeight: 700, color: "#0f172a" }}>
+                          User Accounts & OAuth Logins
+                        </strong>
+                        <div style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "3px" }}>
+                          Why deferred: Authentication forms add friction for initial users evaluating your tool.
                         </div>
                       </div>
                       <ChevronDown
@@ -2254,8 +2587,17 @@ export function ConsoleSection({
                       />
                     </button>
                     {expandedLevelUpItems["auth"] && (
-                      <div style={{ padding: "0 18px 16px", fontSize: "13px", color: "var(--text)", lineHeight: "1.6", borderTop: "1px solid var(--border)" }}>
-                        <p style={{ marginTop: "12px" }}>
+                      <div
+                        style={{
+                          padding: "14px 20px 18px",
+                          fontSize: "13px",
+                          color: "var(--text)",
+                          lineHeight: "1.6",
+                          borderTop: "1px solid var(--border)",
+                          background: "#fafafa",
+                        }}
+                      >
+                        <p style={{ margin: "0 0 10px" }}>
                           Add authentication using <strong>Clerk</strong> or <strong>NextAuth</strong> only when personal accounts
                           are mandatory. For Phase 1, an instant tactile demo always scores higher than a login wall.
                         </p>
@@ -2263,9 +2605,22 @@ export function ConsoleSection({
                           href="https://clerk.com/docs"
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{ color: "var(--accent-green)", textDecoration: "underline", fontSize: "12px" }}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            padding: "6px 12px",
+                            borderRadius: "6px",
+                            background: "#ffffff",
+                            border: "1px solid var(--border)",
+                            color: "var(--text)",
+                            fontSize: "12px",
+                            textDecoration: "none",
+                            fontFamily: "var(--mono)",
+                          }}
                         >
-                          Clerk Authentication Docs (official docs)
+                          <span>Clerk Authentication (docs)</span>
+                          <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
                     )}
@@ -2276,8 +2631,9 @@ export function ConsoleSection({
                     style={{
                       background: "#ffffff",
                       border: "1px solid var(--border)",
-                      borderRadius: "10px",
+                      borderRadius: "12px",
                       overflow: "hidden",
+                      transition: "border-color 0.15s ease",
                     }}
                   >
                     <button
@@ -2285,7 +2641,7 @@ export function ConsoleSection({
                       onClick={() => toggleLevelUp("deploy")}
                       style={{
                         width: "100%",
-                        padding: "14px 18px",
+                        padding: "16px 20px",
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
@@ -2296,9 +2652,11 @@ export function ConsoleSection({
                       }}
                     >
                       <div>
-                        <strong style={{ fontSize: "14px" }}>Custom Domains & Production CDN Hosting</strong>
-                        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>
-                          Why deferred: Test locally with <code>npm run dev</code> first before deploying.
+                        <strong style={{ fontSize: "14.5px", fontWeight: 700, color: "#0f172a" }}>
+                          Custom Domains & Production CDN Hosting
+                        </strong>
+                        <div style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "3px" }}>
+                          Why deferred: Test locally first with <code>npm run dev</code> before deploying.
                         </div>
                       </div>
                       <ChevronDown
@@ -2308,8 +2666,17 @@ export function ConsoleSection({
                       />
                     </button>
                     {expandedLevelUpItems["deploy"] && (
-                      <div style={{ padding: "0 18px 16px", fontSize: "13px", color: "var(--text)", lineHeight: "1.6", borderTop: "1px solid var(--border)" }}>
-                        <p style={{ marginTop: "12px" }}>
+                      <div
+                        style={{
+                          padding: "14px 20px 18px",
+                          fontSize: "13px",
+                          color: "var(--text)",
+                          lineHeight: "1.6",
+                          borderTop: "1px solid var(--border)",
+                          background: "#fafafa",
+                        }}
+                      >
+                        <p style={{ margin: "0 0 10px" }}>
                           Deploy your app with one click to <strong>Vercel</strong> or <strong>Netlify</strong>. Connect your GitHub repository
                           and every commit will automatically deploy to a public URL.
                         </p>
@@ -2317,9 +2684,22 @@ export function ConsoleSection({
                           href="https://vercel.com/docs"
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{ color: "var(--accent-green)", textDecoration: "underline", fontSize: "12px" }}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            padding: "6px 12px",
+                            borderRadius: "6px",
+                            background: "#ffffff",
+                            border: "1px solid var(--border)",
+                            color: "var(--text)",
+                            fontSize: "12px",
+                            textDecoration: "none",
+                            fontFamily: "var(--mono)",
+                          }}
                         >
-                          Vercel Git Deployment (official docs)
+                          <span>Vercel Git Deployment (docs)</span>
+                          <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
                     )}
@@ -2328,122 +2708,280 @@ export function ConsoleSection({
               </div>
             )}
 
-            {/* TAB 6: SHIP IT (HACKATHON WRAP-UP) */}
+            {/* TAB 6: LAUNCH & EXPORT */}
             {activeTab === "ship_it" && (
               <div style={{ marginTop: "16px" }}>
                 <div
                   style={{
                     background: "#ffffff",
-                    border: "1.5px solid var(--border)",
-                    borderRadius: "12px",
-                    padding: "20px",
-                    marginBottom: "16px",
+                    border: "1px solid var(--border-strong)",
+                    borderRadius: "16px",
+                    padding: "22px 26px",
+                    marginBottom: "18px",
+                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
                   }}
                 >
-                  <div className="card-kicker" style={{ color: "#e11d48" }}>
-                    ✦ Devpost Submission Wrap-Up
+                  <div className="card-kicker">
+                    Project Launch · Optional Guidance
                   </div>
-                  <h4 style={{ margin: "4px 0 8px", fontSize: "18px" }}>
-                    Finishing "Build With AI: Basics 2026"
+                  <h4 style={{ margin: "2px 0 6px", fontSize: "18px", fontWeight: 700, color: "#0f172a" }}>
+                    Preparing {blueprint.projectTitle} for Launch
                   </h4>
-                  <p style={{ fontSize: "13.5px", color: "var(--text-muted)", margin: "0 0 16px" }}>
-                    Follow this exact checklist to record your required short demo video, push to GitHub, and submit on Devpost.
+                  <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "0 0 18px", lineHeight: "1.55" }}>
+                    Review these recommended repository guidelines for publishing {blueprint.projectTitle}, and export your complete project blueprint below. These items are suggestions for self-verification, not automated checks.
                   </p>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                    {/* Demo Video Script Card */}
+                  {/* Repository Checklist Card */}
+                  <div
+                    style={{
+                      background: "#ffffff",
+                      border: "1px solid var(--border)",
+                      borderRadius: "12px",
+                      padding: "18px 20px",
+                    }}
+                  >
                     <div
                       style={{
-                        background: "#fff1f2",
-                        border: "1px solid #fecdd3",
-                        borderRadius: "10px",
-                        padding: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: "8px",
+                        marginBottom: "14px",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                        <Video className="w-4 h-4 text-rose-600" />
-                        <strong style={{ fontSize: "13.5px", color: "#9f1239" }}>
-                          Required 2–3 Minute Demo Video Outline
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <Github className="w-4 h-4 text-slate-800" />
+                        <strong style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>
+                          Source Code & Repository Checklist
                         </strong>
                       </div>
-                      <ol style={{ margin: 0, paddingLeft: "18px", fontSize: "12.5px", lineHeight: "1.6", color: "#881337" }}>
-                        <li><strong>0:00 - 0:30 Hook & Problem:</strong> What beginner problem does {blueprint.projectTitle} solve?</li>
-                        <li><strong>0:30 - 1:45 Core Live Demo:</strong> Show the primary user journey in action with real clicks.</li>
-                        <li><strong>1:45 - 2:30 Technical Choices:</strong> Mention why you used zero-database storage and pair-programmed with AI.</li>
-                        <li><strong>2:30 - 3:00 What's Next:</strong> Mention 1 feature from your v2 roadmap.</li>
-                      </ol>
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          color: "var(--text-muted)",
+                          background: "var(--surface-alt)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "4px",
+                          padding: "2px 8px",
+                        }}
+                      >
+                        Optional Self-Check
+                      </span>
                     </div>
 
-                    {/* GitHub Repo Card */}
-                    <div
-                      style={{
-                        background: "#f8fafc",
-                        border: "1px solid #e2e8f0",
-                        borderRadius: "10px",
-                        padding: "16px",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                        <Github className="w-4 h-4 text-slate-800" />
-                        <strong style={{ fontSize: "13.5px", color: "#1e293b" }}>
-                          Public GitHub Repository Checklist
-                        </strong>
-                      </div>
-                      <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "12.5px", lineHeight: "1.6", color: "#334155" }}>
-                        <li>Public repository visibility (not private).</li>
-                        <li>Clean <code>README.md</code> with project title, demo screenshot, and local run command.</li>
-                        <li>Proper <code>.gitignore</code> preventing <code>node_modules/</code> or <code>.env</code> commits.</li>
-                        <li>At least 4 incremental commits matching your build milestones.</li>
-                      </ul>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      {[
+                        {
+                          title: "Repository Visibility & Access",
+                          desc: "Configure public or team access so collaborators or users can access the code.",
+                        },
+                        {
+                          title: "Project Documentation (README.md)",
+                          desc: `Document the purpose of ${blueprint.projectTitle}, local setup commands (e.g. npm install, npm run dev), and environment variables.`,
+                        },
+                        {
+                          title: "Clean .gitignore Configuration",
+                          desc: "Prevent committing node_modules/, local secrets (.env.local), build caches, or temporary artifacts.",
+                        },
+                        {
+                          title: "Structured Git Commit History",
+                          desc: "Ensure commit history reflects clear, incremental milestones and working progress.",
+                        },
+                      ].map((item, i) => {
+                        const isChecked = Boolean(checkedGuidelines[i]);
+                        return (
+                          <div
+                            key={i}
+                            onClick={() => toggleGuideline(i)}
+                            role="checkbox"
+                            aria-checked={isChecked}
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                toggleGuideline(i);
+                              }
+                            }}
+                            style={{
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: "10px",
+                              padding: "10px 12px",
+                              borderRadius: "8px",
+                              border: isChecked ? "1px solid #cbd5e1" : "1px solid var(--border)",
+                              background: isChecked ? "#f8fafc" : "#ffffff",
+                              cursor: "pointer",
+                              transition: "all 0.15s ease",
+                            }}
+                          >
+                            {isChecked ? (
+                              <CheckSquare className="w-4 h-4 text-slate-800 shrink-0 mt-0.5" />
+                            ) : (
+                              <Square className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                            )}
+                            <div style={{ fontSize: "12.5px", lineHeight: "1.5" }}>
+                              <strong style={{ color: "#0f172a", display: "inline-block", marginRight: "6px" }}>
+                                {item.title}:
+                              </strong>
+                              <span style={{ color: "#475569" }}>{item.desc}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
+
+                    <p style={{ margin: "12px 0 0", fontSize: "11.5px", color: "var(--text-muted)", fontStyle: "italic" }}>
+                      Note: These items are recommendations for your manual pre-launch review. YourDev does not inspect external Git hosts.
+                    </p>
                   </div>
                 </div>
 
-                {/* Devpost Submission Helper */}
-                <div
-                  style={{
-                    background: "#ffffff",
-                    border: "1.5px solid var(--border)",
-                    borderRadius: "12px",
-                    padding: "20px",
-                  }}
-                >
-                  <div className="card-kicker">Devpost Description Draft</div>
-                  <h4 style={{ margin: "4px 0 12px", fontSize: "16px" }}>
-                    Copy-Paste Submission Template
-                  </h4>
-                  <pre
-                    style={{
-                      background: "var(--surface-alt)",
-                      border: "1px solid var(--border)",
-                      borderRadius: "8px",
-                      padding: "14px",
-                      fontSize: "12px",
-                      lineHeight: "1.5",
-                      fontFamily: "var(--mono)",
-                      color: "var(--text)",
-                      whiteSpace: "pre-wrap",
-                      margin: 0,
-                    }}
-                  >
-{`### Inspiration
-Built for the Build With AI: Basics hackathon. I wanted a mentor-in-a-box to guide me through building ${blueprint.projectTitle} without getting bogged down by complicated backend infrastructure.
+                {/* Full Project Blueprint Export */}
+                {(() => {
+                  const blueprintMarkdown = formatBlueprintMarkdown(blueprint);
 
-### What it does
-${blueprint.productMap?.whatItDoes || blueprint.summary}
+                  const handleCopyExport = async () => {
+                    try {
+                      await navigator.clipboard.writeText(blueprintMarkdown);
+                      setCopiedExport(true);
+                      onShowToast("✓ COPIED FULL BLUEPRINT MARKDOWN");
+                      setTimeout(() => setCopiedExport(false), 2000);
+                    } catch {
+                      onShowToast("Failed to copy blueprint.");
+                    }
+                  };
 
-### How we built it
-- Calibrated tech stack: ${blueprint.techStack.map((s) => s.name).join(", ")}
-- Pair-programmed step by step using AI coding agents, verified through incremental definition-of-done checks.
-- Zero-database Phase 1 architecture for guaranteed presentation reliability.
+                  return (
+                    <div
+                      style={{
+                        background: "#ffffff",
+                        border: "1px solid var(--border)",
+                        borderRadius: "14px",
+                        padding: "22px 24px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          gap: "12px",
+                          marginBottom: "14px",
+                        }}
+                      >
+                        <div>
+                          <div className="card-kicker">Complete Strategy Export</div>
+                          <h4 style={{ margin: "2px 0 0", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                            Full Project Blueprint (Markdown)
+                          </h4>
+                        </div>
 
-### Challenges we ran into
-Guarding against scope creep and keeping the MVP strictly focused on the primary user journey.
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              background: "var(--surface-alt)",
+                              padding: "3px",
+                              borderRadius: "8px",
+                              border: "1px solid var(--border)",
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setExportView("formatted")}
+                              style={{
+                                padding: "5px 10px",
+                                fontSize: "11.5px",
+                                fontWeight: 600,
+                                borderRadius: "6px",
+                                border: "none",
+                                cursor: "pointer",
+                                background: exportView === "formatted" ? "#18191a" : "transparent",
+                                color: exportView === "formatted" ? "#ffffff" : "var(--text-muted)",
+                              }}
+                            >
+                              Formatted
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setExportView("raw")}
+                              style={{
+                                padding: "5px 10px",
+                                fontSize: "11.5px",
+                                fontWeight: 600,
+                                borderRadius: "6px",
+                                border: "none",
+                                cursor: "pointer",
+                                background: exportView === "raw" ? "#18191a" : "transparent",
+                                color: exportView === "raw" ? "#ffffff" : "var(--text-muted)",
+                              }}
+                            >
+                              Raw Markdown
+                            </button>
+                          </div>
 
-### What's next
-${blueprint.productMap?.nextImplementationSteps.map((s) => `- ${s.step}`).join("\n") || "Deploying to production and adding multi-user support."}`}
-                  </pre>
-                </div>
+                          <button
+                            type="button"
+                            className="btn-craft-secondary"
+                            style={{
+                              padding: "6px 14px",
+                              fontSize: "12px",
+                              background: "#18191a",
+                              color: "#fff",
+                              borderColor: "#333",
+                            }}
+                            onClick={handleCopyExport}
+                          >
+                            {copiedExport ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>Copied!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span>Copy Blueprint Markdown</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      {exportView === "formatted" ? (
+                        <div
+                          style={{
+                            background: "var(--surface-alt)",
+                            border: "1px solid var(--border)",
+                            borderRadius: "8px",
+                            padding: "18px 20px",
+                          }}
+                        >
+                          <MarkdownContent content={blueprintMarkdown} />
+                        </div>
+                      ) : (
+                        <pre
+                          style={{
+                            background: "var(--surface-alt)",
+                            border: "1px solid var(--border)",
+                            borderRadius: "8px",
+                            padding: "14px",
+                            fontSize: "12px",
+                            lineHeight: "1.5",
+                            fontFamily: "var(--mono)",
+                            color: "var(--text)",
+                            whiteSpace: "pre-wrap",
+                            margin: 0,
+                          }}
+                        >
+                          {blueprintMarkdown}
+                        </pre>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </div>
