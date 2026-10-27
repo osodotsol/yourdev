@@ -36,6 +36,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { RoadmapGraph } from "@/components/RoadmapGraph";
+import { SectionHeading } from "@/components/SectionHeading";
 import { MarkdownContent, InlineMarkdown } from "@/components/MarkdownRenderer";
 import {
   isMilestoneCompletionAllowed,
@@ -81,7 +82,7 @@ export function DevSourceBadge({
     <span
       style={{
         fontFamily: "var(--mono)",
-        fontSize: "10px",
+        fontSize: "12px",
         fontWeight: 700,
         textTransform: "uppercase",
         letterSpacing: "0.06em",
@@ -91,10 +92,10 @@ export function DevSourceBadge({
         alignItems: "center",
         gap: "4px",
         verticalAlign: "middle",
-        background: isModel ? "#ecfdf5" : isCurated ? "#eff6ff" : "#fff7ed",
-        color: isModel ? "#047857" : isCurated ? "#1d4ed8" : "#c2410c",
+        background: isModel ? "var(--green-wash)" : isCurated ? "var(--paper-sunk)" : "var(--amber-wash)",
+        color: isModel ? "var(--green-ink)" : isCurated ? "var(--ink-2)" : "var(--amber-ink)",
         border: `1px solid ${
-          isModel ? "#a7f3d0" : isCurated ? "#bfdbfe" : "#fed7aa"
+          isModel ? "var(--green-line)" : isCurated ? "var(--rule-strong)" : "var(--amber-line)"
         }`,
       }}
       title={`Engine source: ${source}`}
@@ -183,7 +184,9 @@ export function ConsoleSection({
     }
   }, [blueprint?.nodes, savedArtifactReviews, savedArtifactDrafts]);
 
-  const handleToggleNode = (nodeId: string) => {
+  // `reviewsOverride`: the caller may have just produced a fresh artifact review that this
+  // component's state has not re-rendered with yet; the completion gate must evaluate it.
+  const handleToggleNode = (nodeId: string, reviewsOverride?: Record<string, StepReviewResult>) => {
     setCompletedNodeIds((prev) => {
       const isCurrentlyCompleted = prev.includes(nodeId);
       if (!isCurrentlyCompleted) {
@@ -191,7 +194,7 @@ export function ConsoleSection({
         if (targetNode) {
           const eligibility = isMilestoneCompletionAllowed(
             targetNode,
-            savedArtifactReviews,
+            reviewsOverride ?? savedArtifactReviews,
             savedArtifactDrafts
           );
           if (!eligibility.allowed) {
@@ -405,22 +408,29 @@ export function ConsoleSection({
   );
 
   return (
-    <section className="craft-section" id="console">
-      <div className="section-eyebrow">03 / LIVE INTERACTIVE CONSOLE</div>
-
-      <h2 className="section-headline">
+    <section className="section" id="console" aria-labelledby="console-title">
+      <SectionHeading
+        index="03"
+        label="Live console"
+        titleId="console-title"
+        lede="Describe what you want to build. Answer a few intake questions if you like, and get a blueprint you can start on today."
+      >
         Break down your idea. <em>Right here.</em>
-      </h2>
+      </SectionHeading>
 
       <div className={`craft-console-box ${isLoading ? "is-loading" : ""}`}>
         <div className="console-meta-strip">
-          <span>⚡ YOURDEV STUDIO // BUILD IT. UNDERSTAND IT. VERIFY IT.</span>
-          <span>YOURDEV ARCHITECTURE & VERIFICATION STUDIO</span>
+          <span>yourdev / console</span>
+          <span>Build it · Understand it · Verify it</span>
         </div>
 
         {/* ALWAYS VISIBLE INPUT TEXTAREA */}
         <div style={{ position: "relative" }}>
+          <label htmlFor="idea-input" className="console-field-label">
+            Your project idea
+          </label>
           <textarea
+            id="idea-input"
             className="craft-textarea"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
@@ -432,17 +442,7 @@ export function ConsoleSection({
 
         {/* PRESET CHIPS */}
         <div className="craft-presets-row">
-          <span
-            style={{
-              fontSize: "11px",
-              color: "var(--text-soft)",
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-            }}
-          >
-            Or pick a sample preset:
-          </span>
+          <span className="craft-presets-label">Or start from a sample:</span>
           <button
             type="button"
             className="craft-preset-chip"
@@ -481,7 +481,7 @@ export function ConsoleSection({
         <div className="console-actions-bar">
           <button
             type="button"
-            className={`btn-craft-primary ${isLoading ? "is-loading" : ""}`}
+            className={`btn btn-primary ${isLoading ? "is-loading" : ""}`}
             onClick={handleTriggerBreakdown}
             disabled={isLoading || inputText.trim().length < 15}
           >
@@ -500,10 +500,10 @@ export function ConsoleSection({
 
           <button
             type="button"
-            className="btn-craft-secondary"
+            className="btn btn-secondary"
             onClick={handleToggleCustomizer}
             disabled={isLoading || inputText.trim().length < 10}
-            style={{ fontSize: "13px" }}
+            style={{ fontSize: "14px" }}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>
@@ -514,9 +514,9 @@ export function ConsoleSection({
           {inputText && !isLoading && (
             <button
               type="button"
-              className="btn-craft-secondary"
+              className="btn btn-secondary"
               onClick={handleClearAll}
-              style={{ fontSize: "13px" }}
+              style={{ fontSize: "14px" }}
             >
               Clear
             </button>
@@ -546,8 +546,8 @@ export function ConsoleSection({
                 style={{
                   background: "transparent",
                   border: "none",
-                  fontSize: "12px",
-                  color: "var(--text-soft)",
+                  fontSize: "13px",
+                  color: "var(--ink-3)",
                   cursor: "pointer",
                   textDecoration: "underline",
                 }}
@@ -560,8 +560,8 @@ export function ConsoleSection({
             {questions[currentQuestionIndex] && (
               <div
                 style={{
-                  background: "#ffffff",
-                  border: "1.5px solid var(--border)",
+                  background: "var(--sheet)",
+                  border: "1.5px solid var(--rule)",
                   borderRadius: "12px",
                   padding: "18px",
                 }}
@@ -571,8 +571,8 @@ export function ConsoleSection({
                 </h4>
                 <p
                   style={{
-                    fontSize: "13px",
-                    color: "var(--text-muted)",
+                    fontSize: "14px",
+                    color: "var(--ink-2)",
                     marginBottom: "14px",
                   }}
                 >
@@ -610,9 +610,9 @@ export function ConsoleSection({
                               height: "16px",
                               borderRadius: "50%",
                               border: isSelected
-                                ? "4px solid #fff"
-                                : "1.5px solid var(--border-strong)",
-                              background: isSelected ? "#18191a" : "transparent",
+                                ? "4px solid var(--sheet)"
+                                : "1.5px solid var(--rule-strong)",
+                              background: isSelected ? "var(--ink)" : "transparent",
                             }}
                           />
                           <span>{opt.label}</span>
@@ -631,15 +631,15 @@ export function ConsoleSection({
                     justifyContent: "space-between",
                     marginTop: "16px",
                     paddingTop: "12px",
-                    borderTop: "1px solid var(--border)",
+                    borderTop: "1px solid var(--rule)",
                   }}
                 >
                   <button
                     type="button"
-                    className="btn-craft-secondary"
+                    className="btn btn-secondary"
                     disabled={currentQuestionIndex === 0}
                     onClick={() => setCurrentQuestionIndex((i) => Math.max(0, i - 1))}
-                    style={{ fontSize: "12px", padding: "6px 12px" }}
+                    style={{ fontSize: "13px", padding: "6px 12px" }}
                   >
                     Back
                   </button>
@@ -648,25 +648,25 @@ export function ConsoleSection({
                     {currentQuestionIndex < questions.length - 1 ? (
                       <button
                         type="button"
-                        className="btn-craft-primary"
+                        className="btn btn-primary"
                         onClick={() =>
                           setCurrentQuestionIndex((i) =>
                             Math.min(questions.length - 1, i + 1)
                           )
                         }
-                        style={{ fontSize: "12px", padding: "6px 14px" }}
+                        style={{ fontSize: "13px", padding: "6px 14px" }}
                       >
                         Next Question
                       </button>
                     ) : (
                       <button
                         type="button"
-                        className="btn-craft-primary"
+                        className="btn btn-primary"
                         onClick={() => {
                           setShowCustomizer(false);
                           handleTriggerBreakdown();
                         }}
-                        style={{ fontSize: "12px", padding: "6px 14px" }}
+                        style={{ fontSize: "13px", padding: "6px 14px" }}
                       >
                         Generate Tailored Blueprint
                       </button>
@@ -693,8 +693,8 @@ export function ConsoleSection({
               <p
                 style={{
                   fontFamily: "var(--mono)",
-                  fontSize: "12px",
-                  color: "#92400e",
+                  fontSize: "13px",
+                  color: "var(--amber-ink)",
                   fontWeight: 700,
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
@@ -706,8 +706,8 @@ export function ConsoleSection({
             </div>
             <p
               style={{
-                fontSize: "13.5px",
-                color: "var(--text)",
+                fontSize: "14.5px",
+                color: "var(--ink)",
                 marginBottom: "14px",
                 lineHeight: 1.5,
               }}
@@ -719,26 +719,26 @@ export function ConsoleSection({
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               <span
                 style={{
-                  fontSize: "11px",
+                  fontSize: "12px",
                   fontFamily: "var(--mono)",
-                  background: "#fff",
+                  background: "var(--sheet)",
                   padding: "4px 8px",
                   borderRadius: "4px",
-                  border: "1px solid #fed7aa",
-                  color: "#9a3412",
+                  border: "1px solid var(--amber-line)",
+                  color: "var(--amber-ink)",
                 }}
               >
                 ✓ Ground-Truth Foundations Bank
               </span>
               <span
                 style={{
-                  fontSize: "11px",
+                  fontSize: "12px",
                   fontFamily: "var(--mono)",
-                  background: "#fff",
+                  background: "var(--sheet)",
                   padding: "4px 8px",
                   borderRadius: "4px",
-                  border: "1px solid #fed7aa",
-                  color: "#9a3412",
+                  border: "1px solid var(--amber-line)",
+                  color: "var(--amber-ink)",
                   animation: "pulse 1.2s infinite",
                 }}
               >
@@ -746,13 +746,13 @@ export function ConsoleSection({
               </span>
               <span
                 style={{
-                  fontSize: "11px",
+                  fontSize: "12px",
                   fontFamily: "var(--mono)",
-                  background: "#fff",
+                  background: "var(--sheet)",
                   padding: "4px 8px",
                   borderRadius: "4px",
-                  border: "1px solid #fed7aa",
-                  color: "#9a3412",
+                  border: "1px solid var(--amber-line)",
+                  color: "var(--amber-ink)",
                 }}
               >
                 ✦ Plain-English Product Map
@@ -784,7 +784,7 @@ export function ConsoleSection({
                   style={{
                     fontSize: "14.5px",
                     lineHeight: "1.55",
-                    color: "var(--text-muted)",
+                    color: "var(--ink-2)",
                     maxWidth: "700px",
                   }}
                 >
@@ -802,18 +802,18 @@ export function ConsoleSection({
               >
                 <button
                   type="button"
-                  className="btn-craft-secondary"
+                  className="btn btn-secondary"
                   onClick={handleToggleCustomizer}
-                  style={{ fontSize: "12px", padding: "9px 16px" }}
+                  style={{ fontSize: "13px", padding: "9px 16px" }}
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Re-Calibrate Profile</span>
                 </button>
                 <button
                   type="button"
-                  className="btn-craft-primary"
+                  className="btn btn-primary"
                   onClick={handleCopyFull}
-                  style={{ fontSize: "12px", padding: "9px 18px" }}
+                  style={{ fontSize: "13px", padding: "9px 18px" }}
                 >
                   <Copy className="w-4 h-4" />
                   <span>Copy Full Plan</span>
@@ -825,8 +825,8 @@ export function ConsoleSection({
             <div
               style={{
                 marginTop: "18px",
-                background: "#ffffff",
-                border: "1px solid var(--border)",
+                background: "var(--sheet)",
+                border: "1px solid var(--rule)",
                 borderRadius: "14px",
                 padding: "16px 20px",
                 boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
@@ -841,7 +841,7 @@ export function ConsoleSection({
                   gap: "10px",
                   marginBottom: "12px",
                   paddingBottom: "10px",
-                  borderBottom: "1px solid var(--border)",
+                  borderBottom: "1px solid var(--rule)",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -849,11 +849,11 @@ export function ConsoleSection({
                   <span
                     style={{
                       fontFamily: "var(--mono)",
-                      fontSize: "11px",
+                      fontSize: "12px",
                       fontWeight: 700,
                       textTransform: "uppercase",
                       letterSpacing: "0.06em",
-                      color: "var(--text)",
+                      color: "var(--ink)",
                     }}
                   >
                     Strategy Calibration
@@ -870,16 +870,16 @@ export function ConsoleSection({
                 >
                   <span
                     style={{
-                      fontSize: "11px",
+                      fontSize: "12px",
                       fontFamily: "var(--mono)",
-                      background: "var(--surface-alt)",
-                      color: "var(--text-muted)",
+                      background: "var(--paper-sunk)",
+                      color: "var(--ink-2)",
                       padding: "3px 9px",
                       borderRadius: "6px",
-                      border: "1px solid var(--border)",
+                      border: "1px solid var(--rule)",
                     }}
                   >
-                    <strong style={{ color: "var(--text)", fontWeight: 600 }}>Style:</strong>{" "}
+                    <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Style:</strong>{" "}
                     {userChoices["coding_style"] === "myself"
                       ? "Mostly Myself"
                       : userChoices["coding_style"] === "mix"
@@ -888,16 +888,16 @@ export function ConsoleSection({
                   </span>
                   <span
                     style={{
-                      fontSize: "11px",
+                      fontSize: "12px",
                       fontFamily: "var(--mono)",
-                      background: "var(--surface-alt)",
-                      color: "var(--text-muted)",
+                      background: "var(--paper-sunk)",
+                      color: "var(--ink-2)",
                       padding: "3px 9px",
                       borderRadius: "6px",
-                      border: "1px solid var(--border)",
+                      border: "1px solid var(--rule)",
                     }}
                   >
-                    <strong style={{ color: "var(--text)", fontWeight: 600 }}>Level:</strong>{" "}
+                    <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Level:</strong>{" "}
                     {userChoices["experience_level"] === "intermediate"
                       ? "Build Already"
                       : userChoices["experience_level"] === "beginner"
@@ -906,16 +906,16 @@ export function ConsoleSection({
                   </span>
                   <span
                     style={{
-                      fontSize: "11px",
+                      fontSize: "12px",
                       fontFamily: "var(--mono)",
-                      background: "var(--surface-alt)",
-                      color: "var(--text-muted)",
+                      background: "var(--paper-sunk)",
+                      color: "var(--ink-2)",
                       padding: "3px 9px",
                       borderRadius: "6px",
-                      border: "1px solid var(--border)",
+                      border: "1px solid var(--rule)",
                     }}
                   >
-                    <strong style={{ color: "var(--text)", fontWeight: 600 }}>Dedication:</strong>{" "}
+                    <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Dedication:</strong>{" "}
                     ~8.5h required
                   </span>
                 </div>
@@ -923,9 +923,9 @@ export function ConsoleSection({
 
               <div
                 style={{
-                  fontSize: "13px",
+                  fontSize: "14px",
                   lineHeight: "1.6",
-                  color: "var(--text)",
+                  color: "var(--ink)",
                   margin: 0,
                 }}
               >
@@ -1024,8 +1024,8 @@ export function ConsoleSection({
                 {blueprint.first20Minutes && (
                   <div
                     style={{
-                      background: "#ffffff",
-                      border: "1px solid var(--border-strong)",
+                      background: "var(--sheet)",
+                      border: "1px solid var(--rule-strong)",
                       borderRadius: "16px",
                       padding: "24px 26px",
                       boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(0, 0, 0, 0.04)",
@@ -1046,12 +1046,12 @@ export function ConsoleSection({
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <span
                           style={{
-                            background: "#0f172a",
-                            color: "#ffffff",
+                            background: "var(--ink)",
+                            color: "var(--sheet)",
                             padding: "3px 8px",
                             borderRadius: "5px",
                             fontFamily: "var(--mono)",
-                            fontSize: "10.5px",
+                            fontSize: "12px",
                             fontWeight: 700,
                             letterSpacing: "0.06em",
                           }}
@@ -1061,9 +1061,9 @@ export function ConsoleSection({
                         <span
                           style={{
                             fontFamily: "var(--mono)",
-                            fontSize: "11px",
+                            fontSize: "12px",
                             fontWeight: 600,
-                            color: "#64748b",
+                            color: "var(--ink-3)",
                             letterSpacing: "0.06em",
                             textTransform: "uppercase",
                           }}
@@ -1073,10 +1073,10 @@ export function ConsoleSection({
                       </div>
                       <span
                         style={{
-                          fontSize: "11px",
+                          fontSize: "12px",
                           fontFamily: "var(--mono)",
-                          color: "#64748b",
-                          background: "#f1f5f9",
+                          color: "var(--ink-3)",
+                          background: "var(--paper-sunk)",
                           padding: "3px 8px",
                           borderRadius: "4px",
                         }}
@@ -1091,7 +1091,7 @@ export function ConsoleSection({
                         fontSize: "20px",
                         fontWeight: 700,
                         margin: "0 0 10px",
-                        color: "#0f172a",
+                        color: "var(--ink)",
                         lineHeight: "1.35",
                       }}
                     >
@@ -1101,35 +1101,35 @@ export function ConsoleSection({
                     {/* Why this comes first */}
                     <div
                       style={{
-                        fontSize: "13.5px",
-                        color: "#475569",
+                        fontSize: "14.5px",
+                        color: "var(--ink-2)",
                         lineHeight: "1.6",
                         marginBottom: "20px",
-                        borderLeft: "3px solid #0f172a",
+                        borderLeft: "3px solid var(--ink)",
                         paddingLeft: "14px",
-                        background: "rgba(15, 23, 42, 0.02)",
+                        background: "rgb(var(--ink-rgb) / 0.02)",
                         paddingBlock: "8px",
                         borderRadius: "0 6px 6px 0",
                       }}
                     >
-                      <strong style={{ color: "#0f172a" }}>Why this comes first:</strong>{" "}
+                      <strong style={{ color: "var(--ink)" }}>Why this comes first:</strong>{" "}
                       <InlineMarkdown text={blueprint.first20Minutes.why} />
                     </div>
 
                     {/* Structured Execution Sequence */}
                     <div
                       style={{
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid var(--rule)",
                         borderRadius: "12px",
                         overflow: "hidden",
                         marginBottom: "20px",
-                        background: "#fafafa",
+                        background: "var(--paper)",
                       }}
                     >
                       <div
                         style={{
-                          background: "#f8fafc",
-                          borderBottom: "1px solid #e2e8f0",
+                          background: "var(--paper)",
+                          borderBottom: "1px solid var(--rule)",
                           padding: "10px 16px",
                           display: "flex",
                           alignItems: "center",
@@ -1139,9 +1139,9 @@ export function ConsoleSection({
                         <span
                           style={{
                             fontFamily: "var(--mono)",
-                            fontSize: "11px",
+                            fontSize: "12px",
                             fontWeight: 700,
-                            color: "#334155",
+                            color: "var(--ink-2)",
                             textTransform: "uppercase",
                             letterSpacing: "0.05em",
                           }}
@@ -1150,9 +1150,9 @@ export function ConsoleSection({
                         </span>
                         <span
                           style={{
-                            fontSize: "11px",
+                            fontSize: "12px",
                             fontFamily: "var(--mono)",
-                            color: "#94a3b8",
+                            color: "var(--ink-4)",
                           }}
                         >
                           {blueprint.first20Minutes.whatToDo.length} sequential tasks
@@ -1170,7 +1170,7 @@ export function ConsoleSection({
                               paddingBlock: "10px",
                               borderBottom:
                                 idx < blueprint.first20Minutes!.whatToDo.length - 1
-                                  ? "1px solid #f1f5f9"
+                                  ? "1px solid var(--paper-sunk)"
                                   : "none",
                             }}
                           >
@@ -1179,9 +1179,9 @@ export function ConsoleSection({
                                 width: "22px",
                                 height: "22px",
                                 borderRadius: "50%",
-                                background: "#0f172a",
-                                color: "#ffffff",
-                                fontSize: "11px",
+                                background: "var(--ink)",
+                                color: "var(--sheet)",
+                                fontSize: "12px",
                                 fontWeight: 700,
                                 display: "inline-flex",
                                 alignItems: "center",
@@ -1194,9 +1194,9 @@ export function ConsoleSection({
                             </span>
                             <div
                               style={{
-                                fontSize: "13.5px",
+                                fontSize: "14.5px",
                                 lineHeight: "1.6",
-                                color: "#1e293b",
+                                color: "var(--ink)",
                                 flex: 1,
                               }}
                             >
@@ -1210,8 +1210,8 @@ export function ConsoleSection({
                       {blueprint.first20Minutes.starterTerminalCommand && (
                         <div
                           style={{
-                            background: "#0f172a",
-                            borderTop: "1px solid #334155",
+                            background: "var(--ink)",
+                            borderTop: "1px solid var(--ink-2)",
                             padding: "10px 16px",
                             display: "flex",
                             alignItems: "center",
@@ -1229,9 +1229,9 @@ export function ConsoleSection({
                           >
                             <span
                               style={{
-                                color: "#10b981",
+                                color: "var(--green)",
                                 fontFamily: "var(--mono)",
-                                fontSize: "12px",
+                                fontSize: "13px",
                                 fontWeight: 700,
                               }}
                             >
@@ -1240,8 +1240,8 @@ export function ConsoleSection({
                             <code
                               style={{
                                 fontFamily: "var(--mono)",
-                                fontSize: "12px",
-                                color: "#f8fafc",
+                                fontSize: "13px",
+                                color: "var(--paper)",
                                 whiteSpace: "nowrap",
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
@@ -1260,11 +1260,11 @@ export function ConsoleSection({
                             }}
                             style={{
                               background: "rgba(255, 255, 255, 0.1)",
-                              color: "#f8fafc",
+                              color: "var(--paper)",
                               border: "1px solid rgba(255, 255, 255, 0.2)",
                               borderRadius: "6px",
                               padding: "4px 10px",
-                              fontSize: "11px",
+                              fontSize: "12px",
                               fontFamily: "var(--mono)",
                               cursor: "pointer",
                               display: "inline-flex",
@@ -1285,8 +1285,8 @@ export function ConsoleSection({
                     {/* Definition of Done Checkpoint */}
                     <div
                       style={{
-                        background: "#f0fdf4",
-                        border: "1px solid #bbf7d0",
+                        background: "var(--green-wash)",
+                        border: "1px solid var(--green-line)",
                         borderRadius: "10px",
                         padding: "14px 18px",
                         display: "flex",
@@ -1298,10 +1298,10 @@ export function ConsoleSection({
                       <div>
                         <div
                           style={{
-                            fontSize: "11px",
+                            fontSize: "12px",
                             fontFamily: "var(--mono)",
                             fontWeight: 700,
-                            color: "#166534",
+                            color: "var(--green-ink)",
                             textTransform: "uppercase",
                             letterSpacing: "0.05em",
                             marginBottom: "3px",
@@ -1309,7 +1309,7 @@ export function ConsoleSection({
                         >
                           Definition of Done
                         </div>
-                        <div style={{ fontSize: "13px", color: "#14532d", lineHeight: "1.5" }}>
+                        <div style={{ fontSize: "14px", color: "var(--green-ink)", lineHeight: "1.5" }}>
                           <InlineMarkdown text={blueprint.first20Minutes.whatDoneLooksLike} />
                         </div>
                       </div>
@@ -1331,19 +1331,19 @@ export function ConsoleSection({
                   >
                     <div>
                       <div className="card-kicker">First Step Agent Prompt</div>
-                      <h4 className="card-title" style={{ margin: 0, color: "#fff" }}>
+                      <h4 className="card-title" style={{ margin: 0, color: "var(--sheet)" }}>
                         Paste Into Your AI Coding Agent (Cursor / Copilot / Claude)
                       </h4>
                     </div>
                     <button
                       type="button"
-                      className="btn-craft-secondary"
+                      className="btn btn-secondary"
                       style={{
                         padding: "8px 16px",
-                        fontSize: "12px",
-                        background: "#26282b",
-                        color: "#fff",
-                        borderColor: "#3d4044",
+                        fontSize: "13px",
+                        background: "var(--night-2)",
+                        color: "var(--sheet)",
+                        borderColor: "var(--night-line)",
                       }}
                       onClick={handleCopyPrompt}
                     >
@@ -1369,8 +1369,8 @@ export function ConsoleSection({
                     alignItems: "center",
                     flexWrap: "wrap",
                     gap: "14px",
-                    background: "#ffffff",
-                    border: "1px solid var(--border-strong)",
+                    background: "var(--sheet)",
+                    border: "1px solid var(--rule-strong)",
                     borderRadius: "14px",
                     padding: "18px 22px",
                     marginBottom: "18px",
@@ -1379,10 +1379,10 @@ export function ConsoleSection({
                 >
                   <div>
                     <div className="card-kicker">Foundations Track</div>
-                    <h4 style={{ margin: "2px 0 4px", fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
+                    <h4 style={{ margin: "2px 0 4px", fontSize: "17px", fontWeight: 700, color: "var(--ink)" }}>
                       Curated Foundations Curriculum
                     </h4>
-                    <p style={{ margin: 0, fontSize: "13px", color: "var(--text-muted)" }}>
+                    <p style={{ margin: 0, fontSize: "14px", color: "var(--ink-2)" }}>
                       Core architectural concepts to understand before writing complex business logic.
                     </p>
                   </div>
@@ -1392,10 +1392,10 @@ export function ConsoleSection({
                     style={{
                       display: "flex",
                       gap: "4px",
-                      background: "var(--surface-alt)",
+                      background: "var(--paper-sunk)",
                       padding: "4px",
                       borderRadius: "8px",
-                      border: "1px solid var(--border)",
+                      border: "1px solid var(--rule)",
                     }}
                   >
                     <button
@@ -1403,14 +1403,14 @@ export function ConsoleSection({
                       onClick={() => handleToggleVibeMode(true)}
                       style={{
                         padding: "6px 14px",
-                        fontSize: "12px",
+                        fontSize: "13px",
                         fontWeight: 600,
                         fontFamily: "var(--mono)",
                         borderRadius: "6px",
                         border: "none",
                         cursor: "pointer",
-                        background: vibeMode ? "#0f172a" : "transparent",
-                        color: vibeMode ? "#ffffff" : "var(--text-muted)",
+                        background: vibeMode ? "var(--ink)" : "transparent",
+                        color: vibeMode ? "var(--sheet)" : "var(--ink-2)",
                         transition: "all 0.15s ease",
                       }}
                     >
@@ -1421,14 +1421,14 @@ export function ConsoleSection({
                       onClick={() => handleToggleVibeMode(false)}
                       style={{
                         padding: "6px 14px",
-                        fontSize: "12px",
+                        fontSize: "13px",
                         fontWeight: 600,
                         fontFamily: "var(--mono)",
                         borderRadius: "6px",
                         border: "none",
                         cursor: "pointer",
-                        background: !vibeMode ? "#0f172a" : "transparent",
-                        color: !vibeMode ? "#ffffff" : "var(--text-muted)",
+                        background: !vibeMode ? "var(--ink)" : "transparent",
+                        color: !vibeMode ? "var(--sheet)" : "var(--ink-2)",
                         transition: "all 0.15s ease",
                       }}
                     >
@@ -1440,8 +1440,8 @@ export function ConsoleSection({
                 {/* Foundations Progress Bar */}
                 <div
                   style={{
-                    background: "#fafafa",
-                    border: "1px solid var(--border)",
+                    background: "var(--paper)",
+                    border: "1px solid var(--rule)",
                     borderRadius: "12px",
                     padding: "14px 18px",
                     marginBottom: "20px",
@@ -1451,14 +1451,14 @@ export function ConsoleSection({
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      fontSize: "11px",
+                      fontSize: "12px",
                       fontFamily: "var(--mono)",
-                      color: "#64748b",
+                      color: "var(--ink-3)",
                       marginBottom: "8px",
                     }}
                   >
                     <span style={{ fontWeight: 700, letterSpacing: "0.05em" }}>CURRICULUM COMPLETION</span>
-                    <strong style={{ color: "#0f172a" }}>
+                    <strong style={{ color: "var(--ink)" }}>
                       {foundationsDoneCount}/{visibleFoundations.length} Modules ({foundationsPercent}%)
                     </strong>
                   </div>
@@ -1466,7 +1466,7 @@ export function ConsoleSection({
                     style={{
                       width: "100%",
                       height: "6px",
-                      background: "#e2e8f0",
+                      background: "var(--rule)",
                       borderRadius: "999px",
                       overflow: "hidden",
                     }}
@@ -1475,7 +1475,7 @@ export function ConsoleSection({
                       style={{
                         width: `${foundationsPercent}%`,
                         height: "100%",
-                        background: "#10b981",
+                        background: "var(--green)",
                         borderRadius: "999px",
                         transition: "width 0.3s ease",
                       }}
@@ -1491,8 +1491,8 @@ export function ConsoleSection({
                       <div
                         key={mod.id}
                         style={{
-                          background: "#ffffff",
-                          border: isDone ? "1.5px solid #86efac" : "1px solid var(--border)",
+                          background: "var(--sheet)",
+                          border: isDone ? "1.5px solid var(--green-line)" : "1px solid var(--rule)",
                           borderRadius: "14px",
                           padding: "20px 22px",
                           boxShadow: isDone
@@ -1524,10 +1524,10 @@ export function ConsoleSection({
                             <span
                               style={{
                                 fontFamily: "var(--mono)",
-                                fontSize: "10.5px",
+                                fontSize: "12px",
                                 fontWeight: 700,
-                                color: "#ffffff",
-                                background: "#0f172a",
+                                color: "var(--sheet)",
+                                background: "var(--ink)",
                                 padding: "3px 8px",
                                 borderRadius: "4px",
                                 letterSpacing: "0.05em",
@@ -1536,7 +1536,7 @@ export function ConsoleSection({
                               MODULE {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
                             </span>
 
-                            <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                            <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--ink)" }}>
                               {mod.title}
                             </h4>
                           </div>
@@ -1544,10 +1544,10 @@ export function ConsoleSection({
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                             <span
                               style={{
-                                fontSize: "11px",
+                                fontSize: "12px",
                                 fontFamily: "var(--mono)",
-                                color: "#64748b",
-                                background: "#f1f5f9",
+                                color: "var(--ink-3)",
+                                background: "var(--paper-sunk)",
                                 padding: "3px 8px",
                                 borderRadius: "4px",
                               }}
@@ -1556,14 +1556,14 @@ export function ConsoleSection({
                             </span>
                             <span
                               style={{
-                                fontSize: "10.5px",
+                                fontSize: "12px",
                                 fontFamily: "var(--mono)",
                                 fontWeight: 600,
                                 padding: "3px 8px",
                                 borderRadius: "4px",
-                                background: "rgba(15, 23, 42, 0.05)",
-                                color: "#334155",
-                                border: "1px solid #e2e8f0",
+                                background: "rgb(var(--ink-rgb) / 0.05)",
+                                color: "var(--ink-2)",
+                                border: "1px solid var(--rule)",
                               }}
                             >
                               {mod.tier.toUpperCase()}
@@ -1574,9 +1574,9 @@ export function ConsoleSection({
                         {/* Plain English Summary with Analogy */}
                         <div
                           style={{
-                            fontSize: "13.5px",
+                            fontSize: "14.5px",
                             lineHeight: "1.6",
-                            color: "var(--text)",
+                            color: "var(--ink)",
                             marginBottom: "14px",
                           }}
                         >
@@ -1586,35 +1586,35 @@ export function ConsoleSection({
                         {/* Why for YOUR project */}
                         <div
                           style={{
-                            borderLeft: "3px solid #0f172a",
+                            borderLeft: "3px solid var(--ink)",
                             paddingLeft: "14px",
-                            background: "rgba(15, 23, 42, 0.02)",
+                            background: "rgb(var(--ink-rgb) / 0.02)",
                             paddingBlock: "8px",
                             borderRadius: "0 6px 6px 0",
-                            fontSize: "13px",
-                            color: "#334155",
+                            fontSize: "14px",
+                            color: "var(--ink-2)",
                             lineHeight: "1.55",
                             marginBottom: "14px",
                           }}
                         >
-                          <strong style={{ color: "#0f172a" }}>Why for your project:</strong>{" "}
+                          <strong style={{ color: "var(--ink)" }}>Why for your project:</strong>{" "}
                           <InlineMarkdown text={mod.whyNeededForProject || mod.plainEnglishSummary} />
                         </div>
 
                         {/* Mode Specific Guidance */}
                         <div
                           style={{
-                            fontSize: "12.5px",
-                            color: "#475569",
+                            fontSize: "14px",
+                            color: "var(--ink-2)",
                             lineHeight: "1.55",
                             marginBottom: "14px",
                             padding: "10px 14px",
-                            background: "#fafafa",
+                            background: "var(--paper)",
                             borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
+                            border: "1px solid var(--rule)",
                           }}
                         >
-                          <strong style={{ color: "#0f172a" }}>
+                          <strong style={{ color: "var(--ink)" }}>
                             {vibeMode ? "Core Path Focus:" : "Architectural Context:"}
                           </strong>{" "}
                           <InlineMarkdown text={vibeMode ? mod.vibeMinimumNote : mod.deeperNote} />
@@ -1623,7 +1623,7 @@ export function ConsoleSection({
                         {/* You're done when checks */}
                         <div
                           style={{
-                            borderTop: "1px solid var(--border)",
+                            borderTop: "1px solid var(--rule)",
                             paddingTop: "12px",
                             display: "flex",
                             justifyContent: "space-between",
@@ -1637,8 +1637,8 @@ export function ConsoleSection({
                               display: "flex",
                               alignItems: "center",
                               gap: "8px",
-                              fontSize: "12.5px",
-                              color: "#166534",
+                              fontSize: "14px",
+                              color: "var(--green-ink)",
                             }}
                           >
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -1654,17 +1654,17 @@ export function ConsoleSection({
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
-                              fontSize: "11.5px",
+                              fontSize: "12.5px",
                               fontFamily: "var(--mono)",
-                              color: "var(--text-muted)",
+                              color: "var(--ink-2)",
                               display: "inline-flex",
                               alignItems: "center",
                               gap: "4px",
                               textDecoration: "none",
                               padding: "4px 10px",
                               borderRadius: "6px",
-                              background: "var(--surface-alt)",
-                              border: "1px solid var(--border)",
+                              background: "var(--paper-sunk)",
+                              border: "1px solid var(--rule)",
                               transition: "all 0.15s ease",
                             }}
                           >
@@ -1686,8 +1686,8 @@ export function ConsoleSection({
                 {blueprint.architecture && (
                   <div
                     style={{
-                      background: "#ffffff",
-                      border: "1px solid var(--border-strong)",
+                      background: "var(--sheet)",
+                      border: "1px solid var(--rule-strong)",
                       borderRadius: "16px",
                       padding: "24px 26px",
                       marginBottom: "20px",
@@ -1707,12 +1707,12 @@ export function ConsoleSection({
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <span
                           style={{
-                            background: "#0f172a",
-                            color: "#ffffff",
+                            background: "var(--ink)",
+                            color: "var(--sheet)",
                             padding: "4px 10px",
                             borderRadius: "5px",
                             fontFamily: "var(--mono)",
-                            fontSize: "11px",
+                            fontSize: "12px",
                             fontWeight: 700,
                             letterSpacing: "0.06em",
                             textTransform: "uppercase",
@@ -1723,11 +1723,11 @@ export function ConsoleSection({
                         <span
                           style={{
                             fontFamily: "var(--mono)",
-                            fontSize: "11px",
+                            fontSize: "12px",
                             fontWeight: 600,
-                            color: "#475569",
-                            background: "var(--surface-alt)",
-                            border: "1px solid var(--border)",
+                            color: "var(--ink-2)",
+                            background: "var(--paper-sunk)",
+                            border: "1px solid var(--rule)",
                             padding: "3px 9px",
                             borderRadius: "5px",
                             textTransform: "uppercase",
@@ -1738,10 +1738,10 @@ export function ConsoleSection({
                       </div>
                       <span
                         style={{
-                          fontSize: "11.5px",
+                          fontSize: "12.5px",
                           fontFamily: "var(--mono)",
-                          color: "#64748b",
-                          background: "#f1f5f9",
+                          color: "var(--ink-3)",
+                          background: "var(--paper-sunk)",
                           padding: "3px 9px",
                           borderRadius: "4px",
                         }}
@@ -1753,8 +1753,8 @@ export function ConsoleSection({
                     {/* Back End vs Front End Explained Simply */}
                     <div
                       style={{
-                        background: "#ffffff",
-                        border: "1px solid #e2e8f0",
+                        background: "var(--sheet)",
+                        border: "1px solid var(--rule)",
                         borderRadius: "12px",
                         padding: "16px 20px",
                         marginBottom: "16px",
@@ -1766,12 +1766,12 @@ export function ConsoleSection({
                           margin: "2px 0 8px",
                           fontSize: "15px",
                           fontWeight: 700,
-                          color: "#0f172a",
+                          color: "var(--ink)",
                         }}
                       >
                         Client vs Server Mechanics
                       </h4>
-                      <div style={{ margin: 0, fontSize: "13.5px", lineHeight: "1.6", color: "var(--text)" }}>
+                      <div style={{ margin: 0, fontSize: "14.5px", lineHeight: "1.6", color: "var(--ink)" }}>
                         <MarkdownContent content={blueprint.architecture.front_back_explained_simply} />
                       </div>
                     </div>
@@ -1780,8 +1780,8 @@ export function ConsoleSection({
                     {blueprint.architecture.finished_product_preview && (
                       <div
                         style={{
-                          background: "#ffffff",
-                          border: "1px solid #e2e8f0",
+                          background: "var(--sheet)",
+                          border: "1px solid var(--rule)",
                           borderRadius: "12px",
                           padding: "16px 20px",
                           marginBottom: "16px",
@@ -1793,12 +1793,12 @@ export function ConsoleSection({
                             margin: "2px 0 8px",
                             fontSize: "15px",
                             fontWeight: 700,
-                            color: "#0f172a",
+                            color: "var(--ink)",
                           }}
                         >
                           Working Prototype Preview
                         </h4>
-                        <div style={{ margin: 0, fontSize: "13.5px", lineHeight: "1.6", color: "var(--text)" }}>
+                        <div style={{ margin: 0, fontSize: "14.5px", lineHeight: "1.6", color: "var(--ink)" }}>
                           <MarkdownContent content={blueprint.architecture.finished_product_preview} />
                         </div>
                       </div>
@@ -1807,15 +1807,15 @@ export function ConsoleSection({
                     {/* Recommended Stack & Alternatives */}
                     <div
                       style={{
-                        background: "#fafafa",
-                        border: "1px solid #e2e8f0",
+                        background: "var(--paper)",
+                        border: "1px solid var(--rule)",
                         borderRadius: "12px",
                         padding: "18px 20px",
                         marginBottom: "20px",
                       }}
                     >
                       <div className="card-kicker">Recommended Stack</div>
-                      <h4 style={{ margin: "2px 0 10px", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                      <h4 style={{ margin: "2px 0 10px", fontSize: "16px", fontWeight: 700, color: "var(--ink)" }}>
                         Calibrated Tools & Runtime
                       </h4>
                       <div
@@ -1830,10 +1830,10 @@ export function ConsoleSection({
                         <span
                           style={{
                             fontWeight: 700,
-                            fontSize: "12px",
+                            fontSize: "13px",
                             fontFamily: "var(--mono)",
-                            background: "#0f172a",
-                            color: "#ffffff",
+                            background: "var(--ink)",
+                            color: "var(--sheet)",
                             padding: "3px 9px",
                             borderRadius: "5px",
                           }}
@@ -1844,31 +1844,31 @@ export function ConsoleSection({
                           <span
                             key={i}
                             style={{
-                              background: "#ffffff",
-                              border: "1px solid #cbd5e1",
+                              background: "var(--sheet)",
+                              border: "1px solid var(--rule-strong)",
                               borderRadius: "5px",
                               padding: "3px 9px",
-                              fontSize: "12px",
+                              fontSize: "13px",
                               fontFamily: "var(--mono)",
-                              color: "#334155",
+                              color: "var(--ink-2)",
                             }}
                           >
                             {tool}
                           </span>
                         ))}
                       </div>
-                      <p style={{ fontSize: "13px", color: "#475569", lineHeight: "1.55", margin: "0 0 10px" }}>
-                        <strong style={{ color: "#0f172a" }}>Why in plain English:</strong>{" "}
+                      <p style={{ fontSize: "14px", color: "var(--ink-2)", lineHeight: "1.55", margin: "0 0 10px" }}>
+                        <strong style={{ color: "var(--ink)" }}>Why in plain English:</strong>{" "}
                         <InlineMarkdown text={blueprint.architecture.recommended_stack.why_in_plain_english} />
                       </p>
                       {blueprint.architecture.recommended_stack.alternatives &&
                         blueprint.architecture.recommended_stack.alternatives.length > 0 && (
-                          <div style={{ borderTop: "1px dashed #cbd5e1", paddingTop: "8px" }}>
+                          <div style={{ borderTop: "1px dashed var(--rule-strong)", paddingTop: "8px" }}>
                             <span
                               style={{
-                                fontSize: "11px",
+                                fontSize: "12px",
                                 fontFamily: "var(--mono)",
-                                color: "#64748b",
+                                color: "var(--ink-3)",
                                 textTransform: "uppercase",
                                 letterSpacing: "0.05em",
                               }}
@@ -1877,7 +1877,7 @@ export function ConsoleSection({
                             </span>
                             <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
                               {blueprint.architecture.recommended_stack.alternatives.map((alt, i) => (
-                                <div key={i} style={{ fontSize: "12px", color: "#334155" }}>
+                                <div key={i} style={{ fontSize: "13px", color: "var(--ink-2)" }}>
                                   • <strong>{alt.name}</strong>: <em>{alt.pick_this_if}</em>
                                 </div>
                               ))}
@@ -1889,7 +1889,7 @@ export function ConsoleSection({
                     {/* The 3-7 Project Parts */}
                     <div>
                       <div className="card-kicker">Component Blueprint // {blueprint.architecture.parts.length} Parts</div>
-                      <h4 style={{ margin: "4px 0 16px", fontSize: "18px", fontWeight: 700, color: "#0f172a" }}>
+                      <h4 style={{ margin: "4px 0 16px", fontSize: "18px", fontWeight: 700, color: "var(--ink)" }}>
                         System Components
                       </h4>
 
@@ -1899,8 +1899,8 @@ export function ConsoleSection({
                             <div
                               key={part.id || idx}
                               style={{
-                                background: "#ffffff",
-                                border: "1px solid var(--border)",
+                                background: "var(--sheet)",
+                                border: "1px solid var(--rule)",
                                 borderRadius: "12px",
                                 padding: "18px 20px",
                               }}
@@ -1918,10 +1918,10 @@ export function ConsoleSection({
                                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                                   <span
                                     style={{
-                                      background: "#0f172a",
-                                      color: "#ffffff",
+                                      background: "var(--ink)",
+                                      color: "var(--sheet)",
                                       fontFamily: "var(--mono)",
-                                      fontSize: "11px",
+                                      fontSize: "12px",
                                       fontWeight: 700,
                                       width: "22px",
                                       height: "22px",
@@ -1933,7 +1933,7 @@ export function ConsoleSection({
                                   >
                                     {idx + 1}
                                   </span>
-                                  <h5 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                                  <h5 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--ink)" }}>
                                     {part.name}
                                   </h5>
                                 </div>
@@ -1941,14 +1941,14 @@ export function ConsoleSection({
                                 <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
                                   <span
                                     style={{
-                                      fontSize: "11px",
+                                      fontSize: "12px",
                                       fontFamily: "var(--mono)",
                                       fontWeight: 600,
                                       borderRadius: "4px",
                                       padding: "3px 8px",
-                                      background: "rgba(15, 23, 42, 0.05)",
-                                      color: "#334155",
-                                      border: "1px solid #e2e8f0",
+                                      background: "rgb(var(--ink-rgb) / 0.05)",
+                                      color: "var(--ink-2)",
+                                      border: "1px solid var(--rule)",
                                     }}
                                   >
                                     {part.side}
@@ -1956,10 +1956,10 @@ export function ConsoleSection({
                                   {part.depends_on && part.depends_on.length > 0 && (
                                     <span
                                       style={{
-                                        fontSize: "10.5px",
+                                        fontSize: "12px",
                                         fontFamily: "var(--mono)",
-                                        background: "#f1f5f9",
-                                        color: "#475569",
+                                        background: "var(--paper-sunk)",
+                                        color: "var(--ink-2)",
                                         padding: "3px 7px",
                                         borderRadius: "4px",
                                       }}
@@ -1970,24 +1970,24 @@ export function ConsoleSection({
                                 </div>
                               </div>
 
-                              <p style={{ fontSize: "13.5px", color: "var(--text)", margin: "0 0 12px", lineHeight: "1.55" }}>
+                              <p style={{ fontSize: "14.5px", color: "var(--ink)", margin: "0 0 12px", lineHeight: "1.55" }}>
                                 {part.one_line_purpose}
                               </p>
 
                               {part.example_look_feel_function && (
                                 <div
                                   style={{
-                                    background: "#fafafa",
-                                    border: "1px solid #e2e8f0",
+                                    background: "var(--paper)",
+                                    border: "1px solid var(--rule)",
                                     borderRadius: "8px",
                                     padding: "10px 14px",
                                     marginBottom: "12px",
-                                    fontSize: "12.5px",
-                                    color: "#334155",
+                                    fontSize: "14px",
+                                    color: "var(--ink-2)",
                                     lineHeight: "1.55",
                                   }}
                                 >
-                                  <strong style={{ color: "#0f172a" }}>Behavior & Specification:</strong>{" "}
+                                  <strong style={{ color: "var(--ink)" }}>Behavior & Specification:</strong>{" "}
                                   {part.example_look_feel_function}
                                 </div>
                               )}
@@ -1996,9 +1996,9 @@ export function ConsoleSection({
                                 <div style={{ marginBottom: "12px" }}>
                                   <div
                                     style={{
-                                      fontSize: "11px",
+                                      fontSize: "12px",
                                       fontFamily: "var(--mono)",
-                                      color: "#64748b",
+                                      color: "var(--ink-3)",
                                       textTransform: "uppercase",
                                       letterSpacing: "0.05em",
                                       marginBottom: "6px",
@@ -2014,8 +2014,8 @@ export function ConsoleSection({
                                           display: "flex",
                                           alignItems: "flex-start",
                                           gap: "8px",
-                                          fontSize: "12.5px",
-                                          color: "#1e293b",
+                                          fontSize: "14px",
+                                          color: "var(--ink)",
                                           lineHeight: "1.5",
                                         }}
                                       >
@@ -2024,9 +2024,9 @@ export function ConsoleSection({
                                             width: "16px",
                                             height: "16px",
                                             borderRadius: "50%",
-                                            background: "#f1f5f9",
-                                            color: "#475569",
-                                            fontSize: "10px",
+                                            background: "var(--paper-sunk)",
+                                            color: "var(--ink-2)",
+                                            fontSize: "12px",
                                             fontFamily: "var(--mono)",
                                             fontWeight: 700,
                                             display: "inline-flex",
@@ -2047,7 +2047,7 @@ export function ConsoleSection({
 
                               {part.resources && part.resources.length > 0 && (
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
-                                  <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "#64748b" }}>
+                                  <span style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--ink-3)" }}>
                                     Resources:
                                   </span>
                                   {part.resources.map((r, rIdx) => (
@@ -2060,12 +2060,12 @@ export function ConsoleSection({
                                         display: "inline-flex",
                                         alignItems: "center",
                                         gap: "4px",
-                                        background: "var(--surface-alt)",
-                                        border: "1px solid var(--border)",
+                                        background: "var(--paper-sunk)",
+                                        border: "1px solid var(--rule)",
                                         borderRadius: "5px",
                                         padding: "3px 8px",
-                                        fontSize: "11.5px",
-                                        color: "var(--text)",
+                                        fontSize: "12.5px",
+                                        color: "var(--ink)",
                                         textDecoration: "none",
                                       }}
                                       title={r.why}
@@ -2087,18 +2087,18 @@ export function ConsoleSection({
                 {/* 1. What it does */}
                 <div
                   style={{
-                    background: "#ffffff",
-                    border: "1px solid var(--border)",
+                    background: "var(--sheet)",
+                    border: "1px solid var(--rule)",
                     borderRadius: "14px",
                     padding: "20px 22px",
                     marginBottom: "16px",
                   }}
                 >
                   <div className="card-kicker">01 · Plain English Definition</div>
-                  <h4 style={{ margin: "4px 0 8px", fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
+                  <h4 style={{ margin: "4px 0 8px", fontSize: "17px", fontWeight: 700, color: "var(--ink)" }}>
                     What It Does
                   </h4>
-                  <div style={{ fontSize: "14.5px", lineHeight: "1.6", color: "var(--text)", margin: 0 }}>
+                  <div style={{ fontSize: "14.5px", lineHeight: "1.6", color: "var(--ink)", margin: 0 }}>
                     <MarkdownContent content={blueprint.productMap.whatItDoes} />
                   </div>
                 </div>
@@ -2106,15 +2106,15 @@ export function ConsoleSection({
                 {/* 2. User Journey */}
                 <div
                   style={{
-                    background: "#ffffff",
-                    border: "1px solid var(--border)",
+                    background: "var(--sheet)",
+                    border: "1px solid var(--rule)",
                     borderRadius: "14px",
                     padding: "20px 22px",
                     marginBottom: "16px",
                   }}
                 >
                   <div className="card-kicker">02 · End-to-End User Experience</div>
-                  <h4 style={{ margin: "4px 0 14px", fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
+                  <h4 style={{ margin: "4px 0 14px", fontSize: "17px", fontWeight: 700, color: "var(--ink)" }}>
                     User Journey
                   </h4>
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -2126,18 +2126,18 @@ export function ConsoleSection({
                           alignItems: "center",
                           gap: "12px",
                           padding: "10px 14px",
-                          background: "var(--surface-alt)",
+                          background: "var(--paper-sunk)",
                           borderRadius: "8px",
-                          border: "1px solid var(--border)",
+                          border: "1px solid var(--rule)",
                         }}
                       >
                         <span
                           style={{
                             fontFamily: "var(--mono)",
-                            fontSize: "11px",
+                            fontSize: "12px",
                             fontWeight: 700,
-                            background: "#0f172a",
-                            color: "#ffffff",
+                            background: "var(--ink)",
+                            color: "var(--sheet)",
                             width: "22px",
                             height: "22px",
                             borderRadius: "50%",
@@ -2149,7 +2149,7 @@ export function ConsoleSection({
                         >
                           {idx + 1}
                         </span>
-                        <div style={{ flex: 1, fontSize: "13px", color: "var(--text)" }}>
+                        <div style={{ flex: 1, fontSize: "14px", color: "var(--ink)" }}>
                           <InlineMarkdown text={stepStr} />
                         </div>
                       </div>
@@ -2169,14 +2169,14 @@ export function ConsoleSection({
                   {/* Screens */}
                   <div
                     style={{
-                      background: "#ffffff",
-                      border: "1px solid var(--border)",
+                      background: "var(--sheet)",
+                      border: "1px solid var(--rule)",
                       borderRadius: "14px",
                       padding: "20px",
                     }}
                   >
                     <div className="card-kicker">03 · UI Boundaries</div>
-                    <h4 style={{ margin: "4px 0 12px", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                    <h4 style={{ margin: "4px 0 12px", fontSize: "16px", fontWeight: 700, color: "var(--ink)" }}>
                       Screens
                     </h4>
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -2185,14 +2185,14 @@ export function ConsoleSection({
                           key={idx}
                           style={{
                             padding: "8px 12px",
-                            background: "var(--surface-alt)",
+                            background: "var(--paper-sunk)",
                             borderRadius: "6px",
-                            border: "1px solid var(--border)",
-                            fontSize: "12.5px",
+                            border: "1px solid var(--rule)",
+                            fontSize: "14px",
                           }}
                         >
-                          <strong style={{ color: "var(--text)" }}>{screen.name}</strong>:{" "}
-                          <span style={{ color: "var(--text-muted)" }}>
+                          <strong style={{ color: "var(--ink)" }}>{screen.name}</strong>:{" "}
+                          <span style={{ color: "var(--ink-2)" }}>
                             <InlineMarkdown text={screen.userAction} />
                           </span>
                         </div>
@@ -2203,47 +2203,47 @@ export function ConsoleSection({
                   {/* Data it Needs */}
                   <div
                     style={{
-                      background: "#ffffff",
-                      border: "1px solid var(--border)",
+                      background: "var(--sheet)",
+                      border: "1px solid var(--rule)",
                       borderRadius: "14px",
                       padding: "20px",
                     }}
                   >
                     <div className="card-kicker">04 · Data Storage For MVP</div>
-                    <h4 style={{ margin: "4px 0 12px", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                    <h4 style={{ margin: "4px 0 12px", fontSize: "16px", fontWeight: 700, color: "var(--ink)" }}>
                       Data & Persistence
                     </h4>
                     <div style={{ marginBottom: "12px" }}>
                       <div
                         style={{
-                          fontSize: "11px",
+                          fontSize: "12px",
                           fontFamily: "var(--mono)",
-                          color: "var(--text-soft)",
+                          color: "var(--ink-3)",
                           textTransform: "uppercase",
                           marginBottom: "4px",
                         }}
                       >
                         Core Data Needed:
                       </div>
-                      <div style={{ margin: "0 0 10px", fontSize: "12.5px", color: "var(--text)", lineHeight: "1.5" }}>
+                      <div style={{ margin: "0 0 10px", fontSize: "14px", color: "var(--ink)", lineHeight: "1.5" }}>
                         <InlineMarkdown text={blueprint.productMap.dataItNeeds.description} />
                       </div>
                     </div>
                     <div
                       style={{
-                        background: "#f0fdf4",
-                        border: "1px solid #bbf7d0",
+                        background: "var(--green-wash)",
+                        border: "1px solid var(--green-line)",
                         padding: "8px 12px",
                         borderRadius: "6px",
-                        fontSize: "12px",
-                        color: "#166534",
+                        fontSize: "13px",
+                        color: "var(--green-ink)",
                         marginBottom: "8px",
                       }}
                     >
                       <strong>Storage for MVP:</strong>{" "}
                       <InlineMarkdown text={blueprint.productMap.dataItNeeds.storageForMvp} />
                     </div>
-                    <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
+                    <div style={{ fontSize: "12.5px", color: "var(--ink-2)" }}>
                       <strong>Later upgrade options:</strong>{" "}
                       <InlineMarkdown text={blueprint.productMap.dataItNeeds.laterOptions} />
                     </div>
@@ -2261,19 +2261,19 @@ export function ConsoleSection({
                 >
                   <div
                     style={{
-                      background: "#ffffff",
-                      border: "1px solid #bbf7d0",
+                      background: "var(--sheet)",
+                      border: "1px solid var(--green-line)",
                       borderRadius: "14px",
                       padding: "20px",
                     }}
                   >
-                    <div className="card-kicker" style={{ color: "#166534" }}>
+                    <div className="card-kicker" style={{ color: "var(--green-ink)" }}>
                       ✓ Build in Phase 1
                     </div>
-                    <h4 style={{ margin: "4px 0 10px", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                    <h4 style={{ margin: "4px 0 10px", fontSize: "16px", fontWeight: 700, color: "var(--ink)" }}>
                       Parts You Need NOW
                     </h4>
-                    <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "13px", color: "#1e293b", lineHeight: "1.7" }}>
+                    <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "14px", color: "var(--ink)", lineHeight: "1.7" }}>
                       {blueprint.productMap.partsYouNeedNow.map((p, idx) => (
                         <li key={idx}>
                           <strong>{p.part}</strong>: <InlineMarkdown text={p.reason} />
@@ -2284,23 +2284,23 @@ export function ConsoleSection({
 
                   <div
                     style={{
-                      background: "#ffffff",
-                      border: "1px solid var(--border)",
+                      background: "var(--sheet)",
+                      border: "1px solid var(--rule)",
                       borderRadius: "14px",
                       padding: "20px",
                     }}
                   >
-                    <div className="card-kicker" style={{ color: "#64748b" }}>
+                    <div className="card-kicker" style={{ color: "var(--ink-3)" }}>
                       Scope Protection (Deferred)
                     </div>
-                    <h4 style={{ margin: "4px 0 10px", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                    <h4 style={{ margin: "4px 0 10px", fontSize: "16px", fontWeight: 700, color: "var(--ink)" }}>
                       Parts You Can IGNORE For Now
                     </h4>
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {blueprint.productMap.partsYouCanIgnoreForNow.map((p, idx) => (
-                        <div key={idx} style={{ fontSize: "12.5px" }}>
-                          <strong style={{ color: "#64748b" }}>— {p.part}:</strong>{" "}
-                          <span style={{ color: "var(--text-muted)" }}>
+                        <div key={idx} style={{ fontSize: "14px" }}>
+                          <strong style={{ color: "var(--ink-3)" }}>— {p.part}:</strong>{" "}
+                          <span style={{ color: "var(--ink-2)" }}>
                             <InlineMarkdown text={p.reason} />
                           </span>
                         </div>
@@ -2312,30 +2312,30 @@ export function ConsoleSection({
                 {/* 5. MVP Scope Boundaries: v1 vs v2 vs v3 */}
                 <div
                   style={{
-                    background: "#ffffff",
-                    border: "1px solid var(--border)",
+                    background: "var(--sheet)",
+                    border: "1px solid var(--rule)",
                     borderRadius: "14px",
                     padding: "20px",
                     marginBottom: "16px",
                   }}
                 >
                   <div className="card-kicker">05 · Phased Scope Boundaries</div>
-                  <h4 style={{ margin: "4px 0 14px", fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
+                  <h4 style={{ margin: "4px 0 14px", fontSize: "17px", fontWeight: 700, color: "var(--ink)" }}>
                     MVP vs Later Versions
                   </h4>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
                     <div
                       style={{
-                        background: "#f0fdf4",
-                        border: "1px solid #bbf7d0",
+                        background: "var(--green-wash)",
+                        border: "1px solid var(--green-line)",
                         padding: "14px",
                         borderRadius: "10px",
                       }}
                     >
-                      <strong style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "#166534", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      <strong style={{ fontSize: "13px", fontFamily: "var(--mono)", color: "var(--green-ink)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                         v1 (Demo Ready)
                       </strong>
-                      <ul style={{ margin: "8px 0 0", paddingLeft: "16px", fontSize: "12px", color: "#1e293b", lineHeight: "1.6" }}>
+                      <ul style={{ margin: "8px 0 0", paddingLeft: "16px", fontSize: "13px", color: "var(--ink)", lineHeight: "1.6" }}>
                         {blueprint.productMap.mvpVsLater.v1DemoReady.map((f, i) => (
                           <li key={i}>
                             <InlineMarkdown text={f} />
@@ -2346,16 +2346,16 @@ export function ConsoleSection({
 
                     <div
                       style={{
-                        background: "#fafafa",
-                        border: "1px solid #e2e8f0",
+                        background: "var(--paper)",
+                        border: "1px solid var(--rule)",
                         padding: "14px",
                         borderRadius: "10px",
                       }}
                     >
-                      <strong style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "#334155", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      <strong style={{ fontSize: "13px", fontFamily: "var(--mono)", color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                         v2 (Fast Follow)
                       </strong>
-                      <ul style={{ margin: "8px 0 0", paddingLeft: "16px", fontSize: "12px", color: "#475569", lineHeight: "1.6" }}>
+                      <ul style={{ margin: "8px 0 0", paddingLeft: "16px", fontSize: "13px", color: "var(--ink-2)", lineHeight: "1.6" }}>
                         {blueprint.productMap.mvpVsLater.v2Next.map((f, i) => (
                           <li key={i}>
                             <InlineMarkdown text={f} />
@@ -2366,16 +2366,16 @@ export function ConsoleSection({
 
                     <div
                       style={{
-                        background: "#fafafa",
-                        border: "1px solid #e2e8f0",
+                        background: "var(--paper)",
+                        border: "1px solid var(--rule)",
                         padding: "14px",
                         borderRadius: "10px",
                       }}
                     >
-                      <strong style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      <strong style={{ fontSize: "13px", fontFamily: "var(--mono)", color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                         v3 (Full Product)
                       </strong>
-                      <ul style={{ margin: "8px 0 0", paddingLeft: "16px", fontSize: "12px", color: "#64748b", lineHeight: "1.6" }}>
+                      <ul style={{ margin: "8px 0 0", paddingLeft: "16px", fontSize: "13px", color: "var(--ink-3)", lineHeight: "1.6" }}>
                         {blueprint.productMap.mvpVsLater.v3Future.map((f, i) => (
                           <li key={i}>
                             <InlineMarkdown text={f} />
@@ -2389,14 +2389,14 @@ export function ConsoleSection({
                 {/* 6. Next Implementation Steps */}
                 <div
                   style={{
-                    background: "#ffffff",
-                    border: "1px solid var(--border)",
+                    background: "var(--sheet)",
+                    border: "1px solid var(--rule)",
                     borderRadius: "14px",
                     padding: "20px",
                   }}
                 >
                   <div className="card-kicker">06 · After The Demo Works</div>
-                  <h4 style={{ margin: "4px 0 12px", fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
+                  <h4 style={{ margin: "4px 0 12px", fontSize: "17px", fontWeight: 700, color: "var(--ink)" }}>
                     Next Implementation Steps
                   </h4>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -2404,18 +2404,18 @@ export function ConsoleSection({
                       <div
                         key={idx}
                         style={{
-                          fontSize: "13px",
+                          fontSize: "14px",
                           padding: "10px 14px",
-                          background: "var(--surface-alt)",
+                          background: "var(--paper-sunk)",
                           borderRadius: "8px",
-                          border: "1px solid var(--border)",
+                          border: "1px solid var(--rule)",
                         }}
                       >
-                        <strong style={{ color: "#0f172a" }}>
+                        <strong style={{ color: "var(--ink)" }}>
                           Step {idx + 1}: <InlineMarkdown text={step.step} />
                         </strong>{" "}
                         —{" "}
-                        <span style={{ color: "var(--text-muted)" }}>
+                        <span style={{ color: "var(--ink-2)" }}>
                           <InlineMarkdown text={step.reason} />
                         </span>
                       </div>
@@ -2449,8 +2449,8 @@ export function ConsoleSection({
               <div style={{ marginTop: "16px" }}>
                 <div
                   style={{
-                    background: "#ffffff",
-                    border: "1px solid var(--border-strong)",
+                    background: "var(--sheet)",
+                    border: "1px solid var(--rule-strong)",
                     borderRadius: "14px",
                     padding: "20px 24px",
                     marginBottom: "18px",
@@ -2458,10 +2458,10 @@ export function ConsoleSection({
                   }}
                 >
                   <div className="card-kicker">Deferred Complexity</div>
-                  <h4 style={{ margin: "2px 0 6px", fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
+                  <h4 style={{ margin: "2px 0 6px", fontSize: "17px", fontWeight: 700, color: "var(--ink)" }}>
                     Advanced Topics Intentionally Kept Out of the MVP
                   </h4>
-                  <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: 0, lineHeight: "1.6" }}>
+                  <p style={{ fontSize: "14px", color: "var(--ink-2)", margin: 0, lineHeight: "1.6" }}>
                     Beginners fail when attempting to configure cloud databases, OAuth logins, and payment SDKs
                     before validating their core product loop. These topics are ready for you once Phase 1 is demoed:
                   </p>
@@ -2471,8 +2471,8 @@ export function ConsoleSection({
                   {/* Topic 1: Cloud Databases */}
                   <div
                     style={{
-                      background: "#ffffff",
-                      border: "1px solid var(--border)",
+                      background: "var(--sheet)",
+                      border: "1px solid var(--rule)",
                       borderRadius: "12px",
                       overflow: "hidden",
                       transition: "border-color 0.15s ease",
@@ -2494,10 +2494,10 @@ export function ConsoleSection({
                       }}
                     >
                       <div>
-                        <strong style={{ fontSize: "14.5px", fontWeight: 700, color: "#0f172a" }}>
+                        <strong style={{ fontSize: "14.5px", fontWeight: 700, color: "var(--ink)" }}>
                           Cloud Databases & Multi-User Persistence
                         </strong>
-                        <div style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "3px" }}>
+                        <div style={{ fontSize: "14px", color: "var(--ink-2)", marginTop: "3px" }}>
                           Why deferred: Browser LocalStorage provides 100% reliable zero-server demos.
                         </div>
                       </div>
@@ -2511,11 +2511,11 @@ export function ConsoleSection({
                       <div
                         style={{
                           padding: "14px 20px 18px",
-                          fontSize: "13px",
-                          color: "var(--text)",
+                          fontSize: "14px",
+                          color: "var(--ink)",
                           lineHeight: "1.6",
-                          borderTop: "1px solid var(--border)",
-                          background: "#fafafa",
+                          borderTop: "1px solid var(--rule)",
+                          background: "var(--paper)",
                         }}
                       >
                         <p style={{ margin: "0 0 10px" }}>
@@ -2532,10 +2532,10 @@ export function ConsoleSection({
                             gap: "6px",
                             padding: "6px 12px",
                             borderRadius: "6px",
-                            background: "#ffffff",
-                            border: "1px solid var(--border)",
-                            color: "var(--text)",
-                            fontSize: "12px",
+                            background: "var(--sheet)",
+                            border: "1px solid var(--rule)",
+                            color: "var(--ink)",
+                            fontSize: "13px",
                             textDecoration: "none",
                             fontFamily: "var(--mono)",
                           }}
@@ -2550,8 +2550,8 @@ export function ConsoleSection({
                   {/* Topic 2: User Authentication */}
                   <div
                     style={{
-                      background: "#ffffff",
-                      border: "1px solid var(--border)",
+                      background: "var(--sheet)",
+                      border: "1px solid var(--rule)",
                       borderRadius: "12px",
                       overflow: "hidden",
                       transition: "border-color 0.15s ease",
@@ -2573,10 +2573,10 @@ export function ConsoleSection({
                       }}
                     >
                       <div>
-                        <strong style={{ fontSize: "14.5px", fontWeight: 700, color: "#0f172a" }}>
+                        <strong style={{ fontSize: "14.5px", fontWeight: 700, color: "var(--ink)" }}>
                           User Accounts & OAuth Logins
                         </strong>
-                        <div style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "3px" }}>
+                        <div style={{ fontSize: "14px", color: "var(--ink-2)", marginTop: "3px" }}>
                           Why deferred: Authentication forms add friction for initial users evaluating your tool.
                         </div>
                       </div>
@@ -2590,11 +2590,11 @@ export function ConsoleSection({
                       <div
                         style={{
                           padding: "14px 20px 18px",
-                          fontSize: "13px",
-                          color: "var(--text)",
+                          fontSize: "14px",
+                          color: "var(--ink)",
                           lineHeight: "1.6",
-                          borderTop: "1px solid var(--border)",
-                          background: "#fafafa",
+                          borderTop: "1px solid var(--rule)",
+                          background: "var(--paper)",
                         }}
                       >
                         <p style={{ margin: "0 0 10px" }}>
@@ -2611,10 +2611,10 @@ export function ConsoleSection({
                             gap: "6px",
                             padding: "6px 12px",
                             borderRadius: "6px",
-                            background: "#ffffff",
-                            border: "1px solid var(--border)",
-                            color: "var(--text)",
-                            fontSize: "12px",
+                            background: "var(--sheet)",
+                            border: "1px solid var(--rule)",
+                            color: "var(--ink)",
+                            fontSize: "13px",
                             textDecoration: "none",
                             fontFamily: "var(--mono)",
                           }}
@@ -2629,8 +2629,8 @@ export function ConsoleSection({
                   {/* Topic 3: Production Deployment */}
                   <div
                     style={{
-                      background: "#ffffff",
-                      border: "1px solid var(--border)",
+                      background: "var(--sheet)",
+                      border: "1px solid var(--rule)",
                       borderRadius: "12px",
                       overflow: "hidden",
                       transition: "border-color 0.15s ease",
@@ -2652,10 +2652,10 @@ export function ConsoleSection({
                       }}
                     >
                       <div>
-                        <strong style={{ fontSize: "14.5px", fontWeight: 700, color: "#0f172a" }}>
+                        <strong style={{ fontSize: "14.5px", fontWeight: 700, color: "var(--ink)" }}>
                           Custom Domains & Production CDN Hosting
                         </strong>
-                        <div style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "3px" }}>
+                        <div style={{ fontSize: "14px", color: "var(--ink-2)", marginTop: "3px" }}>
                           Why deferred: Test locally first with <code>npm run dev</code> before deploying.
                         </div>
                       </div>
@@ -2669,11 +2669,11 @@ export function ConsoleSection({
                       <div
                         style={{
                           padding: "14px 20px 18px",
-                          fontSize: "13px",
-                          color: "var(--text)",
+                          fontSize: "14px",
+                          color: "var(--ink)",
                           lineHeight: "1.6",
-                          borderTop: "1px solid var(--border)",
-                          background: "#fafafa",
+                          borderTop: "1px solid var(--rule)",
+                          background: "var(--paper)",
                         }}
                       >
                         <p style={{ margin: "0 0 10px" }}>
@@ -2690,10 +2690,10 @@ export function ConsoleSection({
                             gap: "6px",
                             padding: "6px 12px",
                             borderRadius: "6px",
-                            background: "#ffffff",
-                            border: "1px solid var(--border)",
-                            color: "var(--text)",
-                            fontSize: "12px",
+                            background: "var(--sheet)",
+                            border: "1px solid var(--rule)",
+                            color: "var(--ink)",
+                            fontSize: "13px",
                             textDecoration: "none",
                             fontFamily: "var(--mono)",
                           }}
@@ -2713,8 +2713,8 @@ export function ConsoleSection({
               <div style={{ marginTop: "16px" }}>
                 <div
                   style={{
-                    background: "#ffffff",
-                    border: "1px solid var(--border-strong)",
+                    background: "var(--sheet)",
+                    border: "1px solid var(--rule-strong)",
                     borderRadius: "16px",
                     padding: "22px 26px",
                     marginBottom: "18px",
@@ -2724,18 +2724,18 @@ export function ConsoleSection({
                   <div className="card-kicker">
                     Project Launch · Optional Guidance
                   </div>
-                  <h4 style={{ margin: "2px 0 6px", fontSize: "18px", fontWeight: 700, color: "#0f172a" }}>
+                  <h4 style={{ margin: "2px 0 6px", fontSize: "18px", fontWeight: 700, color: "var(--ink)" }}>
                     Preparing {blueprint.projectTitle} for Launch
                   </h4>
-                  <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "0 0 18px", lineHeight: "1.55" }}>
+                  <p style={{ fontSize: "14px", color: "var(--ink-2)", margin: "0 0 18px", lineHeight: "1.55" }}>
                     Review these recommended repository guidelines for publishing {blueprint.projectTitle}, and export your complete project blueprint below. These items are suggestions for self-verification, not automated checks.
                   </p>
 
                   {/* Repository Checklist Card */}
                   <div
                     style={{
-                      background: "#ffffff",
-                      border: "1px solid var(--border)",
+                      background: "var(--sheet)",
+                      border: "1px solid var(--rule)",
                       borderRadius: "12px",
                       padding: "18px 20px",
                     }}
@@ -2752,17 +2752,17 @@ export function ConsoleSection({
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <Github className="w-4 h-4 text-slate-800" />
-                        <strong style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>
+                        <strong style={{ fontSize: "14px", fontWeight: 700, color: "var(--ink)" }}>
                           Source Code & Repository Checklist
                         </strong>
                       </div>
                       <span
                         style={{
-                          fontSize: "11px",
+                          fontSize: "12px",
                           fontWeight: 600,
-                          color: "var(--text-muted)",
-                          background: "var(--surface-alt)",
-                          border: "1px solid var(--border)",
+                          color: "var(--ink-2)",
+                          background: "var(--paper-sunk)",
+                          border: "1px solid var(--rule)",
                           borderRadius: "4px",
                           padding: "2px 8px",
                         }}
@@ -2810,8 +2810,8 @@ export function ConsoleSection({
                               gap: "10px",
                               padding: "10px 12px",
                               borderRadius: "8px",
-                              border: isChecked ? "1px solid #cbd5e1" : "1px solid var(--border)",
-                              background: isChecked ? "#f8fafc" : "#ffffff",
+                              border: isChecked ? "1px solid var(--rule-strong)" : "1px solid var(--rule)",
+                              background: isChecked ? "var(--paper)" : "var(--sheet)",
                               cursor: "pointer",
                               transition: "all 0.15s ease",
                             }}
@@ -2821,18 +2821,18 @@ export function ConsoleSection({
                             ) : (
                               <Square className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
                             )}
-                            <div style={{ fontSize: "12.5px", lineHeight: "1.5" }}>
-                              <strong style={{ color: "#0f172a", display: "inline-block", marginRight: "6px" }}>
+                            <div style={{ fontSize: "14px", lineHeight: "1.5" }}>
+                              <strong style={{ color: "var(--ink)", display: "inline-block", marginRight: "6px" }}>
                                 {item.title}:
                               </strong>
-                              <span style={{ color: "#475569" }}>{item.desc}</span>
+                              <span style={{ color: "var(--ink-2)" }}>{item.desc}</span>
                             </div>
                           </div>
                         );
                       })}
                     </div>
 
-                    <p style={{ margin: "12px 0 0", fontSize: "11.5px", color: "var(--text-muted)", fontStyle: "italic" }}>
+                    <p style={{ margin: "12px 0 0", fontSize: "12.5px", color: "var(--ink-2)", fontStyle: "italic" }}>
                       Note: These items are recommendations for your manual pre-launch review. YourDev does not inspect external Git hosts.
                     </p>
                   </div>
@@ -2856,8 +2856,8 @@ export function ConsoleSection({
                   return (
                     <div
                       style={{
-                        background: "#ffffff",
-                        border: "1px solid var(--border)",
+                        background: "var(--sheet)",
+                        border: "1px solid var(--rule)",
                         borderRadius: "14px",
                         padding: "22px 24px",
                       }}
@@ -2874,7 +2874,7 @@ export function ConsoleSection({
                       >
                         <div>
                           <div className="card-kicker">Complete Strategy Export</div>
-                          <h4 style={{ margin: "2px 0 0", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                          <h4 style={{ margin: "2px 0 0", fontSize: "16px", fontWeight: 700, color: "var(--ink)" }}>
                             Full Project Blueprint (Markdown)
                           </h4>
                         </div>
@@ -2883,10 +2883,10 @@ export function ConsoleSection({
                           <div
                             style={{
                               display: "flex",
-                              background: "var(--surface-alt)",
+                              background: "var(--paper-sunk)",
                               padding: "3px",
                               borderRadius: "8px",
-                              border: "1px solid var(--border)",
+                              border: "1px solid var(--rule)",
                             }}
                           >
                             <button
@@ -2894,13 +2894,13 @@ export function ConsoleSection({
                               onClick={() => setExportView("formatted")}
                               style={{
                                 padding: "5px 10px",
-                                fontSize: "11.5px",
+                                fontSize: "12.5px",
                                 fontWeight: 600,
                                 borderRadius: "6px",
                                 border: "none",
                                 cursor: "pointer",
-                                background: exportView === "formatted" ? "#18191a" : "transparent",
-                                color: exportView === "formatted" ? "#ffffff" : "var(--text-muted)",
+                                background: exportView === "formatted" ? "var(--ink)" : "transparent",
+                                color: exportView === "formatted" ? "var(--sheet)" : "var(--ink-2)",
                               }}
                             >
                               Formatted
@@ -2910,13 +2910,13 @@ export function ConsoleSection({
                               onClick={() => setExportView("raw")}
                               style={{
                                 padding: "5px 10px",
-                                fontSize: "11.5px",
+                                fontSize: "12.5px",
                                 fontWeight: 600,
                                 borderRadius: "6px",
                                 border: "none",
                                 cursor: "pointer",
-                                background: exportView === "raw" ? "#18191a" : "transparent",
-                                color: exportView === "raw" ? "#ffffff" : "var(--text-muted)",
+                                background: exportView === "raw" ? "var(--ink)" : "transparent",
+                                color: exportView === "raw" ? "var(--sheet)" : "var(--ink-2)",
                               }}
                             >
                               Raw Markdown
@@ -2925,13 +2925,13 @@ export function ConsoleSection({
 
                           <button
                             type="button"
-                            className="btn-craft-secondary"
+                            className="btn btn-secondary"
                             style={{
                               padding: "6px 14px",
-                              fontSize: "12px",
-                              background: "#18191a",
-                              color: "#fff",
-                              borderColor: "#333",
+                              fontSize: "13px",
+                              background: "var(--ink)",
+                              color: "var(--sheet)",
+                              borderColor: "var(--ink-2)",
                             }}
                             onClick={handleCopyExport}
                           >
@@ -2953,8 +2953,8 @@ export function ConsoleSection({
                       {exportView === "formatted" ? (
                         <div
                           style={{
-                            background: "var(--surface-alt)",
-                            border: "1px solid var(--border)",
+                            background: "var(--paper-sunk)",
+                            border: "1px solid var(--rule)",
                             borderRadius: "8px",
                             padding: "18px 20px",
                           }}
@@ -2964,14 +2964,14 @@ export function ConsoleSection({
                       ) : (
                         <pre
                           style={{
-                            background: "var(--surface-alt)",
-                            border: "1px solid var(--border)",
+                            background: "var(--paper-sunk)",
+                            border: "1px solid var(--rule)",
                             borderRadius: "8px",
                             padding: "14px",
-                            fontSize: "12px",
+                            fontSize: "13px",
                             lineHeight: "1.5",
                             fontFamily: "var(--mono)",
-                            color: "var(--text)",
+                            color: "var(--ink)",
                             whiteSpace: "pre-wrap",
                             margin: 0,
                           }}

@@ -33,7 +33,7 @@ interface RoadmapGraphProps {
   nodes: RoadmapNode[];
   ideaText?: string;
   completedNodeIds?: string[];
-  onToggleNode?: (nodeId: string) => void;
+  onToggleNode?: (nodeId: string, reviewsOverride?: Record<string, StepReviewResult>) => void;
   savedReviews?: Record<string, StepReviewResult>;
   onSaveReview?: (stepId: string, review: StepReviewResult) => void;
   savedArtifactReviews?: Record<string, StepReviewResult>;
@@ -160,7 +160,14 @@ export function RoadmapGraph({
     hasStarterArtifacts && artifactCheckSummaries.every((s) => s.passed);
   const passedArtifactCount = artifactCheckSummaries.filter((s) => s.passed).length;
 
-  const toggleNodeCompletion = (e: React.MouseEvent | null, id: string, force?: boolean) => {
+  // `reviewsOverride` lets a caller that has just produced a fresh review (before React state
+  // has re-rendered) have the completion gate evaluate that review instead of stale state.
+  const toggleNodeCompletion = (
+    e: React.MouseEvent | null,
+    id: string,
+    force?: boolean,
+    reviewsOverride?: Record<string, StepReviewResult>
+  ) => {
     if (e) e.stopPropagation();
     const isCurrentlyCompleted = completedNodeIds.includes(id);
     const targetState = force !== undefined ? force : !isCurrentlyCompleted;
@@ -174,7 +181,7 @@ export function RoadmapGraph({
       if (targetNode) {
         const eligibility = isMilestoneCompletionAllowed(
           targetNode,
-          localArtifactReviews,
+          reviewsOverride ?? localArtifactReviews,
           artifactSubmissions
         );
         if (!eligibility.allowed) {
@@ -187,7 +194,7 @@ export function RoadmapGraph({
     }
 
     if (onToggleNode) {
-      onToggleNode(id);
+      onToggleNode(id, reviewsOverride);
     } else {
       setInternalCompletedNodeIds((prev) =>
         targetState ? [...prev, id] : prev.filter((i) => i !== id)
@@ -286,7 +293,7 @@ export function RoadmapGraph({
           if (eligibility.allowed) {
             onShowToast(`✓ ALL ${starterArtifacts.length} ARTIFACTS VERIFIED — MILESTONE COMPLETE!`);
             if (!completedNodeIds.includes(selectedNode.id)) {
-              toggleNodeCompletion(null, selectedNode.id, true);
+              toggleNodeCompletion(null, selectedNode.id, true, updated);
             }
           } else {
             const passedCount = starterArtifacts.length - eligibility.unverifiedArtifacts.length;
@@ -472,13 +479,13 @@ export function RoadmapGraph({
                       {hasNodeArtifacts && (
                         <span
                           style={{
-                            fontSize: "9.5px",
+                            fontSize: "12px",
                             fontFamily: "var(--mono)",
                             padding: "2px 6px",
                             borderRadius: "4px",
-                            background: allNodeArtifactsPassed ? "#ecfdf5" : "#eff6ff",
-                            color: allNodeArtifactsPassed ? "#065f46" : "#1d4ed8",
-                            border: `1px solid ${allNodeArtifactsPassed ? "#a7f3d0" : "#bfdbfe"}`,
+                            background: allNodeArtifactsPassed ? "var(--green-wash)" : "var(--paper-sunk)",
+                            color: allNodeArtifactsPassed ? "var(--green-ink)" : "var(--ink-2)",
+                            border: `1px solid ${allNodeArtifactsPassed ? "var(--green-line)" : "var(--rule-strong)"}`,
                             display: "inline-flex",
                             alignItems: "center",
                             gap: "3px",
@@ -492,13 +499,13 @@ export function RoadmapGraph({
                       {hasReview && !hasNodeArtifacts && (
                         <span
                           style={{
-                            fontSize: "9px",
+                            fontSize: "12px",
                             fontFamily: "var(--mono)",
                             padding: "2px 6px",
                             borderRadius: "4px",
-                            background: localReviews[node.id].verdict === "passed" ? "#ecfdf5" : "#fffbeb",
-                            color: localReviews[node.id].verdict === "passed" ? "#065f46" : "#b45309",
-                            border: `1px solid ${localReviews[node.id].verdict === "passed" ? "#a7f3d0" : "#fde68a"}`,
+                            background: localReviews[node.id].verdict === "passed" ? "var(--green-wash)" : "var(--amber-wash)",
+                            color: localReviews[node.id].verdict === "passed" ? "var(--green-ink)" : "var(--amber-ink)",
+                            border: `1px solid ${localReviews[node.id].verdict === "passed" ? "var(--green-line)" : "var(--amber-line)"}`,
                             display: "inline-flex",
                             alignItems: "center",
                             gap: "3px",
@@ -556,7 +563,7 @@ export function RoadmapGraph({
                 <span className="inspector-step-badge">
                   STEP 0{selectedNode.step} OF 0{nodes.length}
                 </span>
-                <span style={{ color: "var(--border-strong)", fontSize: "14px" }}>•</span>
+                <span style={{ color: "var(--rule-strong)", fontSize: "14px" }}>•</span>
                 <span
                   className={`roadmap-badge-tag ${
                     selectedNode.badge === "CORE MVP"
@@ -572,8 +579,8 @@ export function RoadmapGraph({
 
               <button
                 type="button"
-                className="btn-craft-secondary"
-                style={{ padding: "6px 12px", fontSize: "11px" }}
+                className="btn btn-secondary"
+                style={{ padding: "6px 12px", fontSize: "12px" }}
                 onClick={(e) => toggleNodeCompletion(e, selectedNode.id)}
               >
                 {completedNodeIds.includes(selectedNode.id) ? (
@@ -600,20 +607,20 @@ export function RoadmapGraph({
             {/* Concept to Learn & Time Budget */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "12px", marginBottom: "12px" }}>
               {selectedNode.conceptToLearn && (
-                <div style={{ background: "#ffffff", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--border)" }}>
-                  <div style={{ fontSize: "10.5px", fontFamily: "var(--mono)", color: "var(--text-soft)", textTransform: "uppercase", marginBottom: "4px", fontWeight: 700, letterSpacing: "0.06em" }}>
+                <div style={{ background: "var(--sheet)", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--rule)" }}>
+                  <div style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--ink-3)", textTransform: "uppercase", marginBottom: "4px", fontWeight: 700, letterSpacing: "0.06em" }}>
                     Core Architectural Concept
                   </div>
-                  <div style={{ fontSize: "12.5px", fontWeight: 500, color: "var(--text)", lineHeight: "1.45" }}>
+                  <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--ink)", lineHeight: "1.45" }}>
                     <InlineMarkdown text={selectedNode.conceptToLearn} />
                   </div>
                 </div>
               )}
-              <div style={{ background: "#ffffff", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--border)" }}>
-                <div style={{ fontSize: "10.5px", fontFamily: "var(--mono)", color: "var(--text-soft)", textTransform: "uppercase", marginBottom: "4px", fontWeight: 700, letterSpacing: "0.06em" }}>
+              <div style={{ background: "var(--sheet)", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--rule)" }}>
+                <div style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--ink-3)", textTransform: "uppercase", marginBottom: "4px", fontWeight: 700, letterSpacing: "0.06em" }}>
                   Estimated Time Allocation
                 </div>
-                <div style={{ fontSize: "12.5px", fontWeight: 600, color: "#0f172a" }}>
+                <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink)" }}>
                   {Math.min(selectedNode.estimatedMinutes || 60, 90)} minutes (Capped size)
                 </div>
               </div>
@@ -621,12 +628,12 @@ export function RoadmapGraph({
 
             {/* Definition of Done */}
             {selectedNode.definitionOfDone && (
-              <div className="inspector-section" style={{ background: "#ffffff", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--border-strong)" }}>
-                <div className="inspector-sec-label" style={{ color: "#0f172a", marginBottom: "6px" }}>
+              <div className="inspector-section" style={{ background: "var(--sheet)", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--rule-strong)" }}>
+                <div className="inspector-sec-label" style={{ color: "var(--ink)", marginBottom: "6px" }}>
                   Definition of Done Checklist
                 </div>
                 {Array.isArray(selectedNode.definitionOfDone) ? (
-                  <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "12.5px", color: "var(--text)", lineHeight: "1.55" }}>
+                  <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "14px", color: "var(--ink)", lineHeight: "1.55" }}>
                     {selectedNode.definitionOfDone.map((item, idx) => (
                       <li key={idx}>
                         <InlineMarkdown text={item} />
@@ -634,7 +641,7 @@ export function RoadmapGraph({
                     ))}
                   </ul>
                 ) : (
-                  <div style={{ fontSize: "12.5px", margin: 0, color: "var(--text)", lineHeight: "1.55" }}>
+                  <div style={{ fontSize: "14px", margin: 0, color: "var(--ink)", lineHeight: "1.55" }}>
                     <InlineMarkdown text={selectedNode.definitionOfDone} />
                   </div>
                 )}
@@ -668,7 +675,7 @@ export function RoadmapGraph({
                       className="inspector-doc-link"
                     >
                       <span>{res.title}</span>
-                      <span style={{ fontSize: "9px", fontFamily: "var(--mono)", padding: "1px 5px", borderRadius: "3px", background: "#f1f5f9", color: "#64748b" }}>
+                      <span style={{ fontSize: "12px", fontFamily: "var(--mono)", padding: "1px 5px", borderRadius: "3px", background: "var(--paper-sunk)", color: "var(--ink-3)" }}>
                         official docs
                       </span>
                       <ExternalLink className="w-3 h-3 text-slate-400" />
@@ -685,8 +692,8 @@ export function RoadmapGraph({
                 gap: "6px",
                 marginTop: "18px",
                 padding: "4px",
-                background: "var(--surface-alt)",
-                border: "1px solid var(--border)",
+                background: "var(--paper-sunk)",
+                border: "1px solid var(--rule)",
                 borderRadius: "10px",
               }}
             >
@@ -703,11 +710,11 @@ export function RoadmapGraph({
                     padding: "7px 12px",
                     borderRadius: "8px",
                     border: "none",
-                    fontSize: "12px",
+                    fontSize: "13px",
                     fontWeight: 600,
                     cursor: "pointer",
-                    background: inspectorMode === "artifacts" ? "#ffffff" : "transparent",
-                    color: inspectorMode === "artifacts" ? "var(--text)" : "var(--text-muted)",
+                    background: inspectorMode === "artifacts" ? "var(--sheet)" : "transparent",
+                    color: inspectorMode === "artifacts" ? "var(--ink)" : "var(--ink-2)",
                     boxShadow: inspectorMode === "artifacts" ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
                   }}
                 >
@@ -728,11 +735,11 @@ export function RoadmapGraph({
                   padding: "7px 12px",
                   borderRadius: "8px",
                   border: "none",
-                  fontSize: "12px",
+                  fontSize: "13px",
                   fontWeight: 600,
                   cursor: "pointer",
-                  background: inspectorMode === "review" ? "#ffffff" : "transparent",
-                  color: inspectorMode === "review" ? "var(--text)" : "var(--text-muted)",
+                  background: inspectorMode === "review" ? "var(--sheet)" : "transparent",
+                  color: inspectorMode === "review" ? "var(--ink)" : "var(--ink-2)",
                   boxShadow: inspectorMode === "review" ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
                 }}
               >
@@ -741,11 +748,11 @@ export function RoadmapGraph({
                 {hasStarterArtifacts ? (
                   <span
                     style={{
-                      fontSize: "9px",
+                      fontSize: "12px",
                       padding: "1px 6px",
                       borderRadius: "10px",
-                      background: allArtifactsPassed ? "#ecfdf5" : "#f1f5f9",
-                      color: allArtifactsPassed ? "#047857" : "#64748b",
+                      background: allArtifactsPassed ? "var(--green-wash)" : "var(--paper-sunk)",
+                      color: allArtifactsPassed ? "var(--green-ink)" : "var(--ink-3)",
                       fontWeight: 700,
                     }}
                   >
@@ -757,7 +764,7 @@ export function RoadmapGraph({
                       width: "7px",
                       height: "7px",
                       borderRadius: "50%",
-                      background: currentMentorReview.verdict === "passed" ? "#10b981" : "#f59e0b",
+                      background: currentMentorReview.verdict === "passed" ? "var(--green)" : "var(--amber)",
                     }}
                   />
                 ) : null}
@@ -775,11 +782,11 @@ export function RoadmapGraph({
                   padding: "7px 12px",
                   borderRadius: "8px",
                   border: "none",
-                  fontSize: "12px",
+                  fontSize: "13px",
                   fontWeight: 600,
                   cursor: "pointer",
-                  background: inspectorMode === "prompt" ? "#ffffff" : "transparent",
-                  color: inspectorMode === "prompt" ? "var(--text)" : "var(--text-muted)",
+                  background: inspectorMode === "prompt" ? "var(--sheet)" : "transparent",
+                  color: inspectorMode === "prompt" ? "var(--ink)" : "var(--ink-2)",
                   boxShadow: inspectorMode === "prompt" ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
                 }}
               >
@@ -813,10 +820,10 @@ export function RoadmapGraph({
                           gap: "6px",
                           padding: "6px 12px",
                           borderRadius: "6px",
-                          border: `1px solid ${isTabActive ? "var(--border-strong)" : "var(--border)"}`,
-                          background: isTabActive ? "#1e293b" : "#ffffff",
-                          color: isTabActive ? "#ffffff" : "#475569",
-                          fontSize: "12px",
+                          border: `1px solid ${isTabActive ? "var(--rule-strong)" : "var(--rule)"}`,
+                          background: isTabActive ? "var(--ink)" : "var(--sheet)",
+                          color: isTabActive ? "var(--sheet)" : "var(--ink-2)",
+                          fontSize: "13px",
                           fontFamily: "var(--mono)",
                           fontWeight: 600,
                           cursor: "pointer",
@@ -836,8 +843,8 @@ export function RoadmapGraph({
                 {activeStarterArtifact && (
                   <div
                     style={{
-                      background: "#ffffff",
-                      border: "1.5px solid var(--border)",
+                      background: "var(--sheet)",
+                      border: "1.5px solid var(--rule)",
                       borderRadius: "10px",
                       padding: "16px",
                     }}
@@ -857,40 +864,40 @@ export function RoadmapGraph({
                           <span
                             style={{
                               fontFamily: "var(--mono)",
-                              fontSize: "13px",
+                              fontSize: "14px",
                               fontWeight: 700,
-                              color: "#0f172a",
+                              color: "var(--ink)",
                             }}
                           >
                             ./{activeStarterArtifact.filename}
                           </span>
                           <span
                             style={{
-                              fontSize: "10px",
+                              fontSize: "12px",
                               fontFamily: "var(--mono)",
                               padding: "2px 6px",
                               borderRadius: "4px",
-                              background: "#f1f5f9",
-                              color: "#64748b",
+                              background: "var(--paper-sunk)",
+                              color: "var(--ink-3)",
                             }}
                           >
                             Root Folder
                           </span>
                         </div>
-                        <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: "4px 0 0" }}>
+                        <p style={{ fontSize: "13px", color: "var(--ink-2)", margin: "4px 0 0" }}>
                           {activeStarterArtifact.purpose}
                         </p>
                       </div>
 
                       <button
                         type="button"
-                        className="btn-craft-secondary"
+                        className="btn btn-secondary"
                         style={{
                           padding: "6px 12px",
-                          fontSize: "11px",
-                          background: "#0f172a",
-                          color: "#ffffff",
-                          borderColor: "#334155",
+                          fontSize: "12px",
+                          background: "var(--ink)",
+                          color: "var(--sheet)",
+                          borderColor: "var(--ink-2)",
                         }}
                         onClick={() => handleCopyArtifact(activeStarterArtifact)}
                       >
@@ -902,22 +909,22 @@ export function RoadmapGraph({
                     {/* Beginner Working Shell Callout */}
                     <div
                       style={{
-                        background: "#ffffff",
-                        border: "1px solid var(--border)",
-                        borderLeft: "3px solid #0f172a",
+                        background: "var(--sheet)",
+                        border: "1px solid var(--rule)",
+                        borderLeft: "3px solid var(--ink)",
                         borderRadius: "8px",
                         padding: "12px 14px",
-                        fontSize: "12.5px",
+                        fontSize: "14px",
                         lineHeight: "1.55",
-                        color: "var(--text)",
+                        color: "var(--ink)",
                         marginBottom: "14px",
                       }}
                     >
-                      <strong style={{ color: "#0f172a" }}>Initial Working Shell:</strong> This file provides the minimal Manifest V3
+                      <strong style={{ color: "var(--ink)" }}>Initial Working Shell:</strong> This file provides the minimal Manifest V3
                       skeleton required to load successfully in Chrome via <code>chrome://extensions</code> (&ldquo;Load unpacked&rdquo;).
                       It establishes a functional foundation without premature background processing or persistent storage.
-                      <div style={{ marginTop: "6px", color: "var(--text-muted)", fontSize: "11.5px" }}>
-                        <strong style={{ color: "#0f172a" }}>Subsequent Scope:</strong> Milestone 02 connects local storage or background scripts.
+                      <div style={{ marginTop: "6px", color: "var(--ink-2)", fontSize: "12.5px" }}>
+                        <strong style={{ color: "var(--ink)" }}>Subsequent Scope:</strong> Milestone 02 connects local storage or background scripts.
                       </div>
                     </div>
 
@@ -925,7 +932,7 @@ export function RoadmapGraph({
                     <div className="inspector-prompt-block" style={{ marginTop: "8px" }}>
                       <pre
                         className="inspector-prompt-pre"
-                        style={{ maxHeight: "300px", overflowY: "auto", fontSize: "11.5px" }}
+                        style={{ maxHeight: "300px", overflowY: "auto", fontSize: "12.5px" }}
                       >
                         <code>{activeStarterArtifact.content}</code>
                       </pre>
@@ -941,9 +948,9 @@ export function RoadmapGraph({
                           setInspectorMode("review");
                         }}
                         style={{
-                          fontSize: "11.5px",
+                          fontSize: "12.5px",
                           fontWeight: 600,
-                          color: "#2563eb",
+                          color: "var(--ink-2)",
                           background: "none",
                           border: "none",
                           cursor: "pointer",
@@ -968,20 +975,20 @@ export function RoadmapGraph({
                 <div className="inspector-prompt-head">
                   <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                     <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                    <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    <span style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                       Prompt for Step 0{selectedNode.step} (Paste Into Agent)
                     </span>
                   </div>
 
                   <button
                     type="button"
-                    className="btn-craft-secondary"
+                    className="btn btn-secondary"
                     style={{
                       padding: "6px 14px",
-                      fontSize: "11px",
-                      background: "#26282b",
-                      color: "#fff",
-                      borderColor: "#3d4044",
+                      fontSize: "12px",
+                      background: "var(--night-2)",
+                      color: "var(--sheet)",
+                      borderColor: "var(--night-line)",
                     }}
                     onClick={() =>
                       handleCopyStepPrompt(
@@ -1006,8 +1013,8 @@ export function RoadmapGraph({
               <div
                 style={{
                   marginTop: "16px",
-                  background: "#ffffff",
-                  border: "1.5px solid var(--border)",
+                  background: "var(--sheet)",
+                  border: "1.5px solid var(--rule)",
                   borderRadius: "12px",
                   padding: "16px",
                 }}
@@ -1019,7 +1026,7 @@ export function RoadmapGraph({
                       display: "flex",
                       gap: "6px",
                       marginBottom: "14px",
-                      borderBottom: "1px solid var(--border)",
+                      borderBottom: "1px solid var(--rule)",
                       paddingBottom: "10px",
                     }}
                   >
@@ -1029,10 +1036,10 @@ export function RoadmapGraph({
                       style={{
                         padding: "5px 12px",
                         borderRadius: "6px",
-                        border: "1px solid var(--border)",
-                        background: verificationSubMode === "artifact" ? "#1e293b" : "#f8fafc",
-                        color: verificationSubMode === "artifact" ? "#ffffff" : "#475569",
-                        fontSize: "11.5px",
+                        border: "1px solid var(--rule)",
+                        background: verificationSubMode === "artifact" ? "var(--ink)" : "var(--paper)",
+                        color: verificationSubMode === "artifact" ? "var(--sheet)" : "var(--ink-2)",
+                        fontSize: "12.5px",
                         fontWeight: 600,
                         cursor: "pointer",
                         display: "inline-flex",
@@ -1050,10 +1057,10 @@ export function RoadmapGraph({
                       style={{
                         padding: "5px 12px",
                         borderRadius: "6px",
-                        border: "1px solid var(--border)",
-                        background: verificationSubMode === "mentor" ? "#1e293b" : "#f8fafc",
-                        color: verificationSubMode === "mentor" ? "#ffffff" : "#475569",
-                        fontSize: "11.5px",
+                        border: "1px solid var(--rule)",
+                        background: verificationSubMode === "mentor" ? "var(--ink)" : "var(--paper)",
+                        color: verificationSubMode === "mentor" ? "var(--sheet)" : "var(--ink-2)",
+                        fontSize: "12.5px",
                         fontWeight: 600,
                         cursor: "pointer",
                         display: "inline-flex",
@@ -1073,8 +1080,8 @@ export function RoadmapGraph({
                     {/* Overall Milestone Completion Status Banner */}
                     <div
                       style={{
-                        background: allArtifactsPassed ? "#f0fdf4" : "#ffffff",
-                        border: `1px solid ${allArtifactsPassed ? "#86efac" : "var(--border-strong)"}`,
+                        background: allArtifactsPassed ? "var(--green-wash)" : "var(--sheet)",
+                        border: `1px solid ${allArtifactsPassed ? "var(--green-line)" : "var(--rule-strong)"}`,
                         borderRadius: "10px",
                         padding: "14px 16px",
                         marginBottom: "14px",
@@ -1090,8 +1097,8 @@ export function RoadmapGraph({
                           )}
                           <strong
                             style={{
-                              fontSize: "12.5px",
-                              color: allArtifactsPassed ? "#166534" : "#0f172a",
+                              fontSize: "14px",
+                              color: allArtifactsPassed ? "var(--green-ink)" : "var(--ink)",
                               fontFamily: "var(--mono)",
                             }}
                           >
@@ -1103,17 +1110,17 @@ export function RoadmapGraph({
 
                         <span
                           style={{
-                            fontSize: "11px",
+                            fontSize: "12px",
                             fontWeight: 700,
                             fontFamily: "var(--mono)",
-                            color: allArtifactsPassed ? "#166534" : "#b45309",
+                            color: allArtifactsPassed ? "var(--green-ink)" : "var(--amber-ink)",
                           }}
                         >
                           {passedArtifactCount}/{starterArtifacts.length} Done
                         </span>
                       </div>
 
-                      <p style={{ fontSize: "11.5px", margin: "6px 0 0", color: "#475569", lineHeight: "1.4" }}>
+                      <p style={{ fontSize: "12.5px", margin: "6px 0 0", color: "var(--ink-2)", lineHeight: "1.4" }}>
                         {allArtifactsPassed
                           ? "All starter artifacts for this milestone satisfy Chrome Manifest V3 static structural checks. The milestone is marked verified."
                           : "Deterministic verification is multi-file aware: passing one file does NOT complete the milestone. You must submit and pass all required files."}
@@ -1123,12 +1130,12 @@ export function RoadmapGraph({
                     {/* Trust and Static Checks Scope Disclaimer */}
                     <div
                       style={{
-                        background: "#f8fafc",
-                        border: "1px solid #e2e8f0",
+                        background: "var(--paper)",
+                        border: "1px solid var(--rule)",
                         borderRadius: "8px",
                         padding: "8px 10px",
-                        fontSize: "11px",
-                        color: "#64748b",
+                        fontSize: "12px",
+                        color: "var(--ink-3)",
                         lineHeight: "1.4",
                         marginBottom: "14px",
                         display: "flex",
@@ -1178,11 +1185,11 @@ export function RoadmapGraph({
                               padding: "6px 12px",
                               borderRadius: "6px",
                               border: `1.5px solid ${
-                                isSelected ? "#0f172a" : isPassed ? "#86efac" : isFailed ? "#fca5a5" : "var(--border)"
+                                isSelected ? "var(--ink)" : isPassed ? "var(--green-line)" : isFailed ? "var(--red-line)" : "var(--rule)"
                               }`,
-                              background: isSelected ? "#0f172a" : isPassed ? "#f0fdf4" : isFailed ? "#fef2f2" : "#ffffff",
-                              color: isSelected ? "#ffffff" : isPassed ? "#166534" : isFailed ? "#991b1b" : "#475569",
-                              fontSize: "11.5px",
+                              background: isSelected ? "var(--ink)" : isPassed ? "var(--green-wash)" : isFailed ? "var(--red-wash)" : "var(--sheet)",
+                              color: isSelected ? "var(--sheet)" : isPassed ? "var(--green-ink)" : isFailed ? "var(--red)" : "var(--ink-2)",
+                              fontSize: "12.5px",
                               fontFamily: "var(--mono)",
                               fontWeight: 600,
                               cursor: "pointer",
@@ -1195,7 +1202,7 @@ export function RoadmapGraph({
                             <span>./{art.filename}</span>
                             {isPassed && <CheckCircle2 className="w-3 h-3 text-emerald-500 stroke-[3]" />}
                             {isFailed && <AlertCircle className="w-3 h-3 text-red-500" />}
-                            {isMod && <span style={{ fontSize: "9px", color: "#f59e0b" }}>● modified</span>}
+                            {isMod && <span style={{ fontSize: "12px", color: "var(--amber)" }}>● modified</span>}
                           </button>
                         );
                       })}
@@ -1204,8 +1211,8 @@ export function RoadmapGraph({
                     {/* Active Artifact Verification Form & Content Editor */}
                     <div
                       style={{
-                        background: "#fafafa",
-                        border: "1px solid var(--border)",
+                        background: "var(--paper)",
+                        border: "1px solid var(--rule)",
                         borderRadius: "8px",
                         padding: "12px",
                         marginBottom: "14px",
@@ -1220,19 +1227,19 @@ export function RoadmapGraph({
                         }}
                       >
                         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                          <span style={{ fontSize: "11px", fontFamily: "var(--mono)", fontWeight: 700, color: "#334155" }}>
+                          <span style={{ fontSize: "12px", fontFamily: "var(--mono)", fontWeight: 700, color: "var(--ink-2)" }}>
                             VERIFYING: ./{currentVerifyFilename}
                           </span>
                           {isContentModified && (
                             <span
                               style={{
-                                fontSize: "9.5px",
+                                fontSize: "12px",
                                 fontFamily: "var(--mono)",
                                 padding: "2px 6px",
                                 borderRadius: "4px",
-                                background: "#fffbeb",
-                                color: "#b45309",
-                                border: "1px solid #fde68a",
+                                background: "var(--amber-wash)",
+                                color: "var(--amber-ink)",
+                                border: "1px solid var(--amber-line)",
                                 display: "inline-flex",
                                 alignItems: "center",
                                 gap: "4px",
@@ -1255,13 +1262,13 @@ export function RoadmapGraph({
                             }
                           }}
                           style={{
-                            fontSize: "10.5px",
+                            fontSize: "12px",
                             fontFamily: "var(--mono)",
                             padding: "2px 8px",
                             borderRadius: "4px",
-                            border: "1px solid var(--border)",
-                            background: "#ffffff",
-                            color: "var(--text-muted)",
+                            border: "1px solid var(--rule)",
+                            background: "var(--sheet)",
+                            color: "var(--ink-2)",
                             cursor: "pointer",
                           }}
                         >
@@ -1278,12 +1285,12 @@ export function RoadmapGraph({
                         style={{
                           width: "100%",
                           fontFamily: "var(--mono)",
-                          fontSize: "11.5px",
+                          fontSize: "12.5px",
                           lineHeight: "1.4",
                           padding: "10px",
                           borderRadius: "6px",
-                          border: "1px solid var(--border-strong)",
-                          background: "#ffffff",
+                          border: "1px solid var(--rule-strong)",
+                          background: "var(--sheet)",
                           resize: "vertical",
                           marginBottom: "10px",
                         }}
@@ -1293,15 +1300,15 @@ export function RoadmapGraph({
 
                       <button
                         type="button"
-                        className="btn-craft-primary"
+                        className="btn btn-primary"
                         onClick={() => handleVerifyArtifact(currentVerifyFilename)}
                         disabled={isVerifyingArtifact}
                         style={{
                           width: "100%",
                           justifyContent: "center",
-                          fontSize: "12px",
+                          fontSize: "13px",
                           padding: "9px",
-                          background: "#0f172a",
+                          background: "var(--ink)",
                         }}
                       >
                         {isVerifyingArtifact ? (
@@ -1322,8 +1329,8 @@ export function RoadmapGraph({
                     {currentArtifactReview && (
                       <div
                         style={{
-                          background: currentArtifactReview.verdict === "passed" ? "#f0fdf4" : "#fffbeb",
-                          border: `1.5px solid ${currentArtifactReview.verdict === "passed" ? "#86efac" : "#fde68a"}`,
+                          background: currentArtifactReview.verdict === "passed" ? "var(--green-wash)" : "var(--amber-wash)",
+                          border: `1.5px solid ${currentArtifactReview.verdict === "passed" ? "var(--green-line)" : "var(--amber-line)"}`,
                           borderRadius: "10px",
                           padding: "14px",
                         }}
@@ -1345,9 +1352,9 @@ export function RoadmapGraph({
                             <span
                               style={{
                                 fontFamily: "var(--mono)",
-                                fontSize: "11.5px",
+                                fontSize: "12.5px",
                                 fontWeight: 700,
-                                color: currentArtifactReview.verdict === "passed" ? "#166534" : "#92400e",
+                                color: currentArtifactReview.verdict === "passed" ? "var(--green-ink)" : "var(--amber-ink)",
                               }}
                             >
                               {currentArtifactReview.verdictLabel}
@@ -1357,13 +1364,13 @@ export function RoadmapGraph({
                           {currentArtifactReview.contentHash && (
                             <span
                               style={{
-                                fontSize: "10px",
+                                fontSize: "12px",
                                 fontFamily: "var(--mono)",
                                 padding: "2px 6px",
                                 borderRadius: "4px",
-                                background: "#ffffff",
-                                color: "#64748b",
-                                border: "1px solid var(--border)",
+                                background: "var(--sheet)",
+                                color: "var(--ink-3)",
+                                border: "1px solid var(--rule)",
                               }}
                               title="SHA-256 fingerprint of the verified content"
                             >
@@ -1372,7 +1379,7 @@ export function RoadmapGraph({
                           )}
                         </div>
 
-                        <div style={{ fontSize: "12.5px", lineHeight: "1.55", color: "var(--text)", marginBottom: "12px" }}>
+                        <div style={{ fontSize: "14px", lineHeight: "1.55", color: "var(--ink)", marginBottom: "12px" }}>
                           <MarkdownContent content={currentArtifactReview.feedback} />
                         </div>
 
@@ -1381,10 +1388,10 @@ export function RoadmapGraph({
                           <div style={{ marginBottom: "12px" }}>
                             <div
                               style={{
-                                fontSize: "10.5px",
+                                fontSize: "12px",
                                 fontFamily: "var(--mono)",
                                 fontWeight: 700,
-                                color: "#334155",
+                                color: "var(--ink-2)",
                                 textTransform: "uppercase",
                                 marginBottom: "6px",
                               }}
@@ -1396,8 +1403,8 @@ export function RoadmapGraph({
                                 <div
                                   key={chk.id}
                                   style={{
-                                    background: chk.passed ? "#ffffff" : "#fef2f2",
-                                    border: `1px solid ${chk.passed ? "#bbf7d0" : "#fecaca"}`,
+                                    background: chk.passed ? "var(--sheet)" : "var(--red-wash)",
+                                    border: `1px solid ${chk.passed ? "var(--green-line)" : "var(--red-line)"}`,
                                     borderRadius: "6px",
                                     padding: "8px 10px",
                                   }}
@@ -1410,9 +1417,9 @@ export function RoadmapGraph({
                                     )}
                                     <span
                                       style={{
-                                        fontSize: "12px",
+                                        fontSize: "13px",
                                         fontWeight: 600,
-                                        color: chk.passed ? "#166534" : "#991b1b",
+                                        color: chk.passed ? "var(--green-ink)" : "var(--red)",
                                       }}
                                     >
                                       {chk.label}
@@ -1422,8 +1429,8 @@ export function RoadmapGraph({
                                     <p
                                       style={{
                                         margin: "4px 0 0 22px",
-                                        fontSize: "11.5px",
-                                        color: "#b91c1c",
+                                        fontSize: "12.5px",
+                                        color: "var(--red)",
                                         lineHeight: "1.4",
                                       }}
                                     >
@@ -1438,11 +1445,11 @@ export function RoadmapGraph({
 
                         <div
                           style={{
-                            fontSize: "11.5px",
+                            fontSize: "12.5px",
                             background: "rgba(255,255,255,0.75)",
                             padding: "6px 10px",
                             borderRadius: "6px",
-                            color: "var(--text)",
+                            color: "var(--ink)",
                           }}
                         >
                           <strong>Next Action:</strong> {currentArtifactReview.nextTip}
@@ -1458,8 +1465,8 @@ export function RoadmapGraph({
                     {currentMentorReview && (
                       <div
                         style={{
-                          background: currentMentorReview.verdict === "passed" ? "#f0fdf4" : "#fffbeb",
-                          border: `1.5px solid ${currentMentorReview.verdict === "passed" ? "#86efac" : "#fde68a"}`,
+                          background: currentMentorReview.verdict === "passed" ? "var(--green-wash)" : "var(--amber-wash)",
+                          border: `1.5px solid ${currentMentorReview.verdict === "passed" ? "var(--green-line)" : "var(--amber-line)"}`,
                           borderRadius: "10px",
                           padding: "14px",
                           marginBottom: "16px",
@@ -1475,30 +1482,30 @@ export function RoadmapGraph({
                             <span
                               style={{
                                 fontFamily: "var(--mono)",
-                                fontSize: "11px",
+                                fontSize: "12px",
                                 fontWeight: 700,
                                 letterSpacing: "0.06em",
-                                color: currentMentorReview.verdict === "passed" ? "#166534" : "#92400e",
+                                color: currentMentorReview.verdict === "passed" ? "var(--green-ink)" : "var(--amber-ink)",
                               }}
                             >
                               {currentMentorReview.verdictLabel}
                             </span>
                           </div>
-                          <span style={{ fontSize: "10.5px", color: "var(--text-soft)" }}>
+                          <span style={{ fontSize: "12px", color: "var(--ink-3)" }}>
                             {new Date(currentMentorReview.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
 
-                        <div style={{ fontSize: "13px", lineHeight: "1.55", color: "var(--text)", marginBottom: "10px" }}>
+                        <div style={{ fontSize: "14px", lineHeight: "1.55", color: "var(--ink)", marginBottom: "10px" }}>
                           <MarkdownContent content={currentMentorReview.feedback} />
                         </div>
 
                         {currentMentorReview.positivePoints && currentMentorReview.positivePoints.length > 0 && (
                           <div style={{ marginBottom: "8px" }}>
-                            <div style={{ fontSize: "11px", fontFamily: "var(--mono)", fontWeight: 700, color: "#166534", textTransform: "uppercase", marginBottom: "4px" }}>
+                            <div style={{ fontSize: "12px", fontFamily: "var(--mono)", fontWeight: 700, color: "var(--green-ink)", textTransform: "uppercase", marginBottom: "4px" }}>
                               ✓ Strengths:
                             </div>
-                            <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "12px", color: "var(--text-muted)" }}>
+                            <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "13px", color: "var(--ink-2)" }}>
                               {currentMentorReview.positivePoints.map((p, idx) => (
                                 <li key={idx}>
                                   <InlineMarkdown text={p} />
@@ -1510,10 +1517,10 @@ export function RoadmapGraph({
 
                         {currentMentorReview.suggestedFixes && currentMentorReview.suggestedFixes.length > 0 && (
                           <div style={{ marginBottom: "8px" }}>
-                            <div style={{ fontSize: "11px", fontFamily: "var(--mono)", fontWeight: 700, color: "#92400e", textTransform: "uppercase", marginBottom: "4px" }}>
+                            <div style={{ fontSize: "12px", fontFamily: "var(--mono)", fontWeight: 700, color: "var(--amber-ink)", textTransform: "uppercase", marginBottom: "4px" }}>
                               ✦ Recommendations:
                             </div>
-                            <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "12px", color: "var(--text-muted)" }}>
+                            <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "13px", color: "var(--ink-2)" }}>
                               {currentMentorReview.suggestedFixes.map((f, idx) => (
                                 <li key={idx}>
                                   <InlineMarkdown text={f} />
@@ -1523,7 +1530,7 @@ export function RoadmapGraph({
                           </div>
                         )}
 
-                        <div style={{ fontSize: "11.5px", background: "rgba(255,255,255,0.7)", padding: "6px 10px", borderRadius: "6px", color: "var(--text)" }}>
+                        <div style={{ fontSize: "12.5px", background: "rgba(255,255,255,0.7)", padding: "6px 10px", borderRadius: "6px", color: "var(--ink)" }}>
                           <strong>Next Tip:</strong> <InlineMarkdown text={currentMentorReview.nextTip} />
                         </div>
                       </div>
@@ -1532,7 +1539,7 @@ export function RoadmapGraph({
                     {/* Freeform Submission Form */}
                     <div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                        <label style={{ fontSize: "11px", fontFamily: "var(--mono)", fontWeight: 700, textTransform: "uppercase", color: "var(--text-soft)" }}>
+                        <label style={{ fontSize: "12px", fontFamily: "var(--mono)", fontWeight: 700, textTransform: "uppercase", color: "var(--ink-3)" }}>
                           Submit Work for Mentor Review
                         </label>
 
@@ -1541,13 +1548,13 @@ export function RoadmapGraph({
                             type="button"
                             onClick={() => setSubmissionType("code")}
                             style={{
-                              fontSize: "10px",
+                              fontSize: "12px",
                               fontFamily: "var(--mono)",
                               padding: "2px 6px",
                               borderRadius: "4px",
-                              border: "1px solid var(--border)",
-                              background: submissionType === "code" ? "#18191a" : "#fff",
-                              color: submissionType === "code" ? "#fff" : "var(--text-muted)",
+                              border: "1px solid var(--rule)",
+                              background: submissionType === "code" ? "var(--ink)" : "var(--sheet)",
+                              color: submissionType === "code" ? "var(--sheet)" : "var(--ink-2)",
                               cursor: "pointer",
                             }}
                           >
@@ -1557,13 +1564,13 @@ export function RoadmapGraph({
                             type="button"
                             onClick={() => setSubmissionType("summary")}
                             style={{
-                              fontSize: "10px",
+                              fontSize: "12px",
                               fontFamily: "var(--mono)",
                               padding: "2px 6px",
                               borderRadius: "4px",
-                              border: "1px solid var(--border)",
-                              background: submissionType === "summary" ? "#18191a" : "#fff",
-                              color: submissionType === "summary" ? "#fff" : "var(--text-muted)",
+                              border: "1px solid var(--rule)",
+                              background: submissionType === "summary" ? "var(--ink)" : "var(--sheet)",
+                              color: submissionType === "summary" ? "var(--sheet)" : "var(--ink-2)",
                               cursor: "pointer",
                             }}
                           >
@@ -1573,13 +1580,13 @@ export function RoadmapGraph({
                             type="button"
                             onClick={() => setSubmissionType("question")}
                             style={{
-                              fontSize: "10px",
+                              fontSize: "12px",
                               fontFamily: "var(--mono)",
                               padding: "2px 6px",
                               borderRadius: "4px",
-                              border: "1px solid var(--border)",
-                              background: submissionType === "question" ? "#18191a" : "#fff",
-                              color: submissionType === "question" ? "#fff" : "var(--text-muted)",
+                              border: "1px solid var(--rule)",
+                              background: submissionType === "question" ? "var(--ink)" : "var(--sheet)",
+                              color: submissionType === "question" ? "var(--sheet)" : "var(--ink-2)",
                               cursor: "pointer",
                             }}
                           >
@@ -1602,11 +1609,11 @@ export function RoadmapGraph({
                         style={{
                           width: "100%",
                           fontFamily: submissionType === "code" ? "var(--mono)" : "inherit",
-                          fontSize: "12px",
+                          fontSize: "13px",
                           padding: "10px",
                           borderRadius: "8px",
-                          border: "1px solid var(--border-strong)",
-                          background: "var(--surface-alt)",
+                          border: "1px solid var(--rule-strong)",
+                          background: "var(--paper-sunk)",
                           resize: "vertical",
                           marginBottom: "10px",
                         }}
@@ -1615,10 +1622,10 @@ export function RoadmapGraph({
 
                       <button
                         type="button"
-                        className="btn-craft-primary"
+                        className="btn btn-primary"
                         onClick={handleRunMentorReview}
                         disabled={isReviewing || submissionText.trim().length < 5}
-                        style={{ width: "100%", justifyContent: "center", fontSize: "12px", padding: "9px" }}
+                        style={{ width: "100%", justifyContent: "center", fontSize: "13px", padding: "9px" }}
                       >
                         {isReviewing ? (
                           <>

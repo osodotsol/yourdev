@@ -1,44 +1,58 @@
-"use client";
-
 import React from "react";
+import { SectionHeading } from "@/components/SectionHeading";
+
+const STEPS = [
+  {
+    title: "Paste your raw idea",
+    body: "Drop your messy brainstorm into the console. No formatting or architecture buzzwords needed. Write like you think: stream of consciousness, bullets, or run-on sentences.",
+    input: "A paragraph, in your own words",
+    output: "Three or four intake questions",
+  },
+  {
+    title: "Get an execution blueprint",
+    body: "The coach analyses your intent and produces a phased roadmap, immediate next actions, a tailored tech stack, the foundations to learn first, and your first agent prompt.",
+    input: "Your idea and your answers",
+    output: "A blueprint with four milestones",
+  },
+  {
+    title: "Copy. Paste. Build.",
+    body: "Copy clean, agent-ready Markdown with explicit instructions into Cursor, Claude, or Copilot and begin Phase 1. Submit your work at each milestone for review.",
+    input: "One milestone at a time",
+    output: "Verified, working code",
+  },
+];
 
 export function HowItWorksSection() {
   return (
-    <section className="craft-section" id="how">
-      <div className="section-eyebrow">02 / THREE-STEP ENGINE</div>
-
-      <h2 className="section-headline">
+    <section className="section" id="how" aria-labelledby="how-title">
+      <SectionHeading index="02" label="How it works" titleId="how-title">
         From raw concept to <em>working software.</em>
-      </h2>
+      </SectionHeading>
 
-      <div className="craft-steps-grid">
-        <div className="craft-step-card">
-          <div className="craft-step-num">01</div>
-          <h3>Paste your raw idea</h3>
-          <p>
-            Drop your messy brainstorm into the console. No formatting or architecture buzzwords needed.
-            Write like you think — stream of consciousness, bullets, or run-on sentences.
-          </p>
-        </div>
-
-        <div className="craft-step-card">
-          <div className="craft-step-num">02</div>
-          <h3>Get an execution blueprint</h3>
-          <p>
-            The coach analyzes your intent and produces five structured parts:
-            phased roadmap, immediate next actions, tailored tech stack, free resources,
-            and your first agent prompt.
-          </p>
-        </div>
-
-        <div className="craft-step-card">
-          <div className="craft-step-num">03</div>
-          <h3>Copy. Paste. Build.</h3>
-          <p>
-            Click &ldquo;Copy Blueprint&rdquo; to grab clean, agent-ready Markdown with
-            explicit instructions. Paste it into Cursor, Claude, or Copilot and begin Phase 1.
-          </p>
-        </div>
+      <div className="section-body">
+        <ol className="steps">
+          {STEPS.map((step, i) => (
+            <li key={step.title}>
+              <span className="step-num" aria-hidden="true">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </div>
+              <dl className="step-io">
+                <div>
+                  <dt>in</dt>
+                  <dd>{step.input}</dd>
+                </div>
+                <div>
+                  <dt>out</dt>
+                  <dd>{step.output}</dd>
+                </div>
+              </dl>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

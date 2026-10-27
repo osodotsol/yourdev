@@ -57,8 +57,8 @@ export function AskYourDevDrawer({
         const projectTitle = context?.projectTitle || "your project";
         const milestoneTitle = context?.activeMilestone?.title;
         const welcomeText = milestoneTitle
-          ? `Hello! I am **Ask YourDev**, your coding mentor.\n\nI see you are building **${projectTitle}** and currently working on **Step ${context?.activeMilestone?.step}: ${milestoneTitle}**.\n\nHow can I help you understand the architecture, diagnose a bug, or decide on your next step?`
-          : `Hello! I am **Ask YourDev**, your pair-programming mentor for **${projectTitle}**.\n\nAsk me anything about your project's architecture, recommended tech stack, or how to get started!`;
+          ? `Hi, I’m **Devi**, your YourDev coding mentor.\n\nI see you are building **${projectTitle}** and currently working on **Step ${context?.activeMilestone?.step}: ${milestoneTitle}**.\n\nHow can I help you understand the architecture, diagnose a bug, or decide on your next step?`
+          : `Hi, I’m **Devi**, your YourDev pair-programming mentor for **${projectTitle}**.\n\nAsk me anything about your project's architecture, recommended tech stack, or how to get started!`;
 
         const initialMsg: ChatMessage = {
           id: "welcome-msg",
@@ -214,24 +214,28 @@ export function AskYourDevDrawer({
         role="dialog"
         aria-modal="true"
         aria-label="Ask YourDev Coding Mentor"
-        className="fixed top-0 right-0 bottom-0 z-50 w-full md:w-[450px] bg-[#fbf9f4] border-l border-[#18191a]/15 shadow-2xl flex flex-col transition-transform duration-200 ease-out"
-        style={{ fontFamily: "var(--font-sans, inherit)" }}
+        className="fixed top-0 right-0 bottom-0 z-50 w-full md:w-[450px] bg-paper border-l border-ink/15 shadow-2xl flex flex-col transition-transform duration-200 ease-out"
+        style={{ fontFamily: "var(--sans)" }}
       >
         {/* Header */}
-        <div className="px-5 py-4 bg-[#18191a] text-white flex items-center justify-between shrink-0 shadow-xs">
+        <div className="px-5 py-4 bg-ink text-white flex items-center justify-between shrink-0 shadow-xs">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300">
-              <Sparkles className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-emerald-400/50 shrink-0 bg-paper shadow-xs">
+              <img
+                src="/images/devi-avatar-128.jpg"
+                alt="Devi"
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-sm text-white tracking-tight">Ask YourDev</span>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-white/10 text-slate-300 font-semibold">
+                <span className="font-bold text-sm text-white tracking-tight">Devi</span>
+                <span className="text-xs uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
                   Mentor
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 leading-none mt-0.5">
-                Guided pair-programming assistant
+              <p className="text-xs text-slate-400 leading-none mt-0.5">
+                YourDev guided pairing companion
               </p>
             </div>
           </div>
@@ -241,7 +245,8 @@ export function AskYourDevDrawer({
               type="button"
               onClick={handleStartNewChat}
               title="Start a new conversation"
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+              aria-label="Start a new conversation"
+              className="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -249,7 +254,8 @@ export function AskYourDevDrawer({
               type="button"
               onClick={onClose}
               title="Close mentor panel (Esc)"
-              className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-md transition-colors"
+              aria-label="Close mentor panel"
+              className="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -257,15 +263,15 @@ export function AskYourDevDrawer({
         </div>
 
         {/* Project Context Bar */}
-        <div className="px-4 py-2 bg-[#f4eddf] border-b border-[#18191a]/10 text-xs text-[#334155] shrink-0">
+        <div className="px-4 py-2 bg-paper-sunk border-b border-ink/10 text-xs text-ink-2 shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 truncate">
-              <span className="font-mono text-[10px] font-bold uppercase text-[#64748b]">Context:</span>
-              <strong className="text-[#0f172a] truncate">
+              <span className="font-mono text-xs font-bold uppercase text-ink-3">Context:</span>
+              <strong className="text-ink truncate">
                 {context?.projectTitle || "Active Project"}
               </strong>
               {context?.activeMilestone && (
-                <span className="text-[11px] text-slate-500 truncate">
+                <span className="text-xs text-slate-500 truncate">
                   · Step {context.activeMilestone.step}
                 </span>
               )}
@@ -273,7 +279,7 @@ export function AskYourDevDrawer({
             <button
               type="button"
               onClick={() => setShowContextDetails(!showContextDetails)}
-              className="text-[11px] text-[#475569] hover:text-[#0f172a] flex items-center gap-0.5 font-medium shrink-0 ml-2"
+              className="text-xs text-ink-2 hover:text-ink flex items-center gap-0.5 font-medium shrink-0 ml-2 py-2 px-1 -my-2"
             >
               <span>{showContextDetails ? "Hide" : "Inspect"}</span>
               {showContextDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -281,22 +287,22 @@ export function AskYourDevDrawer({
           </div>
 
           {showContextDetails && (
-            <div className="mt-2 pt-2 border-t border-[#18191a]/10 text-[11px] space-y-1 text-slate-600">
+            <div className="mt-2 pt-2 border-t border-ink/10 text-xs space-y-1 text-slate-600">
               {context?.techStack && context.techStack.length > 0 && (
                 <div>
-                  <span className="font-mono text-[10px] text-slate-400">Stack: </span>
+                  <span className="font-mono text-xs text-slate-400">Stack: </span>
                   {context.techStack.join(", ")}
                 </div>
               )}
               {context?.activeMilestone && (
                 <div>
-                  <span className="font-mono text-[10px] text-slate-400">Goal: </span>
+                  <span className="font-mono text-xs text-slate-400">Goal: </span>
                   {context.activeMilestone.goal}
                 </div>
               )}
               {context?.userErrorMessage && (
                 <div className="text-amber-800 bg-amber-50 p-1.5 rounded border border-amber-200">
-                  <span className="font-mono text-[10px] font-bold">Recent Error: </span>
+                  <span className="font-mono text-xs font-bold">Recent Error: </span>
                   {context.userErrorMessage}
                 </div>
               )}
@@ -314,21 +320,26 @@ export function AskYourDevDrawer({
                 className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
               >
                 <div className="flex items-center gap-1.5 mb-1 px-1">
-                  <span className="text-[10.5px] font-mono text-slate-500 font-medium">
-                    {isUser ? "You" : "Ask YourDev"}
+                  {!isUser && (
+                    <div className="w-4 h-4 rounded-full overflow-hidden border border-emerald-500/40 shrink-0">
+                      <img src="/images/devi-avatar-128.jpg" alt="" width={16} height={16} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <span className="text-xs font-mono text-slate-600 font-semibold">
+                    {isUser ? "You" : "Devi (Mentor)"}
                   </span>
                   {msg.isOffline && !isUser && (
-                    <span className="text-[9.5px] font-mono uppercase px-1 py-0.2 bg-amber-100 text-amber-800 rounded font-semibold border border-amber-200">
+                    <span className="text-[11px] font-mono uppercase px-1 py-0.2 bg-amber-100 text-amber-800 rounded font-semibold border border-amber-200">
                       Offline Mode
                     </span>
                   )}
                 </div>
 
                 <div
-                  className={`max-w-[92%] rounded-2xl px-4 py-3 text-xs leading-relaxed shadow-2xs ${
+                  className={`max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-2xs ${
                     isUser
-                      ? "bg-[#18191a] text-white rounded-br-xs"
-                      : "bg-white text-[#1c1a17] border border-[#18191a]/10 rounded-bl-xs"
+                      ? "bg-ink text-white rounded-br-xs"
+                      : "bg-white text-ink border border-ink/10 rounded-bl-xs"
                   }`}
                 >
                   {isUser ? (
@@ -344,11 +355,11 @@ export function AskYourDevDrawer({
           {isLoading && (
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-1.5 mb-1 px-1">
-                <span className="text-[10.5px] font-mono text-slate-500 font-medium">
+                <span className="text-xs font-mono text-slate-500 font-medium">
                   Ask YourDev
                 </span>
               </div>
-              <div className="bg-white border border-[#18191a]/10 rounded-2xl rounded-bl-xs px-4 py-3 text-xs text-slate-600 flex items-center gap-2 shadow-2xs">
+              <div className="bg-white border border-ink/10 rounded-2xl rounded-bl-xs px-4 py-3 text-xs text-slate-600 flex items-center gap-2 shadow-2xs">
                 <div className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
                 <span>Consulting mentor...</span>
               </div>
@@ -363,7 +374,7 @@ export function AskYourDevDrawer({
                 <button
                   type="button"
                   onClick={() => handleSendMessage()}
-                  className="mt-1 text-[11px] text-rose-700 underline font-medium hover:text-rose-900"
+                  className="mt-1 text-xs text-rose-700 underline font-medium hover:text-rose-900"
                 >
                   Retry request
                 </button>
@@ -376,8 +387,8 @@ export function AskYourDevDrawer({
 
         {/* Quick Suggestion Chips */}
         {messages.length <= 2 && (
-          <div className="px-4 py-2 border-t border-[#18191a]/08 bg-[#fdfcf9] shrink-0">
-            <span className="text-[10px] font-mono uppercase text-slate-500 font-semibold block mb-1.5">
+          <div className="px-4 py-2 border-t border-ink/[0.08] bg-paper shrink-0">
+            <span className="text-xs font-mono uppercase text-slate-500 font-semibold block mb-1.5">
               Suggested Questions:
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -391,7 +402,7 @@ export function AskYourDevDrawer({
                   type="button"
                   onClick={() => handleSendMessage(chip)}
                   disabled={isLoading}
-                  className="text-[11px] bg-white border border-[#18191a]/15 hover:border-[#18191a]/40 px-2.5 py-1 rounded-full text-slate-700 hover:text-black transition-colors disabled:opacity-50 text-left"
+                  className="text-[13px] bg-white border border-ink/15 hover:border-ink/40 px-3 py-1.5 rounded-md text-slate-700 hover:text-black transition-colors disabled:opacity-50 text-left"
                 >
                   {chip}
                 </button>
@@ -401,7 +412,7 @@ export function AskYourDevDrawer({
         )}
 
         {/* Input Box Footer */}
-        <div className="p-4 bg-white border-t border-[#18191a]/10 shrink-0">
+        <div className="p-4 bg-white border-t border-ink/10 shrink-0">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -411,6 +422,7 @@ export function AskYourDevDrawer({
           >
             <div className="relative">
               <textarea
+                aria-label="Message Devi"
                 ref={textareaRef}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
@@ -423,24 +435,25 @@ export function AskYourDevDrawer({
                 disabled={isLoading}
                 rows={3}
                 placeholder="Ask about your code, errors, or next milestone... (Enter to send, Shift+Enter for newline)"
-                className="w-full text-xs p-3 pr-10 rounded-xl border border-[#18191a]/20 focus:outline-hidden focus:border-[#18191a] focus:ring-1 focus:ring-[#18191a] resize-none bg-[#fdfcf9] placeholder:text-slate-400 disabled:opacity-60"
+                className="w-full text-base sm:text-sm p-3 pr-12 rounded-xl border border-ink/20 focus:outline-hidden focus:border-ink focus:ring-1 focus:ring-ink resize-none bg-paper placeholder:text-slate-400 disabled:opacity-60"
               />
 
               <button
                 type="submit"
                 disabled={isLoading || !inputText.trim()}
                 title="Send message"
-                className="absolute right-2.5 bottom-3.5 p-1.5 bg-[#18191a] text-white rounded-lg hover:bg-black transition-colors disabled:opacity-40 disabled:hover:bg-[#18191a]"
+                aria-label="Send message"
+                className="absolute right-2.5 bottom-3.5 p-2.5 bg-ink text-white rounded-lg hover:bg-black transition-colors disabled:opacity-40 disabled:hover:bg-ink"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="flex items-center justify-between text-[11px] text-slate-500">
-              <span className="text-[10px] font-mono">
+            <div className="flex items-center justify-between text-xs text-slate-500">
+              <span className="text-xs font-mono">
                 {inputText.length > 0 ? `${inputText.length} / 2000 chars` : "Press Enter to send"}
               </span>
-              <span className="text-[10px] text-slate-400">
+              <span className="text-xs text-slate-400">
                 Safe inert markdown · No autonomous execution
               </span>
             </div>

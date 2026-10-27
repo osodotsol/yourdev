@@ -3,17 +3,16 @@
 import React, { useState, useEffect } from "react";
 import { TopNav } from "@/components/TopNav";
 import { HeroSection } from "@/components/HeroSection";
-import { PillarsBar } from "@/components/PillarsBar";
 import { ProblemSection } from "@/components/ProblemSection";
 import { HowItWorksSection } from "@/components/HowItWorksSection";
 import { ConsoleSection } from "@/components/ConsoleSection";
 import { OutputSection } from "@/components/OutputSection";
+import { MentorSection } from "@/components/MentorSection";
 import { SiteFooter } from "@/components/SiteFooter";
 import { IdeaBlueprint } from "@/types/blueprint";
 import { generateBlueprint } from "@/lib/fallbackGenerator";
 import { loadSession, saveSession, clearSession } from "@/lib/persistence";
 import { AskYourDevDrawer } from "@/components/AskYourDevDrawer";
-import { Sparkles } from "lucide-react";
 
 const DEFAULT_SAMPLE_BLUEPRINT: IdeaBlueprint = generateBlueprint(
   "I want to build a simple habit tracker with AI that helps me stay consistent, gives me daily reminders, and awards fun badges when I hit a 7-day streak."
@@ -81,20 +80,19 @@ export default function Home() {
     clearSession();
   };
 
+  const openMentor = () => setIsMentorOpen(true);
+
   return (
-    <main className="min-h-screen relative">
-      <div className="app-backdrop" />
+    <>
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
 
-      {/* Floating Pill Nav */}
-      <TopNav onOpenMentor={() => setIsMentorOpen(true)} />
+      {/* Sticky header; Ask Devi stays reachable at every width */}
+      <TopNav onOpenMentor={openMentor} />
 
-      {/* Main Container */}
-      <div className="page-container">
-        {/* Hero Section */}
+      <main id="main" className="page-container">
         <HeroSection />
-
-        {/* 4-Feature Strip */}
-        <PillarsBar />
 
         {/* 01 / The Problem */}
         <ProblemSection />
@@ -113,39 +111,12 @@ export default function Home() {
 
         {/* 04 / The Output Specification (#output) */}
         <OutputSection />
-      </div>
 
-      {/* Dark Craft Footer */}
+        {/* 05 / Mentor */}
+        <MentorSection onOpenMentor={openMentor} />
+      </main>
+
       <SiteFooter />
-
-      {/* Floating Ask YourDev Mentor Trigger */}
-      <button
-        id="ask-yourdev-trigger"
-        type="button"
-        onClick={() => setIsMentorOpen(true)}
-        aria-label="Open Ask YourDev coding mentor"
-        style={{
-          position: "fixed",
-          bottom: "24px",
-          right: "24px",
-          zIndex: 40,
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          padding: "10px 18px",
-          borderRadius: "30px",
-          background: "#18191a",
-          color: "#ffffff",
-          fontSize: "12.5px",
-          fontWeight: 600,
-          border: "1px solid rgba(255, 255, 255, 0.25)",
-          boxShadow: "0 8px 24px rgba(0, 0, 0, 0.18)",
-          cursor: "pointer",
-        }}
-      >
-        <Sparkles className="w-4 h-4 text-emerald-400" />
-        <span>Ask YourDev</span>
-      </button>
 
       {/* Ask YourDev Mentor Side Drawer */}
       <AskYourDevDrawer
@@ -170,9 +141,9 @@ export default function Home() {
       />
 
       {/* Toast Notification */}
-      <div className={`craft-toast ${showToast ? "show" : ""}`}>
+      <div className={`craft-toast ${showToast ? "show" : ""}`} role="status" aria-live="polite">
         {toastMessage}
       </div>
-    </main>
+    </>
   );
 }
